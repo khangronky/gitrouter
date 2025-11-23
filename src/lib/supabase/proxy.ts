@@ -1,12 +1,14 @@
 import { createServerClient } from '@supabase/ssr';
+import type { JwtPayload } from '@supabase/supabase-js';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import type { Database } from '@/types/supabase';
 import { checkEnvVariables } from './common';
 
-export async function updateSession(
-  request: NextRequest
-): Promise<NextResponse> {
+export async function updateSession(request: NextRequest): Promise<{
+  res: NextResponse;
+  user: JwtPayload | null;
+}> {
   try {
     let supabaseResponse = NextResponse.next({
       request,
@@ -41,18 +43,6 @@ export async function updateSession(
     const { data } = await supabase.auth.getClaims();
     const user = data?.claims;
 
-    if (
-      request.nextUrl.pathname !== '/' &&
-      !user &&
-      !request.nextUrl.pathname.startsWith('/login') &&
-      !request.nextUrl.pathname.startsWith('/auth')
-    ) {
-      // no user, potentially respond by redirecting the user to the login page
-      const url = request.nextUrl.clone();
-      url.pathname = '/auth/login';
-      return NextResponse.redirect(url);
-    }
-
     // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
     // creating a new response object with NextResponse.next() make sure to:
     // 1. Pass the request in it, like so:
@@ -66,9 +56,15 @@ export async function updateSession(
     // If this is not done, you may be causing the browser and server to go out
     // of sync and terminate the user's session prematurely!
 
-    return supabaseResponse;
+    return {
+      res: supabaseResponse,
+      user: user || null,
+    };
   } catch (error) {
     console.error('Error updating session:', error);
-    return NextResponse.next({ request });
+    return {
+      res: NextResponse.next({ request }),
+      user: null,
+    };
   }
 }

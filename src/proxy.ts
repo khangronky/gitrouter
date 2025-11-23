@@ -1,8 +1,52 @@
-import type { NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
+import { AUTH_PATHS, PUBLIC_PATHS } from './constants/common';
 import { updateSession } from './lib/supabase/proxy';
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request);
+  const { res, user } = await updateSession(request);
+
+  // Determine if the current path is public
+  const isPublicPath =
+    request.nextUrl.pathname === '/' ||
+    [...PUBLIC_PATHS, ...AUTH_PATHS].some((path) =>
+      request.nextUrl.pathname.startsWith(path)
+    );
+
+  if (!isPublicPath && !user) {
+    const reqOrigin = request.nextUrl.origin;
+    const path = request.nextUrl.pathname;
+
+    // Encode the full returnUrl to redirect back after login
+    const returnUrl = encodeURIComponent(path);
+
+    // Redirect to the central login page with the returnUrl as a query parameter
+    const loginUrl = `${reqOrigin}/login?returnUrl=${returnUrl}`;
+
+    console.log('Redirecting to:', loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+
+    return redirectResponse;
+  }
+
+  const isAuthPath = AUTH_PATHS.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  if (isAuthPath && user) {
+    const reqOrigin = request.nextUrl.origin;
+    const searchParams = request.nextUrl.searchParams;
+    const returnUrl = searchParams.get('returnUrl') || '/';
+    const decodedReturnUrl = decodeURIComponent(returnUrl);
+
+    const protectedUrl = `${reqOrigin}${decodedReturnUrl}`;
+
+    console.log('Redirecting to:', protectedUrl);
+    const redirectResponse = NextResponse.redirect(protectedUrl);
+
+    return redirectResponse;
+  }
+
+  return res;
 }
 
 export const config = {
