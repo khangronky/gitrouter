@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const formSchema = z.object({
-  email: z.string().email(),
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
   password: z.string().min(8),
   confirmPassword: z.string().min(8),
 }).refine((data) => data.password === data.confirmPassword, {
