@@ -1,15 +1,20 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { useRegisterMutation } from '@/lib/api/mutations';
+
+// Zod Schema
+import { registerSchema, type RegisterSchema } from '@/lib/schema/auth';
+import { z } from 'zod';
+
+
 import {
   Form,
   FormControl,
@@ -20,27 +25,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-const formSchema = z
-  .object({
-    email: z.email('Invalid email address'),
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { mutate: register, isPending } = useRegisterMutation();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -49,32 +44,25 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    try {
-      setIsLoading(true);
-
-      const response = await axios.post('/api/auth/register', {
+    register(
+      {
         email: values.email,
         password: values.password,
         confirmPassword: values.confirmPassword,
-      });
-
-      if (response.status === 200) {
-        toast.success('Registration successful!');
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-
-      if (axios.isAxiosError(error) && error.response) {
-        const errorMessage =
-          error.response.data?.error || 'Registration failed';
-        toast.error(errorMessage);
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          toast.success('Registration successful!');
+          router.push('/');
+        },
+        onError: (error: any) => {
+          console.error('Registration error:', error);
+          const errorMessage =
+            error?.info?.error || 'Registration failed';
+          toast.error(errorMessage);
+        },
+      },
+    );
   };
 
   return (
@@ -169,8 +157,8 @@ export default function RegisterPage() {
                 )}
               />
               <div className="flex flex-col gap-2">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Registering...' : 'Register'}
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending ? 'Registering...' : 'Register'}
                 </Button>
                 <p className="text-right text-gray-500 text-sm">
                   Already have an account?{' '}
