@@ -22,9 +22,7 @@ import { Input } from '@/components/ui/input';
 
 const formSchema = z
   .object({
-    email: z
-      .string()
-      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email address'),
+    email: z.email('Invalid email address'),
     password: z.string().min(8),
     confirmPassword: z.string().min(8),
   })
@@ -60,9 +58,9 @@ export default function RegisterPage() {
         confirmPassword: values.confirmPassword,
       });
 
-      if (response.status === 201) {
-        toast.success('Registration successful! Redirecting to login...');
-        router.push('/login');
+      if (response.status === 200) {
+        toast.success('Registration successful!');
+        router.push('/');
       }
     } catch (error) {
       console.error('Registration error:', error);

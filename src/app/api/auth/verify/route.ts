@@ -3,18 +3,10 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 
 // Validation schema matching client-side validation
-const registerSchema = z
-  .object({
-    email: z.email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
+const registerSchema = z.object({
+  email: z.email('Invalid email address'),
+  otp: z.number().min(6, 'OTP must be at least 6 digits'),
+});
 
 export async function POST(request: Request) {
   try {
@@ -33,26 +25,29 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password } = validation.data;
+    const { email, otp } = validation.data;
 
-    // Create Supabase client
     const supabase = await createClient();
 
-    // Sign up user with Supabase auth
-    // Note: To bypass email verification, disable "Confirm email" in Supabase Dashboard
-    // (Authentication → Providers → Email)
-    const { error } = await supabase.auth.signUp({
+    // Verify the OTP
+    const { error } = await supabase.auth.verifyOtp({
       email,
-      password,
+      token: otp.toString(),
+      type: 'email',
     });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json(
       {
-        message: 'OTP sent successfully!',
+        message: 'Registration successful',
       },
       { status: 200 }
     );
