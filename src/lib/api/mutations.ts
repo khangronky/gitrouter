@@ -1,22 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import { fetcher } from './api';
+import { type RegisterSchema, type RegisterResponseType } from '../schema/auth';
 
 // ===== Register Mutation =====
-interface RegisterPayload {
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-interface RegisterResponse {
-  status: number;
-  message?: string;
-}
-
 export const useRegisterMutation = () => {
   return useMutation({
-    mutationFn: async (payload: RegisterPayload): Promise<RegisterResponse> => {
-      return fetcher<RegisterResponse>('/auth/register', {
+    mutationFn: async (payload: RegisterSchema): Promise<RegisterResponseType> => {
+      return fetcher<RegisterResponseType>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload),
       });

@@ -9,12 +9,6 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useRegisterMutation } from '@/lib/api/mutations';
-
-// Zod Schema
-import { registerSchema, type RegisterSchema } from '@/lib/schema/auth';
-import { z } from 'zod';
-
-
 import {
   Form,
   FormControl,
@@ -25,8 +19,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-
-type FormValues = z.infer<typeof registerSchema>;
+// Zod Schema
+import { registerSchema, type RegisterSchema } from '@/lib/schema/auth';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +28,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { mutate: register, isPending } = useRegisterMutation();
 
-  const form = useForm<FormValues>({
+  const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: '',
@@ -43,7 +37,7 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: RegisterSchema) => {
     register(
       {
         email: values.email,

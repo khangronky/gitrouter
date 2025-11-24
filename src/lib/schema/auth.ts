@@ -11,4 +11,9 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+export interface RegisterResponseType {
+  status: number;
+  message?: string;
+}
+
 export type RegisterSchema = z.infer<typeof registerSchema>;
