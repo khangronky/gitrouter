@@ -40,7 +40,7 @@ export default function RegisterPage() {
   const [isPending, setIsPending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [userEmail, _setUserEmail] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const router = useRouter();
 
@@ -76,11 +76,15 @@ export default function RegisterPage() {
         method: 'POST',
         body: JSON.stringify(values),
       });
-      toast.success('OTP sent successfully! Check your email.');
-      setUserEmail(values.email);
-      setOtpSent(true);
-      setCooldown(60);
-      otpForm.setValue('email', values.email);
+      // toast.success('OTP sent successfully! Check your email.');
+      // setUserEmail(values.email);
+      // setOtpSent(true);
+      // setCooldown(60);
+      // otpForm.setValue('email', values.email);
+
+      // Temporarily bypass OTP verification
+      toast.success('Registration successful!');
+      router.push('/');
     } catch (error: any) {
       console.error('Registration error:', error);
       const errorMessage = error?.info?.error || 'Registration failed';
