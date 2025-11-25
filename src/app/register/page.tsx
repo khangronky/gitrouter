@@ -79,7 +79,7 @@ export default function RegisterPage() {
       toast.success('OTP sent successfully! Check your email.');
       setUserEmail(values.email);
       setOtpSent(true);
-      setCooldown(30);
+      setCooldown(60);
       otpForm.setValue('email', values.email);
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -101,7 +101,7 @@ export default function RegisterPage() {
         body: JSON.stringify(values),
       });
       toast.success('OTP resent successfully!');
-      setCooldown(30);
+      setCooldown(60);
     } catch (error: any) {
       console.error('Resend OTP error:', error);
       const errorMessage = error?.info?.error || 'Failed to resend OTP';

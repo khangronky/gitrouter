@@ -26,8 +26,6 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // Sign up user with Supabase auth
-    // Note: To bypass email verification, disable "Confirm email" in Supabase Dashboard
-    // (Authentication → Providers → Email)
     const { error } = await supabase.auth.signUp({
       email,
       password,
