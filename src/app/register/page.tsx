@@ -12,7 +12,6 @@ import { useRegister } from "@/lib/api/auth";
 
 // Zod Schema
 import { registerSchema, type RegisterSchema } from "@/lib/schema/auth";
-import { z } from "zod";
 
 import {
   Form,
@@ -24,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-type FormValues = z.infer<typeof registerSchema>;
+
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +31,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const registerMutation = useRegister();
 
-  const form = useForm<FormValues>({
+  const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
@@ -41,7 +40,7 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: RegisterSchema) => {
     registerMutation.mutate(
       {
         email: values.email,
