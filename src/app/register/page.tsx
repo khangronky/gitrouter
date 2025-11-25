@@ -8,7 +8,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { useRegisterMutation } from '@/lib/api/mutations';
 import {
   Form,
   FormControl,
@@ -18,15 +17,20 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { fetcher } from '@/lib/api';
 
 // Zod Schema
-import { registerSchema, type RegisterSchema } from '@/lib/schema/auth';
+import {
+  type RegisterResponseType,
+  type RegisterSchema,
+  registerSchema,
+} from '@/lib/schema/auth';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const router = useRouter();
-  const { mutate: register, isPending } = useRegisterMutation();
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
@@ -38,25 +42,21 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (values: RegisterSchema) => {
-    register(
-      {
-        email: values.email,
-        password: values.password,
-        confirmPassword: values.confirmPassword,
-      },
-      {
-        onSuccess: () => {
-          toast.success('Registration successful!');
-          router.push('/');
-        },
-        onError: (error: any) => {
-          console.error('Registration error:', error);
-          const errorMessage =
-            error?.info?.error || 'Registration failed';
-          toast.error(errorMessage);
-        },
-      },
-    );
+    setIsPending(true);
+    try {
+      await fetcher<RegisterResponseType>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(values),
+      });
+      toast.success('Registration successful!');
+      router.push('/');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      const errorMessage = error?.info?.error || 'Registration failed';
+      toast.error(errorMessage);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
