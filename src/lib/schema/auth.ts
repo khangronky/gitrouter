@@ -11,9 +11,20 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+export const verifyOtpSchema = z.object({
+  email: z.email("Invalid email address"),
+  otp: z.string().length(6, "OTP must be exactly 6 digits"),
+});
+
 export interface RegisterResponseType {
   status: number;
   message?: string;
 }
 
+export interface VerifyOtpResponseType {
+  status: number;
+  message?: string;
+}
+
 export type RegisterSchema = z.infer<typeof registerSchema>;
+export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;

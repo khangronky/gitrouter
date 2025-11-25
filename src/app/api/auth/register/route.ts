@@ -1,20 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { registerSchema } from '@/lib/schema/auth';
 import { createClient } from '@/lib/supabase/server';
-
-// Validation schema matching client-side validation
-const registerSchema = z
-  .object({
-    email: z.email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
 
 export async function POST(request: Request) {
   try {
