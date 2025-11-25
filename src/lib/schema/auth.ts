@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+
+/**
+ * Register Schema
+ */
 export const registerSchema = z
   .object({
     email: z.email({ message: "Invalid email address" }),
@@ -24,11 +28,18 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+
+/**
+ * Verify OTP Schema
+ */
 export const verifyOtpSchema = z.object({
   email: z.email({ message: "Invalid email address" }),
   otp: z.string().length(6, "OTP must be exactly 6 digits"),
 });
 
+/**
+ * Response Types
+ */
 export interface RegisterResponseType {
   status: number;
   message?: string;
@@ -39,5 +50,8 @@ export interface VerifyOtpResponseType {
   message?: string;
 }
 
+/**
+ * Infer Types
+ */
 export type RegisterSchema = z.infer<typeof registerSchema>;
 export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;
