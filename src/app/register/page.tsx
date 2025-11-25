@@ -98,23 +98,34 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <div className='relative'>
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder='Fill in your password'
-                          {...field}
-                        />
-                        <button
-                          type='button'
-                          onClick={() => setShowPassword(!showPassword)}
-                          className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700'
-                        >
-                          {showPassword ? (
-                            <EyeOff size={18} />
-                          ) : (
-                            <Eye size={18} />
-                          )}
-                        </button>
+                      <div className='flex flex-col gap-2'>
+                        <div className='relative'>
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder='Fill in your password'
+                            {...field}
+                          />
+                          <button
+                            type='button'
+                            onClick={() => setShowPassword(!showPassword)}
+                            className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700'
+                          >
+                            {showPassword ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
+                          </button>
+                        </div>
+                        <p className='text-xs text-gray-500'>
+                          <ul>
+                            <li>At least 12 characters</li>
+                            <li>Contains at least one uppercase letter</li>
+                            <li>Contains at least one lowercase letter</li>
+                            <li>Contains at least one number</li>
+                            <li>Contains at least one special character</li>
+                          </ul>
+                        </p>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -154,12 +165,16 @@ export default function RegisterPage() {
                 )}
               />
               <div className='flex flex-col gap-2'>
-                <Button type='submit' className='w-full' disabled={registerMutation.isPending}>
+                <Button
+                  type='submit'
+                  className='w-full'
+                  disabled={registerMutation.isPending}
+                >
                   {registerMutation.isPending ? "Registering..." : "Register"}
                 </Button>
                 <p className='text-right text-gray-500 text-sm'>
                   Already have an account?{" "}
-                  <Link href='/login' className='text-primary-500'>
+                  <Link href='/login' className='text-primary-500 underline'>
                     Login
                   </Link>
                 </p>
