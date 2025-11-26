@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,12 +22,16 @@ import {
   type LoginSchema,
   loginSchema,
 } from '@/lib/schema/auth';
+import { useUserStore } from '@/stores/user-store';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { mutate, isPending } = loginMutation();
+  const setUser = useUserStore((state) => state.setUser);
 
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -44,9 +48,23 @@ export default function LoginPage() {
         password: values.password,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          // Extract name from email (before @) as fallback
+          const emailName = data.user.email.split('@')[0];
+          const displayName = emailName
+            .split(/[._-]/)
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ');
+
+          setUser({
+            id: data.user.id,
+            email: data.user.email,
+            name: displayName,
+            avatar: ""
+          });
           toast.success('Login successful!');
-          router.push('/');
+          router.push(returnUrl);
+          router.refresh();
         },
         onError: (error: any) => {
           console.error('Login error:', error);

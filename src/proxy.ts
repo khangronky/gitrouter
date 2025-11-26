@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
   if (isAuthPath && user) {
     const reqOrigin = request.nextUrl.origin;
     const searchParams = request.nextUrl.searchParams;
-    const returnUrl = searchParams.get('returnUrl') || '/';
+    const returnUrl = searchParams.get('returnUrl') || '/dashboard';
     const decodedReturnUrl = decodeURIComponent(returnUrl);
 
     const protectedUrl = `${reqOrigin}${decodedReturnUrl}`;
