@@ -7,7 +7,7 @@ interface ErrorWithInfo extends Error {
 
 interface FetchOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  body?: string;
+  body?: unknown;
   headers?: Record<string, string>;
 }
 

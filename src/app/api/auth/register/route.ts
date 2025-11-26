@@ -1,20 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { registerSchema } from '@/lib/schema/auth';
 import { createClient } from '@/lib/supabase/server';
-
-// Validation schema matching client-side validation
-const registerSchema = z
-  .object({
-    email: z.email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
 
 export async function POST(request: Request) {
   try {
@@ -39,8 +26,6 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // Sign up user with Supabase auth
-    // Note: To bypass email verification, disable "Confirm email" in Supabase Dashboard
-    // (Authentication → Providers → Email)
     const { error } = await supabase.auth.signUp({
       email,
       password,
