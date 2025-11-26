@@ -38,7 +38,7 @@
     "**/app/**/route.ts": "${dirname} - API Route",
     "**/components/**/index.tsx": "${dirname} - Component"
   },
-  "tailwindCSS.experimental.configFile": "packages/ui/src/globals.css",
+  "tailwindCSS.experimental.configFile": "src/app/globals.css",
   "typescript.experimental.useTsgo": false,
   "vitest.disableWorkspaceWarning": true
 }
