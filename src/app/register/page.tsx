@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,9 +17,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { fetcher } from '@/lib/api';
+import { registerMutation } from '@/lib/api/auth';
 import {
-  type RegisterResponseType,
   type RegisterSchema,
   registerSchema,
 } from '@/lib/schema/auth';
@@ -29,17 +27,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-
-  const registerMutation = useMutation({
-    mutationFn: async (
-      payload: RegisterSchema
-    ): Promise<RegisterResponseType> => {
-      return fetcher<RegisterResponseType>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-    },
-  });
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
@@ -51,7 +38,7 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (values: RegisterSchema) => {
-    registerMutation.mutate(
+    registerMutation().mutate(
       {
         email: values.email,
         password: values.password,
@@ -177,9 +164,9 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   className="w-full bg-primary-500 hover:bg-primary-500/90"
-                  disabled={registerMutation.isPending}
+                  disabled={registerMutation().isPending}
                 >
-                  {registerMutation.isPending ? 'Registering...' : 'Register'}
+                  {registerMutation().isPending ? 'Registering...' : 'Register'}
                 </Button>
                 <p className="text-right text-gray-500 text-sm">
                   Already have an account?{' '}
