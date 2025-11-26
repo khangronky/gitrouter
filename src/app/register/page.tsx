@@ -27,6 +27,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const { mutate, isPending } = registerMutation();
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
@@ -38,7 +39,7 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (values: RegisterSchema) => {
-    registerMutation().mutate(
+    mutate(
       {
         email: values.email,
         password: values.password,
@@ -164,9 +165,9 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   className="w-full bg-primary-500 hover:bg-primary-500/90"
-                  disabled={registerMutation().isPending}
+                  disabled={isPending}
                 >
-                  {registerMutation().isPending ? 'Registering...' : 'Register'}
+                  {isPending ? 'Registering...' : 'Register'}
                 </Button>
                 <p className="text-right text-gray-500 text-sm">
                   Already have an account?{' '}

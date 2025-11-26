@@ -26,7 +26,7 @@ import {
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-
+  const { mutate, isPending } = loginMutation();
 
 
   const form = useForm<LoginSchema>({
@@ -38,7 +38,7 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginSchema) => {
-    loginMutation().mutate(
+    mutate(
       {
         email: values.email,
         password: values.password,
@@ -123,9 +123,9 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   className="bg-primary-500 hover:bg-primary-500/90"
-                  disabled={loginMutation().isPending}
+                  disabled={isPending}
                 >
-                  {loginMutation().isPending ? 'Logging in...' : 'Login'}
+                  {isPending ? 'Logging in...' : 'Login'}
                 </Button>
                 <p className="text-right text-gray-500 text-sm">
                   Don&apos;t have an account?{' '}
