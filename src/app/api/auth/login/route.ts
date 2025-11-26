@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
 
 // Validation schema matching client-side validation
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export async function POST(request: Request) {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (!validation.success) {
       return NextResponse.json(
         {
-          error: 'Validation failed',
+          error: "Validation failed",
           details: z.treeifyError(validation.error),
         },
         { status: 400 }
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // Sign in user with Supabase auth
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -42,14 +42,19 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: 'Login successful!',
+        message: "Login successful!",
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.user_metadata.name,
+        },
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
