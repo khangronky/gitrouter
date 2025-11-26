@@ -35,22 +35,43 @@ export async function POST(request: Request) {
       email,
       password,
     });
+    
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
-    return NextResponse.json(
+    // Create response with user data
+    const response = NextResponse.json(
       {
         message: "Login successful!",
         user: {
           id: data.user.id,
           email: data.user.email,
-          name: data.user.user_metadata.name,
         },
       },
       { status: 200 }
     );
+
+    // Set access token as httpOnly cookie
+    response.cookies.set("access_token", data.session.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60, // 1 hour
+      path: "/",
+    });
+
+    // Set refresh token as httpOnly cookie
+    response.cookies.set("refresh_token", data.session.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

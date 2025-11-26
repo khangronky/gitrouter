@@ -1,159 +1,65 @@
-'use client';
+import Image from 'next/image';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { loginMutation } from '@/lib/api/auth';
-import {
-  type LoginSchema,
-  loginSchema,
-} from '@/lib/schema/auth';
-
-export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
-  const { mutate, isPending } = loginMutation();
-
-
-  const form = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-
-  const onSubmit = async (values: LoginSchema) => {
-    mutate(
-      {
-        email: values.email,
-        password: values.password,
-      },
-      {
-        onSuccess: () => {
-          toast.success('Login successful!');
-          router.push('/');
-        },
-        onError: (error: any) => {
-          console.error('Login error:', error);
-          const errorMessage = error?.info?.error || 'Login failed';
-          toast.error(errorMessage);
-        },
-      }
-    );
-  };
-
+export default function Home() {
   return (
-    <section className="flex h-screen flex-col justify-center px-16">
-      <div className="flex flex-col gap-4">
-        <div className="space-y-1">
-          <h1 className="font-bold text-5xl">Welcome to GitRouter</h1>
-          <p className="text-base text-gray-500">
-            Login to your account to continue to GitRouter
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">
+        <Image
+          className="dark:invert"
+          src="/next.svg"
+          alt="Next.js logo"
+          width={100}
+          height={20}
+          priority
+        />
+        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+          <h1 className="max-w-xs font-semibold text-3xl text-black leading-10 tracking-tight dark:text-zinc-50">
+            To get started, edit the page.tsx file.
+          </h1>
+          <p className="max-w-md text-lg text-zinc-600 leading-8 dark:text-zinc-400">
+            Looking for a starting point or more instructions? Head over to{' '}
+            <a
+              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Templates
+            </a>{' '}
+            or the{' '}
+            <a
+              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Learning
+            </a>{' '}
+            center.
           </p>
         </div>
-
-        <div className="w-full max-w-md space-y-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Fill out your email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Fill out your password"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? (
-                            <EyeOff size={18} />
-                          ) : (
-                            <Eye size={18} />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />  
-
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="submit"
-                  className="bg-primary-500 hover:bg-primary-500/90"
-                  disabled={isPending}
-                >
-                  {isPending ? 'Logging in...' : 'Login'}
-                </Button>
-                <p className="text-right text-gray-500 text-sm">
-                  Don&apos;t have an account?{' '}
-                  <Link href="/register" className="text-primary-500 underline">
-                    Sign up
-                  </Link>
-                </p>
-              </div>
-
-              <p className="text-gray-500 text-xs">
-                By logging in, you agree to our{' '}
-                <Link href="/terms" className="underline">
-                  Terms of Service
-                </Link>
-                , and acknowledge our{' '}
-                <Link href="/privacy" className="underline">
-                  Privacy Policy
-                </Link>{' '}
-                and{' '}
-                <Link href="/cookies" className="underline">
-                  Cookie Policy
-                </Link>
-                .
-              </p>
-            </form>
-          </Form>
+        <div className="flex flex-col gap-4 font-medium text-base sm:flex-row">
+          <a
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[158px] dark:hover:bg-[#ccc]"
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className="dark:invert"
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={16}
+              height={16}
+            />
+            Deploy Now
+          </a>
+          <a
+            className="flex h-12 w-full items-center justify-center rounded-full border border-black/[.08] border-solid px-5 transition-colors hover:border-transparent hover:bg-black/[.04] md:w-[158px] dark:border-white/[.145] dark:hover:bg-[#1a1a1a]"
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </a>
         </div>
-      </div>
-    </section>
+      </main>
+    </div>
   );
 }

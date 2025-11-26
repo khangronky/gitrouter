@@ -58,7 +58,7 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="flex h-screen flex-col justify-center px-16">
+    <section className="flex h-screen flex-col justify-center px-32">
       <div className="flex flex-col gap-4">
         <div className="space-y-1">
           <h1 className="font-bold text-5xl">Welcome to GitRouter</h1>

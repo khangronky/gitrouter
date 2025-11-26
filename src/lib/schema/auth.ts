@@ -80,6 +80,5 @@ export interface LoginResponseType {
   user: {
     id: string;
     email: string;
-    name: string;
   };
 }
