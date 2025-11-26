@@ -13,43 +13,53 @@ import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
 // Menu items.
-const data = {
-  
-  dashboard: {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: ChartColumnIncreasing,
-    },
-  
-  pull_requests:  [
-    {
-      title: "List",
-      url: "/pull-requests",
-      icon: List,
-    },
-  ],
-  rules: [
-    {
-      title: "Rules Builder",
-      url: "/rules-builder",
-      icon: Factory,
-    },
-  ],
-  analytics: [
-    {
-      title: "Trend",
-      url: "/trend",
-      icon: ChartColumnIncreasing,
-    },
-    {
-      title: "Performance",
-      url: "/performance",
-      icon: ChartLine,
-    },
-  ],
-  
-
-};
+const data = [
+  {
+    header: "",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: ChartColumnIncreasing,
+      },
+    ],
+  },
+  {
+    header: "Pull Requests",
+    items: [
+      {
+        title: "List",
+        url: "/pull-requests",
+        icon: List,
+      },
+    ],
+  },
+  {
+    header: "Rules",
+    items: [
+      {
+        title: "Rules Builder",
+        url: "/rules-builder",
+        icon: Factory,
+      },
+    ],
+  },
+  {
+    header: "Analytics",
+    items: [
+      {
+        title: "Trend",
+        url: "/trend",
+        icon: ChartColumnIncreasing,
+      },
+      {
+        title: "Performance",
+        url: "/performance",
+        icon: ChartLine,
+      },
+    ],
+  },
+]
 export function AppSidebar() {
   const user = useUserStore((state) => state.user);
 
