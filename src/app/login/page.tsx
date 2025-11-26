@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,9 +17,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { fetcher } from '@/lib/api';
+import { loginMutation } from '@/lib/api/auth';
 import {
-  type LoginResponseType,
   type LoginSchema,
   loginSchema,
 } from '@/lib/schema/auth';
@@ -28,15 +26,8 @@ import {
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { mutate, isPending } = loginMutation();
 
-  const loginMutation = useMutation({
-    mutationFn: async (payload: LoginSchema): Promise<LoginResponseType> => {
-      return fetcher<LoginResponseType>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
-    },
-  });
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -47,7 +38,7 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginSchema) => {
-    loginMutation.mutate(
+    mutate(
       {
         email: values.email,
         password: values.password,
@@ -67,7 +58,7 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="flex h-screen flex-col justify-center px-16">
+    <section className="flex h-screen flex-col justify-center px-32">
       <div className="flex flex-col gap-4">
         <div className="space-y-1">
           <h1 className="font-bold text-5xl">Welcome to GitRouter</h1>
@@ -126,19 +117,19 @@ export default function LoginPage() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              />  
 
               <div className="flex flex-col gap-2">
                 <Button
                   type="submit"
                   className="bg-primary-500 hover:bg-primary-500/90"
-                  disabled={loginMutation.isPending}
+                  disabled={isPending}
                 >
-                  {loginMutation.isPending ? 'Logging in...' : 'Login'}
+                  {isPending ? 'Logging in...' : 'Login'}
                 </Button>
                 <p className="text-right text-gray-500 text-sm">
                   Don&apos;t have an account?{' '}
-                  <Link href="/register" className="text-primary-500">
+                  <Link href="/register" className="text-primary-500 underline">
                     Sign up
                   </Link>
                 </p>

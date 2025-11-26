@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // Sign in user with Supabase auth
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -40,12 +40,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
-    return NextResponse.json(
+    // Create response with user data
+    const response = NextResponse.json(
       {
         message: 'Login successful!',
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+        },
       },
       { status: 200 }
     );
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

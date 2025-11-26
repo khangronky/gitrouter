@@ -77,4 +77,8 @@ export interface VerifyOtpResponseType {
 export interface LoginResponseType {
   status: number;
   message?: string;
+  user: {
+    id: string;
+    email: string;
+  };
 }
