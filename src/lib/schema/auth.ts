@@ -55,6 +55,13 @@ export const loginSchema = z.object({
 });
 
 /**
+ * Infer Types
+ */
+export type RegisterSchema = z.infer<typeof registerSchema>;
+export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;
+export type LoginSchema = z.infer<typeof loginSchema>;
+
+/**
  * Response Types
  */
 export interface RegisterResponseType {
@@ -71,10 +78,3 @@ export interface LoginResponseType {
   status: number;
   message?: string;
 }
-
-/**
- * Infer Types
- */
-export type RegisterSchema = z.infer<typeof registerSchema>;
-export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;
-export type LoginSchema = z.infer<typeof loginSchema>;

@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,8 +19,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { fetcher } from '@/lib/api';
-
-// Zod Schema
 import {
   type LoginResponseType,
   type LoginSchema,
@@ -28,8 +27,16 @@ import {
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isPending, setIsPending] = useState(false);
   const router = useRouter();
+
+  const loginMutation = useMutation({
+    mutationFn: async (payload: LoginSchema): Promise<LoginResponseType> => {
+      return fetcher<LoginResponseType>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+  });
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -40,21 +47,23 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: LoginSchema) => {
-    setIsPending(true);
-    try {
-      await fetcher<LoginResponseType>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(values),
-      });
-      toast.success('Login successful!');
-      router.push('/');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      const errorMessage = error?.info?.error || 'Login failed';
-      toast.error(errorMessage);
-    } finally {
-      setIsPending(false);
-    }
+    loginMutation.mutate(
+      {
+        email: values.email,
+        password: values.password,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Login successful!');
+          router.push('/');
+        },
+        onError: (error: any) => {
+          console.error('Login error:', error);
+          const errorMessage = error?.info?.error || 'Login failed';
+          toast.error(errorMessage);
+        },
+      }
+    );
   };
 
   return (
@@ -120,8 +129,12 @@ export default function LoginPage() {
               />
 
               <div className="flex flex-col gap-2">
-                <Button type="submit" className="w-full" disabled={isPending}>
-                  {isPending ? 'Logging in...' : 'Login'}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? 'Logging in...' : 'Login'}
                 </Button>
                 <p className="text-right text-gray-500 text-sm">
                   Don&apos;t have an account?{' '}

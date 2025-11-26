@@ -1,18 +1,14 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { useRegister } from "@/lib/api/auth";
-
-// Zod Schema
-import { registerSchema, type RegisterSchema } from "@/lib/schema/auth";
-
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -20,23 +16,37 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-
-
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { fetcher } from '@/lib/api';
+import {
+  type RegisterResponseType,
+  type RegisterSchema,
+  registerSchema,
+} from '@/lib/schema/auth';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const registerMutation = useRegister();
+
+  const registerMutation = useMutation({
+    mutationFn: async (
+      payload: RegisterSchema
+    ): Promise<RegisterResponseType> => {
+      return fetcher<RegisterResponseType>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+  });
 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -49,12 +59,12 @@ export default function RegisterPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Registration successful!");
-          router.push("/");
+          toast.success('Registration successful!');
+          router.push('/');
         },
         onError: (error: any) => {
-          console.error("Registration error:", error);
-          const errorMessage = error?.info?.error || "Registration failed";
+          console.error('Registration error:', error);
+          const errorMessage = error?.info?.error || 'Registration failed';
           toast.error(errorMessage);
         },
       }
@@ -62,27 +72,27 @@ export default function RegisterPage() {
   };
 
   return (
-    <section className='flex h-screen flex-col justify-center px-16'>
-      <div className='flex flex-col gap-4'>
-        <div className='space-y-1'>
-          <h1 className='font-bold text-5xl'>Welcome to GitRouter</h1>
-          <p className='text-base text-gray-500'>
+    <section className="flex h-screen flex-col justify-center px-16">
+      <div className="flex flex-col gap-4">
+        <div className="space-y-1">
+          <h1 className="font-bold text-5xl">Welcome to GitRouter</h1>
+          <p className="text-base text-gray-500">
             Create an account to continue to GitRouter
           </p>
         </div>
-        <div className='w-full max-w-md space-y-4'>
+        <div className="w-full max-w-md space-y-4">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name='email'
+                name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        type='email'
-                        placeholder='Fill in your email'
+                        type="email"
+                        placeholder="Fill in your email"
                         {...field}
                       />
                     </FormControl>
@@ -92,22 +102,22 @@ export default function RegisterPage() {
               />
               <FormField
                 control={form.control}
-                name='password'
+                name="password"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <div className='flex flex-col gap-2'>
-                        <div className='relative'>
+                      <div className="flex flex-col gap-2">
+                        <div className="relative">
                           <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder='Fill in your password'
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Fill in your password"
                             {...field}
                           />
                           <button
-                            type='button'
+                            type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700'
+                            className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700"
                           >
                             {showPassword ? (
                               <EyeOff size={18} />
@@ -116,7 +126,7 @@ export default function RegisterPage() {
                             )}
                           </button>
                         </div>
-                        <p className='text-xs text-gray-500'>
+                        <p className="text-gray-500 text-xs">
                           <ul>
                             <li>At least 12 characters</li>
                             <li>Contains at least one uppercase letter</li>
@@ -133,23 +143,23 @@ export default function RegisterPage() {
               />
               <FormField
                 control={form.control}
-                name='confirmPassword'
+                name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <div className='relative'>
+                      <div className="relative">
                         <Input
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder='Confirm your password'
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder="Confirm your password"
                           {...field}
                         />
                         <button
-                          type='button'
+                          type="button"
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
                           }
-                          className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700'
+                          className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700"
                         >
                           {showConfirmPassword ? (
                             <EyeOff size={18} />
@@ -163,17 +173,17 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              <div className='flex flex-col gap-2'>
+              <div className="flex flex-col gap-2">
                 <Button
-                  type='submit'
-                  className='w-full'
+                  type="submit"
+                  className="w-full"
                   disabled={registerMutation.isPending}
                 >
-                  {registerMutation.isPending ? "Registering..." : "Register"}
+                  {registerMutation.isPending ? 'Registering...' : 'Register'}
                 </Button>
-                <p className='text-right text-gray-500 text-sm'>
-                  Already have an account?{" "}
-                  <Link href='/login' className='text-primary-500 underline'>
+                <p className="text-right text-gray-500 text-sm">
+                  Already have an account?{' '}
+                  <Link href="/login" className="text-primary-500 underline">
                     Login
                   </Link>
                 </p>
