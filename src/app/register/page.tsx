@@ -176,7 +176,7 @@ export default function RegisterPage() {
               <div className="flex flex-col gap-2">
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-primary-500 hover:bg-primary-500/90"
                   disabled={registerMutation.isPending}
                 >
                   {registerMutation.isPending ? 'Registering...' : 'Register'}

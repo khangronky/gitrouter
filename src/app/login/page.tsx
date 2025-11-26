@@ -131,7 +131,7 @@ export default function LoginPage() {
               <div className="flex flex-col gap-2">
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="bg-primary-500 hover:bg-primary-500/90"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? 'Logging in...' : 'Login'}
