@@ -1,0 +1,65 @@
+name: Supabase Production Migration
+
+on:
+  workflow_run:
+    workflows:
+      - "Vercel GitRouter Production Deployment"
+    types:
+      - completed
+    branches:
+      - production
+  workflow_dispatch:
+
+jobs:
+  check-prerequisites:
+    name: Check prerequisites
+    runs-on: ubuntu-latest
+    # Only check if manually triggered or if workflow_run succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Check Vercel deployment status
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Checking prerequisites for production migration..."
+
+          # Check Vercel production deployment status
+          echo "Checking Vercel production deployment status..."
+          VERCEL_RUN=$(gh api \
+            repos/${{ github.repository }}/actions/workflows/vercel-production.yaml/runs \
+            --jq '.workflow_runs[0] | {conclusion: .conclusion, status: .status, created_at: .created_at}')
+
+          VERCEL_CONCLUSION=$(echo "$VERCEL_RUN" | jq -r '.conclusion')
+          VERCEL_STATUS=$(echo "$VERCEL_RUN" | jq -r '.status')
+
+          echo "Vercel production deployment status: $VERCEL_STATUS"
+          echo "Vercel production deployment conclusion: $VERCEL_CONCLUSION"
+
+          if [ "$VERCEL_CONCLUSION" != "success" ]; then
+            echo "❌ Vercel production deployment has not completed successfully. Cannot proceed with production migration."
+            exit 1
+          fi
+
+          echo "✅ Vercel production deployment completed successfully."
+
+  deploy:
+    name: Migrate production database
+    needs: check-prerequisites
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+      PRODUCTION_PROJECT_ID: ${{ secrets.PRODUCTION_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy migrations to production
+        run: |
+          supabase link --project-ref $PRODUCTION_PROJECT_ID
+          supabase db push
