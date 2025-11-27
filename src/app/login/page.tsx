@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -18,16 +18,15 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { loginMutation } from '@/lib/api/auth';
-import {
-  type LoginSchema,
-  loginSchema,
-} from '@/lib/schema/auth';
+import { type LoginSchema, loginSchema } from '@/lib/schema/auth';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { mutate, isPending } = loginMutation();
 
+  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -44,9 +43,9 @@ export default function LoginPage() {
         password: values.password,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           toast.success('Login successful!');
-          router.push('/');
+          router.push(returnUrl);
         },
         onError: (error: any) => {
           console.error('Login error:', error);
@@ -117,7 +116,7 @@ export default function LoginPage() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />  
+              />
 
               <div className="flex flex-col gap-2">
                 <Button
