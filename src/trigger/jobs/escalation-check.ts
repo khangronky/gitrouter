@@ -1,5 +1,5 @@
 import { schedules } from '@trigger.dev/sdk/v3';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createDynamicAdminClient } from '@/lib/supabase/server';
 
 const REMINDER_THRESHOLD_HOURS = 24;
 const ESCALATION_THRESHOLD_HOURS = 48;
@@ -17,7 +17,7 @@ export const escalationCheckTask = schedules.task({
   run: async () => {
     console.log('Running escalation check...');
 
-    const supabase = await createAdminClient();
+    const supabase = await createDynamicAdminClient();
     const now = new Date();
 
     // Find assignments needing reminder (24h+, not yet reminded)

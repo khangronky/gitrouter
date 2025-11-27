@@ -203,24 +203,34 @@ export async function routePullRequest(
 
   const supabase = await createAdminClient();
 
-  // Create review assignments
+  // Create review assignments (upsert to handle re-routing)
   const assignments = result.reviewers.map((reviewer) => ({
     pull_request_id: prId,
     reviewer_id: reviewer.id,
     routing_rule_id: result.rule?.id || null,
-    status: 'pending',
-    escalation_level: 'none',
+    status: 'pending' as const,
+    escalation_level: 'none' as const,
     assigned_at: new Date().toISOString(),
   }));
 
   const { error: assignError } = await supabase
     .from('review_assignments')
-    .insert(assignments);
+    .upsert(assignments, {
+      onConflict: 'pull_request_id,reviewer_id',
+      ignoreDuplicates: true, // Don't update existing assignments
+    });
 
   if (assignError) {
     console.error('Failed to create assignments:', assignError);
     throw assignError;
   }
+
+  // Query for assignments that haven't been notified yet
+  const { data: pendingAssignments } = await supabase
+    .from('review_assignments')
+    .select('id, reviewer_id')
+    .eq('pull_request_id', prId)
+    .is('first_notified_at', null);
 
   // Request reviewers on GitHub
   try {
@@ -239,12 +249,58 @@ export async function routePullRequest(
     // Don't throw - assignments are still created
   }
 
-  // Queue notifications for each reviewer (will be handled by Trigger.dev)
+  // Queue notifications for each reviewer via Trigger.dev
   console.log('PR routed:', {
     prId,
     rule: result.rule?.name,
     reviewers: result.reviewers.map((r) => r.github_username),
   });
+
+  // Trigger Slack notifications for each reviewer that hasn't been notified
+  console.log('Pending assignments check:', { 
+    count: pendingAssignments?.length ?? 0,
+    prId,
+  });
+  
+  if (pendingAssignments && pendingAssignments.length > 0) {
+    
+    try {
+      const { sendNotificationTask } = await import('@/trigger/jobs/send-notification');
+      
+      for (const assignment of pendingAssignments) {
+        const reviewer = result.reviewers.find(r => r.id === assignment.reviewer_id);
+        if (!reviewer) continue;
+
+        await sendNotificationTask.trigger({
+          type: 'new_pr',
+          assignmentId: assignment.id,
+          reviewerId: reviewer.id,
+          organizationId,
+          prDetails: {
+            id: prId,
+            title: pr.title,
+            author: pr.author,
+            authorAvatarUrl: pr.authorAvatarUrl,
+            repository: pr.repository,
+            filesChanged: pr.filesChanged.length,
+            additions: pr.additions,
+            deletions: pr.deletions,
+            htmlUrl: pr.htmlUrl,
+          },
+          reviewer: {
+            githubUsername: reviewer.github_username,
+            slackUserId: reviewer.slack_user_id,
+            email: reviewer.email,
+          },
+        });
+
+        console.log('Queued notification for reviewer:', reviewer.github_username);
+      }
+    } catch (error) {
+      console.error('Failed to queue notifications:', error);
+      // Don't throw - routing succeeded, notifications are secondary
+    }
+  }
 }
 
 /**

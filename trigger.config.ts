@@ -1,9 +1,10 @@
 import { defineConfig } from '@trigger.dev/sdk/v3';
 
 export default defineConfig({
-  project: 'gitrouter',
+  project: 'proj_zgamdopajjgpphkiuxul',
   runtime: 'node',
   logLevel: 'log',
+  maxDuration: 600, // seconds, required now
   retries: {
     enabledInDev: true,
     default: {
@@ -16,4 +17,3 @@ export default defineConfig({
   },
   dirs: ['./src/trigger'],
 });
-

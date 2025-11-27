@@ -1,5 +1,5 @@
 import { task } from '@trigger.dev/sdk/v3';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createDynamicAdminClient } from '@/lib/supabase/server';
 import { findReviewers, type RoutingContext } from '@/lib/routing';
 import { requestReviewers } from '@/lib/github/client';
 
@@ -42,7 +42,7 @@ export const processPRTask = task({
       return { success: false, reason: 'No reviewers found' };
     }
 
-    const supabase = await createAdminClient();
+    const supabase = await createDynamicAdminClient();
 
     // Create review assignments
     const assignments = result.reviewers.map((reviewer) => ({

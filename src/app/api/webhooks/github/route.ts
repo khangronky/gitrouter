@@ -13,7 +13,7 @@ import type {
   ProcessedPullRequest,
 } from '@/lib/github/types';
 
-const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET?.trim();
 
 // Supported event types we process
 const SUPPORTED_EVENTS = [
@@ -52,7 +52,12 @@ export async function POST(request: Request) {
 
   // Verify signature
   if (!verifyGitHubWebhookSignature(rawBody, signature, WEBHOOK_SECRET)) {
-    console.error('Invalid webhook signature', { deliveryId });
+    console.error('Invalid webhook signature', { 
+      deliveryId,
+      signaturePrefix: signature?.substring(0, 15),
+      secretLength: WEBHOOK_SECRET.length,
+      bodyLength: rawBody.length,
+    });
     return NextResponse.json(
       { error: 'Invalid signature' },
       { status: 401 }

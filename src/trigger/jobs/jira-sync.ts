@@ -1,5 +1,5 @@
 import { task } from '@trigger.dev/sdk/v3';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createDynamicAdminClient } from '@/lib/supabase/server';
 import { handlePRMerge, linkPRToJiraIssue, getJiraIssue } from '@/lib/jira/client';
 
 interface JiraSyncPayload {
@@ -34,7 +34,7 @@ export const jiraSyncTask = task({
 
     console.log('Syncing Jira:', { type, prId, jiraTicketId });
 
-    const supabase = await createAdminClient();
+    const supabase = await createDynamicAdminClient();
 
     // Check if Jira is configured for this org
     const { data: integration } = await supabase

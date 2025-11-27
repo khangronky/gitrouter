@@ -64,47 +64,53 @@ export type Database = {
       jira_integrations: {
         Row: {
           access_token_encrypted: string;
+          auth_type: string;
           auto_transition_enabled: boolean;
-          cloud_id: string;
+          cloud_id: string | null;
           created_at: string;
+          email: string | null;
           id: string;
           is_active: boolean;
           merge_transition_id: string | null;
           organization_id: string;
           project_keys: string[];
-          refresh_token_encrypted: string;
+          refresh_token_encrypted: string | null;
           site_url: string;
-          token_expires_at: string;
+          token_expires_at: string | null;
           updated_at: string;
         };
         Insert: {
           access_token_encrypted: string;
+          auth_type?: string;
           auto_transition_enabled?: boolean;
-          cloud_id: string;
+          cloud_id?: string | null;
           created_at?: string;
+          email?: string | null;
           id?: string;
           is_active?: boolean;
           merge_transition_id?: string | null;
           organization_id: string;
           project_keys?: string[];
-          refresh_token_encrypted: string;
+          refresh_token_encrypted?: string | null;
           site_url: string;
-          token_expires_at: string;
+          token_expires_at?: string | null;
           updated_at?: string;
         };
         Update: {
           access_token_encrypted?: string;
+          auth_type?: string;
           auto_transition_enabled?: boolean;
-          cloud_id?: string;
+          cloud_id?: string | null;
           created_at?: string;
+          email?: string | null;
           id?: string;
           is_active?: boolean;
           merge_transition_id?: string | null;
           organization_id?: string;
           project_keys?: string[];
-          refresh_token_encrypted?: string;
+          refresh_token_encrypted?: string | null;
           site_url?: string;
-          token_expires_at?: string;
+          token_expires_at?: string | null;
           updated_at?: string;
         };
         Relationships: [

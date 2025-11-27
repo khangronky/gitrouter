@@ -1,122 +1,68 @@
 import { createAdminClient } from '@/lib/supabase/server';
 
-const JIRA_API_BASE = 'https://api.atlassian.com';
-
-interface JiraTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: Date;
-  cloudId: string;
+interface JiraCredentials {
+  email: string;
+  apiToken: string;
   siteUrl: string;
 }
 
 /**
- * Refreshes Jira OAuth tokens if expired
+ * Gets Jira credentials for an organization
  */
-async function refreshTokensIfNeeded(
-  organizationId: string,
-  tokens: JiraTokens
-): Promise<JiraTokens> {
-  // Check if token expires in next 5 minutes
-  const expiresIn = tokens.expiresAt.getTime() - Date.now();
-  if (expiresIn > 5 * 60 * 1000) {
-    return tokens; // Still valid
-  }
-
-  const clientId = process.env.JIRA_CLIENT_ID;
-  const clientSecret = process.env.JIRA_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Jira OAuth credentials not configured');
-  }
-
-  const response = await fetch('https://auth.atlassian.com/oauth/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      grant_type: 'refresh_token',
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: tokens.refreshToken,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to refresh Jira tokens');
-  }
-
-  const data = await response.json();
-  const newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
-
-  // Update tokens in database
-  const supabase = await createAdminClient();
-  await supabase
-    .from('jira_integrations')
-    .update({
-      access_token_encrypted: data.access_token, // TODO: Encrypt
-      refresh_token_encrypted: data.refresh_token, // TODO: Encrypt
-      token_expires_at: newExpiresAt.toISOString(),
-    })
-    .eq('organization_id', organizationId);
-
-  return {
-    ...tokens,
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    expiresAt: newExpiresAt,
-  };
-}
-
-/**
- * Gets Jira tokens for an organization
- */
-async function getJiraTokens(organizationId: string): Promise<JiraTokens | null> {
+async function getJiraCredentials(organizationId: string): Promise<JiraCredentials | null> {
   const supabase = await createAdminClient();
 
   const { data: integration } = await supabase
     .from('jira_integrations')
-    .select('*')
+    .select('email, access_token_encrypted, site_url')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
     .single();
 
-  if (!integration) {
+  if (!integration || !integration.email || !integration.access_token_encrypted) {
     return null;
   }
 
   return {
-    accessToken: integration.access_token_encrypted, // TODO: Decrypt
-    refreshToken: integration.refresh_token_encrypted, // TODO: Decrypt
-    expiresAt: new Date(integration.token_expires_at),
-    cloudId: integration.cloud_id,
+    email: integration.email,
+    apiToken: integration.access_token_encrypted, // TODO: Decrypt
     siteUrl: integration.site_url,
   };
 }
 
 /**
- * Makes an authenticated request to Jira API
+ * Creates Basic auth header for Jira API token authentication
+ */
+function createAuthHeader(email: string, apiToken: string): string {
+  const credentials = Buffer.from(`${email}:${apiToken}`).toString('base64');
+  return `Basic ${credentials}`;
+}
+
+/**
+ * Makes an authenticated request to Jira API using API token
  */
 async function jiraRequest(
   organizationId: string,
   path: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  let tokens = await getJiraTokens(organizationId);
+  const credentials = await getJiraCredentials(organizationId);
   
-  if (!tokens) {
+  if (!credentials) {
     throw new Error('Jira not connected for this organization');
   }
 
-  tokens = await refreshTokensIfNeeded(organizationId, tokens);
-
-  const url = `${JIRA_API_BASE}/ex/jira/${tokens.cloudId}/rest/api/3${path}`;
+  // Normalize site URL (remove protocol if present, ensure no trailing slash)
+  let baseUrl = credentials.siteUrl
+    .replace(/^https?:\/\//, '')
+    .replace(/\/$/, '');
+  
+  const url = `https://${baseUrl}/rest/api/3${path}`;
 
   return fetch(url, {
     ...options,
     headers: {
-      Authorization: `Bearer ${tokens.accessToken}`,
+      Authorization: createAuthHeader(credentials.email, credentials.apiToken),
       'Content-Type': 'application/json',
       Accept: 'application/json',
       ...options.headers,
@@ -383,3 +329,43 @@ export async function handlePRMerge(
   return result;
 }
 
+/**
+ * Test Jira connection with provided credentials
+ */
+export async function testJiraConnection(
+  email: string,
+  apiToken: string,
+  siteUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Normalize site URL
+    const baseUrl = siteUrl
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '');
+    
+    const url = `https://${baseUrl}/rest/api/3/myself`;
+    
+    const response = await fetch(url, {
+      headers: {
+        Authorization: createAuthHeader(email, apiToken),
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return { success: false, error: 'Invalid email or API token' };
+      }
+      if (response.status === 404) {
+        return { success: false, error: 'Invalid Jira site URL' };
+      }
+      return { success: false, error: `Connection failed: ${response.status}` };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Jira connection test error:', error);
+    return { success: false, error: 'Failed to connect to Jira' };
+  }
+}
