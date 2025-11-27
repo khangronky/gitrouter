@@ -1,5 +1,5 @@
 "use client";
-import { ChartColumnIncreasing, ChartLine, Factory, GitBranch, List } from "lucide-react";
+import { ChartColumnIncreasing, ChartLine, Factory, GitBranch, LifeBuoy, List, Settings } from "lucide-react";
 
 import {
   Sidebar,
@@ -11,6 +11,7 @@ import {
 import { useUserStore } from "@/stores/user-store";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { NavSecondary } from "./nav-secondary";
 
 // Menu items.
 const data = [
@@ -81,6 +82,21 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <NavMain data={data} />
+        <NavSecondary data={{
+          header: "Settings",
+          items: [
+            {
+              title: "Setting",
+              url: "/setting",
+              icon: Settings,
+            },
+            {
+              title: "Support",
+              url: "/support",
+              icon: LifeBuoy,
+            },
+          ],
+        }} />
       </SidebarContent>
       <SidebarFooter>
         {user && <NavUser user={user} />}

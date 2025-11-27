@@ -15,3 +15,5 @@ export function createDynamicClient(): SupabaseClient<any> {
 export function createClient<T = Database>(): SupabaseClient<T> {
   return createBrowserClient<T>(url, key);
 }
+
+

@@ -8,7 +8,6 @@ export const registerSchema = z
     email: z.email({ message: 'Invalid email address' }),
     password: z
       .string()
-      .min(12, 'Password must be at least 12 characters long')
       .refine(
         (val) =>
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?]).+$/.test(
@@ -21,7 +20,6 @@ export const registerSchema = z
       ),
     confirmPassword: z
       .string()
-      .min(12, 'Password must be at least 12 characters long')
       .refine(
         (val) =>
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?]).+$/.test(
