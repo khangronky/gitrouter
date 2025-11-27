@@ -1,5 +1,12 @@
-"use client";
-import { ChartColumnIncreasing, ChartLine, Factory, GitBranch, HelpCircle, LifeBuoy, List, Settings } from "lucide-react";
+import {
+  ChartColumnIncreasing,
+  ChartLine,
+  Factory,
+  GitBranch,
+  LifeBuoy,
+  List,
+  Settings,
+} from 'lucide-react';
 
 import {
   Sidebar,
@@ -7,124 +14,124 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenuButton,
-} from "@/components/ui/sidebar";
-import { useUserStore } from "@/stores/user-store";
-import { NavMain } from "./nav-main";
-import { NavSecondary } from "./nav-secondary";
-import { NavUser } from "./nav-user";
+} from '@/components/ui/sidebar';
+import { NavMain } from './nav-main';
+import { NavSecondary } from './nav-secondary';
+import { NavUser } from './nav-user';
 
 // Menu items.
 const data = {
   main_navigation: [
-      {
-        header: "",
-        items: [
-          {
-            title: "Dashboard",
-            url: "/dashboard",
-            icon: ChartColumnIncreasing,
-          },
-        ],
-      },
-      {
-        header: "Pull Requests",
-        items: [
-          {
-            title: "List",
-            url: "/pull-requests",
-            icon: List,
-          },
-        ],
-      },
-      {
-        header: "Rules",
-        items: [
-          {
-            title: "Rules Builder",
-            url: "/rules-builder",
-            icon: Factory,
-          },
-        ],
-      },
-      {
-        header: "Analytics",
-        items: [
-          {
-            title: "Trend",
-            url: "/trend",
-            icon: ChartColumnIncreasing,
-          },
-          {
-            title: "Performance",
-            url: "/performance",
-            icon: ChartLine,
-          },
-        ],
-      },
-  
+    {
+      header: '',
+      items: [
+        {
+          title: 'Dashboard',
+          url: '/dashboard',
+          icon: ChartColumnIncreasing,
+        },
+      ],
+    },
+    {
+      header: 'Pull Requests',
+      items: [
+        {
+          title: 'List',
+          url: '/pull-requests',
+          icon: List,
+        },
+      ],
+    },
+    {
+      header: 'Rules',
+      items: [
+        {
+          title: 'Rules Builder',
+          url: '/rules-builder',
+          icon: Factory,
+        },
+      ],
+    },
+    {
+      header: 'Analytics',
+      items: [
+        {
+          title: 'Trend',
+          url: '/trend',
+          icon: ChartColumnIncreasing,
+        },
+        {
+          title: 'Performance',
+          url: '/performance',
+          icon: ChartLine,
+        },
+      ],
+    },
   ],
   help_and_support: [
     {
-      title: "Help",
+      title: 'Help',
       items: [
         {
-          title: "Setting",
-          url: "/setting",
+          title: 'Setting',
+          url: '/setting',
           icon: Settings,
         },
       ],
     },
     {
-      title: "Support",
+      title: 'Support',
       items: [
         {
-          title: "Support",
-          url: "/support",
+          title: 'Support',
+          url: '/support',
           icon: LifeBuoy,
         },
       ],
     },
   ],
-}
+};
 export function AppSidebar() {
-  const user = useUserStore((state) => state.user);
-
   return (
-    <Sidebar  variant="inset" collapsible="icon">
+    <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <SidebarMenuButton
-          size='lg'
-          className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
-            <GitBranch className='size-4' />
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <GitBranch className="size-4" />
           </div>
-          <div className='grid flex-1 text-left text-sm leading-tight'>
-            <span className='truncate font-medium'>GitRouter</span>
-            <span className='truncate text-xs text-muted-foreground'>v0.0.1 (beta)</span>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-medium">GitRouter</span>
+            <span className="truncate text-muted-foreground text-xs">
+              v0.0.1 (beta)
+            </span>
           </div>
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
         <NavMain data={data.main_navigation} />
-        <NavSecondary data={{
-          header: "Help and Support",
-          items: [
-            {
-              title: "Setting",
-              url: "/setting",
-              icon: Settings,
-            },
-            {
-              title: "Support",
-              url: "/support",
-              icon: LifeBuoy,
-            },
-          ],
-        }} />
+        <NavSecondary
+          data={{
+            header: 'Help and Support',
+            items: [
+              {
+                title: 'Setting',
+                url: '/setting',
+                icon: Settings,
+              },
+              {
+                title: 'Support',
+                url: '/support',
+                icon: LifeBuoy,
+              },
+            ],
+          }}
+        />
       </SidebarContent>
       <SidebarFooter>
-        {user && <NavUser user={user} />}
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

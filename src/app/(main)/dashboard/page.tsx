@@ -7,14 +7,13 @@ import { useUserStore } from '@/stores/user-store';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const clearUser = useUserStore((state) => state.clearUser)
+  const clearUser = useUserStore((state) => state.clearUser);
 
   const supabase = createClient();
   const handleLogout = async () => {
     await supabase.auth.signOut();
     clearUser();
     router.push('/login');
-    router.refresh();
   };
 
   return (
@@ -33,4 +32,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

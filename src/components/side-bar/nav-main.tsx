@@ -1,13 +1,10 @@
-import React from "react";
+import type { LucideIcon } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarMenu,
   SidebarGroupLabel,
   SidebarMenuButton,
-  SidebarMenuItem,
-} from "../ui/sidebar";
-import { LucideIcon } from "lucide-react";
+} from '../ui/sidebar';
 
 export const NavMain = ({
   data,

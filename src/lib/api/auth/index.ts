@@ -1,10 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import { fetcher } from '@/lib/api';
-import {
-  type LoginResponseType,
-  type LoginSchema,
-  type RegisterResponseType,
-  type RegisterSchema,
+import type {
+  LoginResponseType,
+  LoginSchema,
+  RegisterResponseType,
+  RegisterSchema,
 } from '@/lib/schema/auth';
 
 /**
@@ -36,4 +36,3 @@ export const registerMutation = () => {
     },
   });
 };
-

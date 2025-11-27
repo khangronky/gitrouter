@@ -18,18 +18,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { loginMutation } from '@/lib/api/auth';
-import {
-  type LoginSchema,
-  loginSchema,
-} from '@/lib/schema/auth';
-import { useUserStore } from '@/stores/user-store';
+import { type LoginSchema, loginSchema } from '@/lib/schema/auth';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { mutate, isPending } = loginMutation();
-  const setUser = useUserStore((state) => state.setUser);
 
   const returnUrl = searchParams.get('returnUrl') || '/dashboard';
 
@@ -48,23 +43,9 @@ export default function LoginPage() {
         password: values.password,
       },
       {
-        onSuccess: (data) => {
-          // Extract name from email (before @) as fallback
-          const emailName = data.user.email.split('@')[0];
-          const displayName = emailName
-            .split(/[._-]/)
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(' ');
-
-          setUser({
-            id: data.user.id,
-            email: data.user.email,
-            name: displayName,
-            avatar: ""
-          });
+        onSuccess: async () => {
           toast.success('Login successful!');
           router.push(returnUrl);
-          router.refresh();
         },
         onError: (error: any) => {
           console.error('Login error:', error);
@@ -135,7 +116,7 @@ export default function LoginPage() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />  
+              />
 
               <div className="flex flex-col gap-2">
                 <Button

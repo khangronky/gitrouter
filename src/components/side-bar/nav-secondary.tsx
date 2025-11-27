@@ -1,13 +1,10 @@
-import React from "react";
+import type { LucideIcon } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarMenu,
   SidebarGroupLabel,
   SidebarMenuButton,
-  SidebarMenuItem,
-} from "../ui/sidebar";
-import { LucideIcon } from "lucide-react";
+} from '../ui/sidebar';
 
 export const NavSecondary = ({
   data,
@@ -22,20 +19,18 @@ export const NavSecondary = ({
   };
 }) => {
   return (
-    <>
-        <SidebarGroup  className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarGroupLabel>{data.header}</SidebarGroupLabel>
-            {data.items.map((item) => (
-              <SidebarMenuButton asChild key={item.url}>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-            ))}
-          </SidebarGroupContent>
-        </SidebarGroup>
-    </>
+    <SidebarGroup className="mt-auto">
+      <SidebarGroupContent>
+        <SidebarGroupLabel>{data.header}</SidebarGroupLabel>
+        {data.items.map((item) => (
+          <SidebarMenuButton asChild key={item.url}>
+            <a href={item.url}>
+              <item.icon />
+              <span>{item.title}</span>
+            </a>
+          </SidebarMenuButton>
+        ))}
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 };
