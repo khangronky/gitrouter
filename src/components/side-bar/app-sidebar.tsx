@@ -1,5 +1,5 @@
 "use client";
-import { ChartColumnIncreasing, ChartLine, Factory, GitBranch, List } from "lucide-react";
+import { ChartColumnIncreasing, ChartLine, Factory, GitBranch, HelpCircle, LifeBuoy, List, Settings } from "lucide-react";
 
 import {
   Sidebar,
@@ -10,56 +10,82 @@ import {
 } from "@/components/ui/sidebar";
 import { useUserStore } from "@/stores/user-store";
 import { NavMain } from "./nav-main";
+import { NavSecondary } from "./nav-secondary";
 import { NavUser } from "./nav-user";
 
 // Menu items.
-const data = [
-  {
-    header: "",
-    items: [
+const data = {
+  main_navigation: [
       {
-        title: "Dashboard",
-        url: "/dashboard",
-        icon: ChartColumnIncreasing,
-      },
-    ],
-  },
-  {
-    header: "Pull Requests",
-    items: [
-      {
-        title: "List",
-        url: "/pull-requests",
-        icon: List,
-      },
-    ],
-  },
-  {
-    header: "Rules",
-    items: [
-      {
-        title: "Rules Builder",
-        url: "/rules-builder",
-        icon: Factory,
-      },
-    ],
-  },
-  {
-    header: "Analytics",
-    items: [
-      {
-        title: "Trend",
-        url: "/trend",
-        icon: ChartColumnIncreasing,
+        header: "",
+        items: [
+          {
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: ChartColumnIncreasing,
+          },
+        ],
       },
       {
-        title: "Performance",
-        url: "/performance",
-        icon: ChartLine,
+        header: "Pull Requests",
+        items: [
+          {
+            title: "List",
+            url: "/pull-requests",
+            icon: List,
+          },
+        ],
       },
-    ],
-  },
-]
+      {
+        header: "Rules",
+        items: [
+          {
+            title: "Rules Builder",
+            url: "/rules-builder",
+            icon: Factory,
+          },
+        ],
+      },
+      {
+        header: "Analytics",
+        items: [
+          {
+            title: "Trend",
+            url: "/trend",
+            icon: ChartColumnIncreasing,
+          },
+          {
+            title: "Performance",
+            url: "/performance",
+            icon: ChartLine,
+          },
+        ],
+      },
+  
+  ],
+  help_and_support: [
+    {
+      title: "Help",
+      items: [
+        {
+          title: "Setting",
+          url: "/setting",
+          icon: Settings,
+        },
+      ],
+    },
+    {
+      title: "Support",
+      items: [
+        {
+          title: "Support",
+          url: "/support",
+          icon: LifeBuoy,
+        },
+      ],
+    },
+  ],
+}
 export function AppSidebar() {
   const user = useUserStore((state) => state.user);
 
@@ -80,7 +106,22 @@ export function AppSidebar() {
         </SidebarMenuButton>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain data={data} />
+        <NavMain data={data.main_navigation} />
+        <NavSecondary data={{
+          header: "Help and Support",
+          items: [
+            {
+              title: "Setting",
+              url: "/setting",
+              icon: Settings,
+            },
+            {
+              title: "Support",
+              url: "/support",
+              icon: LifeBuoy,
+            },
+          ],
+        }} />
       </SidebarContent>
       <SidebarFooter>
         {user && <NavUser user={user} />}
