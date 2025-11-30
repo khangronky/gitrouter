@@ -40,8 +40,7 @@ export const organizationKeys = {
 export function useOrganizations() {
   return useQuery({
     queryKey: organizationKeys.list(),
-    queryFn: () =>
-      fetcher<OrganizationListResponseType>('/organizations'),
+    queryFn: () => fetcher<OrganizationListResponseType>('/organizations'),
   });
 }
 
@@ -51,8 +50,7 @@ export function useOrganizations() {
 export function useOrganization(id: string) {
   return useQuery({
     queryKey: organizationKeys.detail(id),
-    queryFn: () =>
-      fetcher<OrganizationResponseType>(`/organizations/${id}`),
+    queryFn: () => fetcher<OrganizationResponseType>(`/organizations/${id}`),
     enabled: !!id,
   });
 }
@@ -280,4 +278,3 @@ export function useInvitationDetails(token: string) {
     enabled: !!token,
   });
 }
-
