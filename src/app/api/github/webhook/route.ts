@@ -9,6 +9,7 @@ import type {
 import { jiraTicketIdPattern } from '@/lib/schema/jira';
 import { routeAndAssignReviewers } from '@/lib/routing';
 import { sendPrNotifications } from '@/lib/slack';
+import { syncPrWithJira } from '@/lib/jira';
 
 /**
  * POST /api/github/webhook
@@ -283,10 +284,24 @@ async function handlePullRequestEvent(
     }
   }
 
-  // Handle PR merge - update Jira if configured
-  if (action === 'closed' && pr.merged && jiraTicketId) {
-    // TODO: Update Jira ticket status
-    // await updateJiraOnMerge(repo.organization_id, jiraTicketId, pr);
+  // Sync with Jira (link on open, update on merge, comment on close)
+  if (jiraTicketId) {
+    try {
+      await syncPrWithJira(supabase, repo.organization_id, {
+        id: savedPr.id,
+        title: savedPr.title,
+        number: savedPr.github_pr_number,
+        html_url: savedPr.html_url,
+        author_login: savedPr.author_login,
+        repository_full_name: repository.full_name,
+        jira_ticket_id: jiraTicketId,
+        status,
+        merged_by: pr.merged_by?.login,
+      });
+    } catch (jiraError) {
+      console.error('Jira sync failed:', jiraError);
+      // Don't fail the webhook - PR is already saved
+    }
   }
 
   return NextResponse.json({
