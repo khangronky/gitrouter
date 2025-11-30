@@ -30,47 +30,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { createClient } from '@/lib/supabase/client';
 import { CheckCircle, XCircle, Link2, Plus, Pencil, RefreshCw, Trash2, Github } from 'lucide-react';
 import { toast } from 'sonner';
+import * as settingsApi from '@/lib/api/settings';
 
-// Types
-interface TeamMember {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: 'owner' | 'admin' | 'member';
-}
-
-interface Repository {
-  id: string;
-  name: string;
-  full_name: string;
-}
-
-interface SlackIntegration {
-  connected: boolean;
-  teamName?: string;
-  teamChannelId?: string;
-  teamChannelName?: string;
-}
-
-interface JiraIntegration {
-  connected: boolean;
-  siteUrl?: string;
-  email?: string;
-}
-
-interface Settings {
-  slackNotifications: boolean;
-  emailNotifications: boolean;
-  escalationDestination: 'channel' | 'dm';
-  notificationFrequency: 'realtime' | 'batched' | 'daily';
-}
+// Types (re-export from API client for convenience)
+type TeamMember = settingsApi.TeamMember;
+type Repository = settingsApi.Repository;
+type SlackIntegration = settingsApi.SlackIntegration;
+type JiraIntegration = settingsApi.JiraIntegration;
+type Settings = settingsApi.OrganizationSettings;
 
 export default function SettingPage() {
-  const supabase = createClient();
-
   // Organization state
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState('');
@@ -118,28 +89,19 @@ export default function SettingPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
         // Get user's organization
-        const { data: membership } = await supabase
-          .from('organization_members')
-          .select('organization_id, role, organizations(id, name, settings)')
-          .eq('user_id', user.id)
-          .limit(1)
-          .single();
+        const { organization } = await settingsApi.getOrganization();
 
-        if (!membership) {
+        if (!organization) {
           setIsLoading(false);
           return;
         }
 
-        const org = membership.organizations as any;
-        setOrganizationId(org.id);
-        setTeamName(org.name);
+        setOrganizationId(organization.id);
+        setTeamName(organization.name);
 
         // Parse settings from organization
-        const orgSettings = org.settings as any;
+        const orgSettings = organization.settings;
         if (orgSettings) {
           setSettings({
             slackNotifications: orgSettings.slackNotifications ?? false,
@@ -149,66 +111,32 @@ export default function SettingPage() {
           });
         }
 
-        // Fetch team members
-        const { data: membersData } = await supabase
-          .from('organization_members')
-          .select('id, role, user_id, users(id, email, full_name)')
-          .eq('organization_id', org.id);
+        // Fetch all data in parallel
+        const [membersResult, slackResult, jiraResult, reposResult] = await Promise.allSettled([
+          settingsApi.getMembers(organization.id),
+          settingsApi.getSlackStatus(organization.id),
+          settingsApi.getJiraStatus(organization.id),
+          settingsApi.getRepositories(organization.id),
+        ]);
 
-        if (membersData) {
-          setMembers(
-            membersData.map((m: any) => ({
-              id: m.id,
-              email: m.users?.email || '',
-              full_name: m.users?.full_name,
-              role: m.role,
-            }))
-          );
+        // Set members
+        if (membersResult.status === 'fulfilled') {
+          setMembers(membersResult.value.members);
         }
 
-        // Fetch Slack integration status
-        const { data: slackData } = await supabase
-          .from('slack_integrations')
-          .select('team_name, team_channel_id, is_active')
-          .eq('organization_id', org.id)
-          .single();
-
-        if (slackData && slackData.is_active) {
-          setSlackIntegration({
-            connected: true,
-            teamName: slackData.team_name,
-            teamChannelId: slackData.team_channel_id || undefined,
-            teamChannelName: slackData.team_channel_id ? `#${slackData.team_channel_id}` : undefined,
-          });
+        // Set Slack integration
+        if (slackResult.status === 'fulfilled') {
+          setSlackIntegration(slackResult.value);
         }
 
-        // Fetch Jira integration status
-        const jiraResponse = await fetch(`/api/jira/connect?organizationId=${org.id}`);
-        const jiraData = await jiraResponse.json();
-        if (jiraData.connected) {
-          setJiraIntegration({
-            connected: true,
-            siteUrl: jiraData.siteUrl,
-            email: jiraData.email,
-          });
+        // Set Jira integration
+        if (jiraResult.status === 'fulfilled') {
+          setJiraIntegration(jiraResult.value);
         }
 
-        // Fetch GitHub repositories
-        const { data: reposData } = await supabase
-          .from('github_installations')
-          .select('repositories')
-          .eq('organization_id', org.id)
-          .single();
-
-        if (reposData?.repositories) {
-          const repos = reposData.repositories as any[];
-          setRepositories(
-            repos.map((r: any) => ({
-              id: r.id?.toString() || r.full_name,
-              name: r.name,
-              full_name: r.full_name,
-            }))
-          );
+        // Set repositories
+        if (reposResult.status === 'fulfilled') {
+          setRepositories(reposResult.value.repositories);
         }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
@@ -219,7 +147,7 @@ export default function SettingPage() {
     }
 
     fetchData();
-  }, [supabase]);
+  }, []);
 
   // Create organization for new users
   const handleCreateOrganization = async () => {
@@ -230,47 +158,14 @@ export default function SettingPage() {
 
     setIsCreatingOrg(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Please log in first');
-        return;
-      }
+      const { organization } = await settingsApi.createOrganization(newOrgName.trim());
 
-      // Generate a slug from the name
-      const slug = newOrgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      const uniqueSlug = `${slug}-${Date.now().toString(36)}`;
-
-      // Create the organization (this will also create the owner membership via trigger)
-      const { data: org, error } = await supabase
-        .from('organizations')
-        .insert({
-          name: newOrgName,
-          slug: uniqueSlug,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setOrganizationId(org.id);
-      setTeamName(org.name);
+      setOrganizationId(organization.id);
+      setTeamName(organization.name);
 
       // Fetch the membership that was auto-created
-      const { data: membersData } = await supabase
-        .from('organization_members')
-        .select('id, role, user_id, users(id, email, full_name)')
-        .eq('organization_id', org.id);
-
-      if (membersData) {
-        setMembers(
-          membersData.map((m: any) => ({
-            id: m.id,
-            email: m.users?.email || '',
-            full_name: m.users?.full_name,
-            role: m.role,
-          }))
-        );
-      }
+      const { members: membersData } = await settingsApi.getMembers(organization.id);
+      setMembers(membersData);
 
       toast.success('Organization created! You can now connect integrations.');
     } catch (error: any) {
@@ -286,18 +181,12 @@ export default function SettingPage() {
     if (!organizationId) return;
 
     try {
-      const { error } = await supabase
-        .from('organizations')
-        .update({ name: teamName })
-        .eq('id', organizationId);
-
-      if (error) throw error;
-
+      await settingsApi.updateOrganization(organizationId, { name: teamName });
       toast.success('Team name updated');
       setIsEditingTeamName(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save team name:', error);
-      toast.error('Failed to update team name');
+      toast.error(error.message || 'Failed to update team name');
     }
   };
 
@@ -307,50 +196,17 @@ export default function SettingPage() {
 
     setIsAddingMember(true);
     try {
-      // First, find the user by email
-      const { data: userData } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', newMemberEmail)
-        .single();
-
-      if (!userData) {
-        toast.error('User not found. They must register first.');
-        return;
-      }
-
-      // Add membership
-      const { error } = await supabase.from('organization_members').insert({
-        organization_id: organizationId,
-        user_id: userData.id,
-        role: newMemberRole,
-      });
-
-      if (error) throw error;
-
-      // Refresh members list
-      const { data: membersData } = await supabase
-        .from('organization_members')
-        .select('id, role, user_id, users(id, email, full_name)')
-        .eq('organization_id', organizationId);
-
-      if (membersData) {
-        setMembers(
-          membersData.map((m: any) => ({
-            id: m.id,
-            email: m.users?.email || '',
-            full_name: m.users?.full_name,
-            role: m.role,
-          }))
-        );
-      }
+      const { member } = await settingsApi.addMember(organizationId, newMemberEmail, newMemberRole);
+      
+      // Add new member to the list
+      setMembers((prev) => [...prev, member]);
 
       setNewMemberEmail('');
       setNewMemberRole('member');
       toast.success('Member added successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to add member:', error);
-      toast.error('Failed to add member');
+      toast.error(error.message || 'Failed to add member');
     } finally {
       setIsAddingMember(false);
     }
@@ -361,21 +217,15 @@ export default function SettingPage() {
     if (!organizationId) return;
 
     try {
-      const response = await fetch('/api/slack/oauth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId }),
-      });
-
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
+      const { url } = await settingsApi.initiateSlackConnect(organizationId);
+      if (url) {
+        window.location.href = url;
       } else {
         toast.error('Failed to initiate Slack connection');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to connect Slack:', error);
-      toast.error('Failed to connect Slack');
+      toast.error(error.message || 'Failed to connect Slack');
     }
   };
 
@@ -384,18 +234,12 @@ export default function SettingPage() {
     if (!organizationId) return;
 
     try {
-      const { error } = await supabase
-        .from('slack_integrations')
-        .update({ is_active: false })
-        .eq('organization_id', organizationId);
-
-      if (error) throw error;
-
+      await settingsApi.disconnectSlack(organizationId);
       setSlackIntegration({ connected: false });
       toast.success('Slack disconnected');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to disconnect Slack:', error);
-      toast.error('Failed to disconnect Slack');
+      toast.error(error.message || 'Failed to disconnect Slack');
     }
   };
 
@@ -415,22 +259,7 @@ export default function SettingPage() {
 
     setIsConnectingJira(true);
     try {
-      const response = await fetch('/api/jira/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organizationId,
-          email: jiraEmail,
-          apiToken: jiraApiToken,
-          siteUrl: jiraSiteUrl,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to connect Jira');
-      }
+      await settingsApi.connectJira(organizationId, jiraEmail, jiraApiToken, jiraSiteUrl);
 
       setJiraIntegration({
         connected: true,
@@ -455,21 +284,12 @@ export default function SettingPage() {
     if (!organizationId) return;
 
     try {
-      const response = await fetch('/api/jira/connect', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to disconnect Jira');
-      }
-
+      await settingsApi.disconnectJira(organizationId);
       setJiraIntegration({ connected: false });
       toast.success('Jira disconnected');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to disconnect Jira:', error);
-      toast.error('Failed to disconnect Jira');
+      toast.error(error.message || 'Failed to disconnect Jira');
     }
   };
 
@@ -479,19 +299,12 @@ export default function SettingPage() {
 
     setIsSyncingRepos(true);
     try {
-      // Fetch latest repositories from API
-      const response = await fetch(`/api/github/repositories?organizationId=${organizationId}`);
-      const data = await response.json();
-      
-      if (response.ok && data.repositories) {
-        setRepositories(data.repositories);
-        toast.success('Repositories synced');
-      } else {
-        toast.error('Failed to sync repositories');
-      }
-    } catch (error) {
+      const { repositories: repos } = await settingsApi.getRepositories(organizationId);
+      setRepositories(repos);
+      toast.success('Repositories synced');
+    } catch (error: any) {
       console.error('Failed to sync repositories:', error);
-      toast.error('Failed to sync repositories');
+      toast.error(error.message || 'Failed to sync repositories');
     } finally {
       setIsSyncingRepos(false);
     }
@@ -506,30 +319,10 @@ export default function SettingPage() {
 
     setIsAddingRepo(true);
     try {
-      const response = await fetch('/api/github/repositories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organizationId,
-          repositoryUrl: newRepoUrl.trim(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to add repository');
-      }
+      const { repository } = await settingsApi.addRepository(organizationId, newRepoUrl.trim());
 
       // Add the new repo to the list
-      setRepositories((prev) => [
-        ...prev,
-        {
-          id: data.repository.id,
-          name: data.repository.name,
-          full_name: data.repository.full_name,
-        },
-      ]);
+      setRepositories((prev) => [...prev, repository]);
 
       setRepoDialogOpen(false);
       setNewRepoUrl('');
@@ -551,20 +344,7 @@ export default function SettingPage() {
     }
 
     try {
-      const response = await fetch('/api/github/repositories', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organizationId,
-          repositoryId: repoId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to remove repository');
-      }
+      await settingsApi.removeRepository(organizationId, repoId);
 
       // Remove from the list
       setRepositories((prev) => prev.filter((r) => r.id !== repoId));
@@ -581,24 +361,11 @@ export default function SettingPage() {
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('organizations')
-        .update({
-          settings: {
-            slackNotifications: settings.slackNotifications,
-            emailNotifications: settings.emailNotifications,
-            escalationDestination: settings.escalationDestination,
-            notificationFrequency: settings.notificationFrequency,
-          },
-        })
-        .eq('id', organizationId);
-
-      if (error) throw error;
-
+      await settingsApi.updateSettings(organizationId, settings);
       toast.success('Settings saved successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save settings:', error);
-      toast.error('Failed to save settings');
+      toast.error(error.message || 'Failed to save settings');
     } finally {
       setIsSaving(false);
     }
