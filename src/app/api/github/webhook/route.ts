@@ -7,6 +7,7 @@ import type {
   PullRequestReviewWebhookPayload,
 } from '@/lib/schema/github';
 import { jiraTicketIdPattern } from '@/lib/schema/jira';
+import { routeAndAssignReviewers } from '@/lib/routing';
 
 /**
  * POST /api/github/webhook
@@ -227,8 +228,39 @@ async function handlePullRequestEvent(
 
   // Trigger routing for new/updated PRs
   if (['opened', 'ready_for_review'].includes(action) && status === 'open') {
-    // TODO: Call routing engine here
-    // await routePullRequest(supabase, savedPr, repo.organization_id, filesChanged);
+    try {
+      const labels = pr.labels?.map((l) => l.name) || [];
+      const routingResult = await routeAndAssignReviewers(
+        supabase,
+        {
+          id: savedPr.id,
+          repository_id: savedPr.repository_id,
+          github_pr_number: savedPr.github_pr_number,
+          title: savedPr.title,
+          author_login: savedPr.author_login,
+          head_branch: savedPr.head_branch,
+          base_branch: savedPr.base_branch,
+          files_changed: savedPr.files_changed || [],
+          created_at: savedPr.created_at,
+        },
+        repo.organization_id,
+        labels
+      );
+
+      console.log('Routing result:', {
+        pr: savedPr.github_pr_number,
+        matched: routingResult.matched,
+        reviewers: routingResult.reviewers.map((r) => r.name),
+        fallback_used: routingResult.fallback_used,
+        time_ms: routingResult.evaluation_time_ms,
+      });
+
+      // TODO: Send Slack notifications to assigned reviewers
+      // await sendSlackNotifications(supabase, savedPr, routingResult.reviewers);
+    } catch (routingError) {
+      console.error('Routing failed:', routingError);
+      // Don't fail the webhook - PR is already saved
+    }
   }
 
   // Handle PR merge - update Jira if configured
