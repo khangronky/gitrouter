@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getAuthenticatedUser, requireOrgPermission } from '@/lib/organizations/permissions';
+import {
+  getAuthenticatedUser,
+  requireOrgPermission,
+} from '@/lib/organizations/permissions';
 import { getSlackConfig } from '@/lib/slack/client';
 
 /**
@@ -28,7 +31,11 @@ export async function GET(request: Request) {
     }
 
     // Verify user has permission
-    const permission = await requireOrgPermission(supabase, orgId, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      orgId,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -50,7 +57,9 @@ export async function GET(request: Request) {
     ].join(',');
 
     // Encode state with org_id
-    const state = Buffer.from(JSON.stringify({ org_id: orgId })).toString('base64');
+    const state = Buffer.from(JSON.stringify({ org_id: orgId })).toString(
+      'base64'
+    );
 
     // Get redirect URI
     const redirectUri = `${getBaseUrl(request)}/api/slack/oauth/callback`;
@@ -76,4 +85,3 @@ function getBaseUrl(request: Request): string {
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
-

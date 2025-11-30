@@ -93,4 +93,3 @@ export interface AvailableRepositoriesResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

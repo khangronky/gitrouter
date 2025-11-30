@@ -257,7 +257,8 @@ export async function sendEscalationAlert(
     await supabase.from('escalations').insert({
       review_assignment_id: assignment.id,
       level: 'alert_48h',
-      notified_user_ids: adminReviewers?.map((a) => a.slack_user_id).filter(Boolean) || [],
+      notified_user_ids:
+        adminReviewers?.map((a) => a.slack_user_id).filter(Boolean) || [],
     });
 
     return true;
@@ -265,4 +266,3 @@ export async function sendEscalationAlert(
 
   return false;
 }
-

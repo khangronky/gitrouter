@@ -13,7 +13,8 @@ import type {
 
 export const slackKeys = {
   all: ['slack'] as const,
-  integration: (orgId: string) => [...slackKeys.all, 'integration', orgId] as const,
+  integration: (orgId: string) =>
+    [...slackKeys.all, 'integration', orgId] as const,
   channels: (orgId: string) => [...slackKeys.all, 'channels', orgId] as const,
 };
 
@@ -28,9 +29,7 @@ export function useSlackIntegration(orgId: string) {
   return useQuery({
     queryKey: slackKeys.integration(orgId),
     queryFn: () =>
-      fetcher<SlackIntegrationResponseType>(
-        `/organizations/${orgId}/slack`
-      ),
+      fetcher<SlackIntegrationResponseType>(`/organizations/${orgId}/slack`),
     enabled: !!orgId,
     retry: false,
   });
@@ -76,13 +75,10 @@ export function useUpdateSlackIntegration(orgId: string) {
 
   return useMutation({
     mutationFn: (data: UpdateSlackIntegrationSchema) =>
-      fetcher<SlackIntegrationResponseType>(
-        `/organizations/${orgId}/slack`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(data),
-        }
-      ),
+      fetcher<SlackIntegrationResponseType>(`/organizations/${orgId}/slack`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: slackKeys.integration(orgId),
@@ -121,4 +117,3 @@ export function useTestSlackConnection(orgId: string) {
       }),
   });
 }
-

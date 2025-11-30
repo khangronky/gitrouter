@@ -87,11 +87,13 @@ export async function POST(request: Request, { params }: RouteParams) {
       rules,
     });
   } catch (error) {
-    console.error('Error in POST /api/organizations/[id]/rules/reorder:', error);
+    console.error(
+      'Error in POST /api/organizations/[id]/rules/reorder:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

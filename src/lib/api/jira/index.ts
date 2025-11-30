@@ -16,7 +16,8 @@ import type {
 
 export const jiraKeys = {
   all: ['jira'] as const,
-  integration: (orgId: string) => [...jiraKeys.all, 'integration', orgId] as const,
+  integration: (orgId: string) =>
+    [...jiraKeys.all, 'integration', orgId] as const,
   projects: (orgId: string) => [...jiraKeys.all, 'projects', orgId] as const,
   statuses: (orgId: string, projectKey?: string) =>
     [...jiraKeys.all, 'statuses', orgId, projectKey] as const,
@@ -81,13 +82,14 @@ export function useSaveJiraIntegration(orgId: string) {
 
   return useMutation({
     mutationFn: (data: UpsertJiraIntegrationSchema) =>
-      fetcher<JiraIntegrationResponseType & { user?: { displayName: string; email: string } }>(
-        `/organizations/${orgId}/jira`,
-        {
-          method: 'POST',
-          body: JSON.stringify(data),
+      fetcher<
+        JiraIntegrationResponseType & {
+          user?: { displayName: string; email: string };
         }
-      ),
+      >(`/organizations/${orgId}/jira`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: jiraKeys.integration(orgId),
@@ -133,4 +135,3 @@ export function useRemoveJiraIntegration(orgId: string) {
     },
   });
 }
-

@@ -86,7 +86,8 @@ export async function updateJiraOnMerge(
   }
 
   // Add merge comment
-  const comment = `✅ PR #${pr.number} merged!\n\n` +
+  const comment =
+    `✅ PR #${pr.number} merged!\n\n` +
     `*${pr.title}*\n` +
     `Repository: ${pr.repository_full_name}\n` +
     (pr.merged_by ? `Merged by: ${pr.merged_by}\n` : '') +
@@ -115,7 +116,8 @@ export async function updateJiraOnClose(
     return false;
   }
 
-  const comment = `❌ PR #${pr.number} closed without merge.\n\n` +
+  const comment =
+    `❌ PR #${pr.number} closed without merge.\n\n` +
     `*${pr.title}*\n` +
     `View: ${pr.html_url}`;
 
@@ -158,4 +160,3 @@ export async function syncPrWithJira(
       break;
   }
 }
-

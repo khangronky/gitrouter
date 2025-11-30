@@ -17,7 +17,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:view');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:view'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -71,7 +75,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -161,7 +169,10 @@ export async function POST(request: Request, { params }: RouteParams) {
     return NextResponse.json({
       integration,
       user: testResult.user
-        ? { displayName: testResult.user.displayName, email: testResult.user.emailAddress }
+        ? {
+            displayName: testResult.user.displayName,
+            email: testResult.user.emailAddress,
+          }
         : null,
     });
   } catch (error) {
@@ -182,7 +193,11 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -204,7 +219,9 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       );
     }
 
-    return NextResponse.json({ message: 'Jira integration removed successfully' });
+    return NextResponse.json({
+      message: 'Jira integration removed successfully',
+    });
   } catch (error) {
     console.error('Error in DELETE /api/organizations/[id]/jira:', error);
     return NextResponse.json(
@@ -213,4 +230,3 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     );
   }
 }
-

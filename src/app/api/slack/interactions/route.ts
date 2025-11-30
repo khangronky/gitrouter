@@ -29,10 +29,7 @@ export async function POST(request: Request) {
       const requestTime = parseInt(timestamp, 10);
       const currentTime = Math.floor(Date.now() / 1000);
       if (Math.abs(currentTime - requestTime) > 300) {
-        return NextResponse.json(
-          { error: 'Request too old' },
-          { status: 401 }
-        );
+        return NextResponse.json({ error: 'Request too old' }, { status: 401 });
       }
 
       const isValid = verifySlackSignature(
@@ -55,10 +52,7 @@ export async function POST(request: Request) {
     const payloadStr = formData.get('payload');
 
     if (!payloadStr) {
-      return NextResponse.json(
-        { error: 'Missing payload' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing payload' }, { status: 400 });
     }
 
     const payload: SlackInteractionPayload = JSON.parse(payloadStr);
@@ -94,7 +88,7 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
     case 'approve_pr':
       // Log approval intent (actual approval happens on GitHub)
       await logInteraction(supabase, payload, 'approve_pr', action.value);
-      
+
       // Send acknowledgment back to Slack
       if (payload.response_url) {
         await sendResponseMessage(payload.response_url, {
@@ -106,8 +100,13 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
       break;
 
     case 'request_changes_pr':
-      await logInteraction(supabase, payload, 'request_changes_pr', action.value);
-      
+      await logInteraction(
+        supabase,
+        payload,
+        'request_changes_pr',
+        action.value
+      );
+
       if (payload.response_url) {
         await sendResponseMessage(payload.response_url, {
           text: '🔄 Opening GitHub to request changes...',
@@ -119,7 +118,7 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
 
     case 'reassign_review':
       await logInteraction(supabase, payload, 'reassign_review', action.value);
-      
+
       if (payload.response_url) {
         await sendResponseMessage(payload.response_url, {
           text: '📤 Review reassignment requested. A team admin will be notified.',
@@ -159,7 +158,7 @@ async function logInteraction(
     // If the action has PR info, try to update the review assignment
     if (value && ['approve_pr', 'request_changes_pr'].includes(actionType)) {
       const prInfo = JSON.parse(value);
-      
+
       // Find the reviewer by Slack user ID
       const { data: reviewer } = await supabase
         .from('reviewers')
@@ -206,4 +205,3 @@ async function sendResponseMessage(
     console.error('Failed to send Slack response:', error);
   }
 }
-

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createDynamicClient, createDynamicAdminClient } from '@/lib/supabase/server';
+import {
+  createDynamicClient,
+  createDynamicAdminClient,
+} from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
 import { getSlackConfig } from '@/lib/slack/client';
 
@@ -139,4 +142,3 @@ function getBaseUrl(request: Request): string {
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
-

@@ -205,4 +205,3 @@ export interface InvitationResponseType {
 export interface MessageResponseType {
   message: string;
 }
-
