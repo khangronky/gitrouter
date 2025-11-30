@@ -65,9 +65,11 @@ export type Database = {
         Row: {
           access_token_encrypted: string;
           auth_type: string;
+          auto_create_tickets: boolean;
           auto_transition_enabled: boolean;
           cloud_id: string | null;
           created_at: string;
+          default_issue_type: string;
           email: string | null;
           id: string;
           is_active: boolean;
@@ -82,9 +84,11 @@ export type Database = {
         Insert: {
           access_token_encrypted: string;
           auth_type?: string;
+          auto_create_tickets?: boolean;
           auto_transition_enabled?: boolean;
           cloud_id?: string | null;
           created_at?: string;
+          default_issue_type?: string;
           email?: string | null;
           id?: string;
           is_active?: boolean;
@@ -99,9 +103,11 @@ export type Database = {
         Update: {
           access_token_encrypted?: string;
           auth_type?: string;
+          auto_create_tickets?: boolean;
           auto_transition_enabled?: boolean;
           cloud_id?: string | null;
           created_at?: string;
+          default_issue_type?: string;
           email?: string | null;
           id?: string;
           is_active?: boolean;

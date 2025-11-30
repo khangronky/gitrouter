@@ -369,3 +369,185 @@ export async function testJiraConnection(
     return { success: false, error: 'Failed to connect to Jira' };
   }
 }
+
+/**
+ * Creates a new Jira issue
+ */
+export async function createJiraIssue(
+  organizationId: string,
+  options: {
+    projectKey: string;
+    summary: string;
+    description?: string;
+    issueType?: string; // Default: 'Task'
+    labels?: string[];
+    prUrl?: string;
+    repository?: string;
+    author?: string;
+  }
+): Promise<{ success: boolean; issueKey?: string; issueUrl?: string; error?: string }> {
+  try {
+    const credentials = await getJiraCredentials(organizationId);
+    
+    if (!credentials) {
+      return { success: false, error: 'Jira not connected' };
+    }
+
+    // Build description in Atlassian Document Format (ADF)
+    const descriptionContent: Array<{
+      type: string;
+      content?: Array<{ type: string; text?: string; marks?: Array<{ type: string; attrs?: { href: string } }> }>;
+    }> = [];
+
+    if (options.description) {
+      descriptionContent.push({
+        type: 'paragraph',
+        content: [{ type: 'text', text: options.description }],
+      });
+    }
+
+    // Add PR details section
+    if (options.prUrl || options.repository || options.author) {
+      descriptionContent.push({
+        type: 'paragraph',
+        content: [{ type: 'text', text: '---' }],
+      });
+      
+      descriptionContent.push({
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: '📌 ' },
+          { type: 'text', text: 'Created from Pull Request' },
+        ],
+      });
+
+      if (options.repository) {
+        descriptionContent.push({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Repository: ' },
+            { type: 'text', text: options.repository },
+          ],
+        });
+      }
+
+      if (options.author) {
+        descriptionContent.push({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Author: ' },
+            { type: 'text', text: `@${options.author}` },
+          ],
+        });
+      }
+
+      if (options.prUrl) {
+        descriptionContent.push({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'PR: ' },
+            { 
+              type: 'text', 
+              text: options.prUrl,
+              marks: [{ type: 'link', attrs: { href: options.prUrl } }],
+            },
+          ],
+        });
+      }
+    }
+
+    const response = await jiraRequest(organizationId, '/issue', {
+      method: 'POST',
+      body: JSON.stringify({
+        fields: {
+          project: {
+            key: options.projectKey,
+          },
+          summary: options.summary,
+          description: descriptionContent.length > 0 ? {
+            type: 'doc',
+            version: 1,
+            content: descriptionContent,
+          } : undefined,
+          issuetype: {
+            name: options.issueType || 'Task',
+          },
+          labels: options.labels,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Failed to create Jira issue:', errorData);
+      
+      if (response.status === 400) {
+        const errors = errorData.errors || {};
+        const errorMessages = Object.values(errors).join(', ');
+        return { success: false, error: errorMessages || 'Invalid issue data' };
+      }
+      
+      return { success: false, error: `Failed to create issue: ${response.status}` };
+    }
+
+    const data = await response.json();
+    
+    // Build the issue URL
+    const baseUrl = credentials.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const issueUrl = `https://${baseUrl}/browse/${data.key}`;
+
+    return {
+      success: true,
+      issueKey: data.key,
+      issueUrl,
+    };
+  } catch (error) {
+    console.error('Error creating Jira issue:', error);
+    return { success: false, error: 'Failed to create issue' };
+  }
+}
+
+/**
+ * Gets the default project key for an organization's Jira integration
+ */
+export async function getDefaultProjectKey(organizationId: string): Promise<string | null> {
+  const supabase = await createAdminClient();
+
+  const { data: integration } = await supabase
+    .from('jira_integrations')
+    .select('project_keys')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .single();
+
+  if (!integration?.project_keys || integration.project_keys.length === 0) {
+    return null;
+  }
+
+  // Return the first project key as the default
+  return integration.project_keys[0];
+}
+
+/**
+ * Gets available projects from Jira
+ */
+export async function getJiraProjects(
+  organizationId: string
+): Promise<Array<{ key: string; name: string }>> {
+  try {
+    const response = await jiraRequest(organizationId, '/project');
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.map((project: { key: string; name: string }) => ({
+      key: project.key,
+      name: project.name,
+    }));
+  } catch (error) {
+    console.error('Error fetching Jira projects:', error);
+    return [];
+  }
+}

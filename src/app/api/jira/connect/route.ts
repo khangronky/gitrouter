@@ -5,12 +5,20 @@ import { testJiraConnection } from '@/lib/jira/client';
 /**
  * Connect Jira using API token
  * POST /api/jira/connect
- * Body: { organizationId, email, apiToken, siteUrl }
+ * Body: { organizationId, email, apiToken, siteUrl, projectKey?, autoCreateTickets?, defaultIssueType? }
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { organizationId, email, apiToken, siteUrl } = body;
+    const { 
+      organizationId, 
+      email, 
+      apiToken, 
+      siteUrl, 
+      projectKey,
+      autoCreateTickets = false,
+      defaultIssueType = 'Task',
+    } = body;
 
     // Validate required fields
     if (!organizationId || !email || !apiToken || !siteUrl) {
@@ -66,6 +74,9 @@ export async function POST(request: Request) {
         access_token_encrypted: apiToken, // TODO: Encrypt
         auth_type: 'api_token',
         is_active: true,
+        project_keys: projectKey ? [projectKey] : [],
+        auto_create_tickets: autoCreateTickets,
+        default_issue_type: defaultIssueType,
         // Set nullable OAuth fields
         cloud_id: null,
         refresh_token_encrypted: null,
@@ -161,6 +172,99 @@ export async function DELETE(request: Request) {
 }
 
 /**
+ * Update Jira integration settings
+ * PATCH /api/jira/connect
+ * Body: { organizationId, projectKey?, autoCreateTickets?, defaultIssueType?, autoTransitionEnabled? }
+ */
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { 
+      organizationId, 
+      projectKey,
+      autoCreateTickets,
+      defaultIssueType,
+      autoTransitionEnabled,
+    } = body;
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: 'Missing organizationId' },
+        { status: 400 }
+      );
+    }
+
+    // Verify user is authenticated
+    const userSupabase = await createClient();
+    const { data: { user } } = await userSupabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify user has admin access
+    const supabase = await createAdminClient();
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('role')
+      .eq('organization_id', organizationId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!membership || !['owner', 'admin'].includes(membership.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Build update object with only provided fields
+    const updates: Record<string, unknown> = {};
+    
+    if (projectKey !== undefined) {
+      updates.project_keys = projectKey ? [projectKey] : [];
+    }
+    if (autoCreateTickets !== undefined) {
+      updates.auto_create_tickets = autoCreateTickets;
+    }
+    if (defaultIssueType !== undefined) {
+      updates.default_issue_type = defaultIssueType;
+    }
+    if (autoTransitionEnabled !== undefined) {
+      updates.auto_transition_enabled = autoTransitionEnabled;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: 'No settings to update' },
+        { status: 400 }
+      );
+    }
+
+    const { error: updateError } = await supabase
+      .from('jira_integrations')
+      .update(updates)
+      .eq('organization_id', organizationId);
+
+    if (updateError) {
+      console.error('Failed to update Jira settings:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to update settings' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Settings updated'
+    });
+  } catch (error) {
+    console.error('Jira settings update error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * Get Jira integration status
  * GET /api/jira/connect?organizationId=xxx
  */
@@ -200,7 +304,7 @@ export async function GET(request: Request) {
     // Get integration status
     const { data: integration } = await supabase
       .from('jira_integrations')
-      .select('site_url, email, is_active, auto_transition_enabled, created_at, updated_at')
+      .select('site_url, email, is_active, auto_transition_enabled, auto_create_tickets, default_issue_type, project_keys, created_at, updated_at')
       .eq('organization_id', organizationId)
       .single();
 
@@ -214,6 +318,9 @@ export async function GET(request: Request) {
       connected: integration.is_active,
       siteUrl: integration.site_url,
       email: integration.email,
+      projectKey: integration.project_keys?.[0] || null,
+      autoCreateTickets: integration.auto_create_tickets,
+      defaultIssueType: integration.default_issue_type,
       autoTransitionEnabled: integration.auto_transition_enabled,
       connectedAt: integration.created_at,
       updatedAt: integration.updated_at,

@@ -5,7 +5,7 @@ const SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID;
 const SLACK_CLIENT_SECRET = process.env.SLACK_CLIENT_SECRET;
 const SLACK_REDIRECT_URI = process.env.NEXT_PUBLIC_APP_URL
   ? `${process.env.NEXT_PUBLIC_APP_URL}/api/slack/oauth`
-  : 'http://localhost:3000/api/slack/oauth';
+  : 'https://localhost:3000/api/slack/oauth';
 
 /**
  * Slack OAuth callback handler
@@ -19,20 +19,20 @@ export async function GET(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(`/integrations?error=slack_${error}`, request.url)
+      new URL(`/setting?error=slack_${error}`, request.url)
     );
   }
 
   if (!code) {
     return NextResponse.redirect(
-      new URL('/integrations?error=slack_no_code', request.url)
+      new URL('/setting?error=slack_no_code', request.url)
     );
   }
 
   if (!SLACK_CLIENT_ID || !SLACK_CLIENT_SECRET) {
     console.error('Slack OAuth credentials not configured');
     return NextResponse.redirect(
-      new URL('/integrations?error=slack_not_configured', request.url)
+      new URL('/setting?error=slack_not_configured', request.url)
     );
   }
 
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     if (!tokenData.ok) {
       console.error('Slack OAuth error:', tokenData.error);
       return NextResponse.redirect(
-        new URL(`/integrations?error=slack_oauth_${tokenData.error}`, request.url)
+        new URL(`/setting?error=slack_oauth_${tokenData.error}`, request.url)
       );
     }
 
@@ -92,7 +92,7 @@ export async function GET(request: Request) {
 
       if (!membership) {
         return NextResponse.redirect(
-          new URL('/integrations?error=slack_no_org', request.url)
+          new URL('/setting?error=slack_no_org', request.url)
         );
       }
 
@@ -118,17 +118,17 @@ export async function GET(request: Request) {
     if (saveError) {
       console.error('Failed to save Slack integration:', saveError);
       return NextResponse.redirect(
-        new URL('/integrations?error=slack_save_failed', request.url)
+        new URL('/setting?error=slack_save_failed', request.url)
       );
     }
 
     return NextResponse.redirect(
-      new URL('/integrations?success=slack_connected', request.url)
+      new URL('/setting?success=slack_connected', request.url)
     );
   } catch (error) {
     console.error('Slack OAuth error:', error);
     return NextResponse.redirect(
-      new URL('/integrations?error=slack_oauth_failed', request.url)
+      new URL('/setting?error=slack_oauth_failed', request.url)
     );
   }
 }

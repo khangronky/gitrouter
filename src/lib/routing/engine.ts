@@ -203,22 +203,42 @@ export async function routePullRequest(
 
   const supabase = await createAdminClient();
 
-  // Create review assignments (upsert to handle re-routing)
+  // Create review assignments for current reviewers
   const assignments = result.reviewers.map((reviewer) => ({
     pull_request_id: prId,
     reviewer_id: reviewer.id,
     routing_rule_id: result.rule?.id || null,
-    status: 'pending' as const,
+    status: 'pending' as const,h
     escalation_level: 'none' as const,
     assigned_at: new Date().toISOString(),
   }));
 
-  const { error: assignError } = await supabase
+  // First, check which assignments already exist
+  const { data: existingAssignments } = await supabase
     .from('review_assignments')
-    .upsert(assignments, {
-      onConflict: 'pull_request_id,reviewer_id',
-      ignoreDuplicates: true, // Don't update existing assignments
-    });
+    .select('id, reviewer_id, first_notified_at')
+    .eq('pull_request_id', prId);
+
+  console.log('Existing assignments:', existingAssignments?.map(a => ({
+    id: a.id,
+    reviewer_id: a.reviewer_id,
+    notified: !!a.first_notified_at,
+  })));
+
+  const existingReviewerIds = new Set(existingAssignments?.map(a => a.reviewer_id) || []);
+  
+  // Only insert assignments for reviewers that don't already have one
+  const newAssignments = assignments.filter(a => !existingReviewerIds.has(a.reviewer_id));
+  
+  console.log('New assignments to create:', newAssignments.length);
+  
+  let assignError = null;
+  if (newAssignments.length > 0) {
+    const { error } = await supabase
+      .from('review_assignments')
+      .insert(newAssignments);
+    assignError = error;
+  }
 
   if (assignError) {
     console.error('Failed to create assignments:', assignError);
@@ -226,10 +246,13 @@ export async function routePullRequest(
   }
 
   // Query for assignments that haven't been notified yet
+  // Only get assignments for reviewers in the current routing result
+  const currentReviewerIds = result.reviewers.map(r => r.id);
   const { data: pendingAssignments } = await supabase
     .from('review_assignments')
     .select('id, reviewer_id')
     .eq('pull_request_id', prId)
+    .in('reviewer_id', currentReviewerIds)
     .is('first_notified_at', null);
 
   // Request reviewers on GitHub
@@ -266,12 +289,23 @@ export async function routePullRequest(
     
     try {
       const { sendNotificationTask } = await import('@/trigger/jobs/send-notification');
+      console.log('Loaded sendNotificationTask, processing assignments...');
       
       for (const assignment of pendingAssignments) {
+        console.log('Looking for reviewer:', {
+          assignmentReviewerId: assignment.reviewer_id,
+          availableReviewers: result.reviewers.map(r => ({ id: r.id, username: r.github_username })),
+        });
+        
         const reviewer = result.reviewers.find(r => r.id === assignment.reviewer_id);
-        if (!reviewer) continue;
+        if (!reviewer) {
+          console.warn('Reviewer not found in routing result, skipping notification');
+          continue;
+        }
 
-        await sendNotificationTask.trigger({
+        console.log('Triggering notification for reviewer:', reviewer.github_username);
+        
+        const triggerResult = await sendNotificationTask.trigger({
           type: 'new_pr',
           assignmentId: assignment.id,
           reviewerId: reviewer.id,
@@ -294,10 +328,11 @@ export async function routePullRequest(
           },
         });
 
-        console.log('Queued notification for reviewer:', reviewer.github_username);
+        console.log('Queued notification for reviewer:', reviewer.github_username, 'runId:', triggerResult.id);
       }
     } catch (error) {
       console.error('Failed to queue notifications:', error);
+      console.error('Error details:', error instanceof Error ? error.stack : String(error));
       // Don't throw - routing succeeded, notifications are secondary
     }
   }

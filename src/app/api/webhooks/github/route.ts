@@ -259,13 +259,13 @@ async function handlePullRequestEvent(
     }
   }
 
-  // Trigger Jira sync if ticket exists
-  if (jiraTicketId) {
-    try {
-      const { jiraSyncTask } = await import('@/trigger/jobs/jira-sync');
-      
-      if (action === 'opened' || action === 'reopened') {
-        // Link PR to Jira issue
+  // Trigger Jira sync
+  try {
+    const { jiraSyncTask } = await import('@/trigger/jobs/jira-sync');
+    
+    if (action === 'opened' || action === 'reopened') {
+      if (jiraTicketId) {
+        // Link PR to existing Jira issue
         await jiraSyncTask.trigger({
           type: 'pr_opened',
           organizationId,
@@ -273,44 +273,70 @@ async function handlePullRequestEvent(
           jiraTicketId,
           pr: {
             title: pr.title,
+            body: pr.body,
             url: pr.html_url,
             repository: repository.full_name,
             author: pr.user.login,
           },
         });
-      } else if (status === 'merged') {
-        // Update Jira on merge
-        await jiraSyncTask.trigger({
-          type: 'pr_merged',
-          organizationId,
-          prId: savedPr.id,
-          jiraTicketId,
-          pr: {
-            title: pr.title,
-            url: pr.html_url,
-            repository: repository.full_name,
-            author: pr.user.login,
-            mergedAt: pr.merged_at,
-          },
-        });
-      } else if (status === 'closed') {
-        // Update Jira on close
-        await jiraSyncTask.trigger({
-          type: 'pr_closed',
-          organizationId,
-          prId: savedPr.id,
-          jiraTicketId,
-          pr: {
-            title: pr.title,
-            url: pr.html_url,
-            repository: repository.full_name,
-            author: pr.user.login,
-          },
-        });
+      } else {
+        // Check if auto-create tickets is enabled
+        const { data: jiraIntegration } = await supabase
+          .from('jira_integrations')
+          .select('is_active, auto_create_tickets, project_keys')
+          .eq('organization_id', organizationId)
+          .single();
+
+        if (jiraIntegration?.is_active && jiraIntegration?.auto_create_tickets && jiraIntegration?.project_keys?.length > 0) {
+          // Create a new Jira ticket for this PR
+          await jiraSyncTask.trigger({
+            type: 'create_ticket',
+            organizationId,
+            prId: savedPr.id,
+            pr: {
+              title: pr.title,
+              body: pr.body,
+              url: pr.html_url,
+              repository: repository.full_name,
+              author: pr.user.login,
+            },
+          });
+        }
       }
-    } catch (error) {
-      console.error('Failed to trigger Jira sync:', error);
+    } else if (status === 'merged' && jiraTicketId) {
+      // Update Jira on merge
+      await jiraSyncTask.trigger({
+        type: 'pr_merged',
+        organizationId,
+        prId: savedPr.id,
+        jiraTicketId,
+        pr: {
+          title: pr.title,
+          body: pr.body,
+          url: pr.html_url,
+          repository: repository.full_name,
+          author: pr.user.login,
+          mergedAt: pr.merged_at,
+        },
+      });
+    } else if (status === 'closed' && jiraTicketId) {
+      // Update Jira on close
+      await jiraSyncTask.trigger({
+        type: 'pr_closed',
+        organizationId,
+        prId: savedPr.id,
+        jiraTicketId,
+        pr: {
+          title: pr.title,
+          body: pr.body,
+          url: pr.html_url,
+          repository: repository.full_name,
+          author: pr.user.login,
+        },
+      });
     }
+  } catch (error) {
+    console.error('Failed to trigger Jira sync:', error);
   }
 }
 

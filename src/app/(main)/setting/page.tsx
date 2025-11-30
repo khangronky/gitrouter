@@ -31,7 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createClient } from '@/lib/supabase/client';
-import { CheckCircle, XCircle, Link2, Plus, Pencil, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, Link2, Plus, Pencil, RefreshCw, Trash2, Github } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Types
@@ -93,6 +93,11 @@ export default function SettingPage() {
   const [jiraSiteUrl, setJiraSiteUrl] = useState('');
   const [isConnectingJira, setIsConnectingJira] = useState(false);
 
+  // Repository dialog
+  const [repoDialogOpen, setRepoDialogOpen] = useState(false);
+  const [newRepoUrl, setNewRepoUrl] = useState('');
+  const [isAddingRepo, setIsAddingRepo] = useState(false);
+
   // Notification settings
   const [settings, setSettings] = useState<Settings>({
     slackNotifications: false,
@@ -106,6 +111,8 @@ export default function SettingPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [isSyncingRepos, setIsSyncingRepos] = useState(false);
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
+  const [newOrgName, setNewOrgName] = useState('My Team');
 
   // Fetch organization data
   useEffect(() => {
@@ -213,6 +220,66 @@ export default function SettingPage() {
 
     fetchData();
   }, [supabase]);
+
+  // Create organization for new users
+  const handleCreateOrganization = async () => {
+    if (!newOrgName.trim()) {
+      toast.error('Please enter a team name');
+      return;
+    }
+
+    setIsCreatingOrg(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please log in first');
+        return;
+      }
+
+      // Generate a slug from the name
+      const slug = newOrgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const uniqueSlug = `${slug}-${Date.now().toString(36)}`;
+
+      // Create the organization (this will also create the owner membership via trigger)
+      const { data: org, error } = await supabase
+        .from('organizations')
+        .insert({
+          name: newOrgName,
+          slug: uniqueSlug,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setOrganizationId(org.id);
+      setTeamName(org.name);
+
+      // Fetch the membership that was auto-created
+      const { data: membersData } = await supabase
+        .from('organization_members')
+        .select('id, role, user_id, users(id, email, full_name)')
+        .eq('organization_id', org.id);
+
+      if (membersData) {
+        setMembers(
+          membersData.map((m: any) => ({
+            id: m.id,
+            email: m.users?.email || '',
+            full_name: m.users?.full_name,
+            role: m.role,
+          }))
+        );
+      }
+
+      toast.success('Organization created! You can now connect integrations.');
+    } catch (error: any) {
+      console.error('Failed to create organization:', error);
+      toast.error(error.message || 'Failed to create organization');
+    } finally {
+      setIsCreatingOrg(false);
+    }
+  };
 
   // Save team name
   const handleSaveTeamName = async () => {
@@ -412,17 +479,99 @@ export default function SettingPage() {
 
     setIsSyncingRepos(true);
     try {
-      // This would trigger a refresh of the GitHub installation
-      toast.info('Syncing repositories...');
-      // TODO: Implement proper sync
-      setTimeout(() => {
+      // Fetch latest repositories from API
+      const response = await fetch(`/api/github/repositories?organizationId=${organizationId}`);
+      const data = await response.json();
+      
+      if (response.ok && data.repositories) {
+        setRepositories(data.repositories);
         toast.success('Repositories synced');
-        setIsSyncingRepos(false);
-      }, 1500);
+      } else {
+        toast.error('Failed to sync repositories');
+      }
     } catch (error) {
       console.error('Failed to sync repositories:', error);
       toast.error('Failed to sync repositories');
+    } finally {
       setIsSyncingRepos(false);
+    }
+  };
+
+  // Add new repository
+  const handleAddRepository = async () => {
+    if (!organizationId || !newRepoUrl.trim()) {
+      toast.error('Please enter a repository URL or name');
+      return;
+    }
+
+    setIsAddingRepo(true);
+    try {
+      const response = await fetch('/api/github/repositories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organizationId,
+          repositoryUrl: newRepoUrl.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add repository');
+      }
+
+      // Add the new repo to the list
+      setRepositories((prev) => [
+        ...prev,
+        {
+          id: data.repository.id,
+          name: data.repository.name,
+          full_name: data.repository.full_name,
+        },
+      ]);
+
+      setRepoDialogOpen(false);
+      setNewRepoUrl('');
+      toast.success('Repository added successfully');
+    } catch (error: any) {
+      console.error('Failed to add repository:', error);
+      toast.error(error.message || 'Failed to add repository');
+    } finally {
+      setIsAddingRepo(false);
+    }
+  };
+
+  // Remove repository
+  const handleRemoveRepository = async (repoId: string, repoName: string) => {
+    if (!organizationId) return;
+
+    if (!confirm(`Are you sure you want to remove "${repoName}" from your team?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/github/repositories', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organizationId,
+          repositoryId: repoId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to remove repository');
+      }
+
+      // Remove from the list
+      setRepositories((prev) => prev.filter((r) => r.id !== repoId));
+      toast.success('Repository removed');
+    } catch (error: any) {
+      console.error('Failed to remove repository:', error);
+      toast.error(error.message || 'Failed to remove repository');
     }
   };
 
@@ -459,6 +608,43 @@ export default function SettingPage() {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  // If no organization exists, show create organization UI
+  if (!organizationId) {
+    return (
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-xl mx-auto">
+          <div className="border rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-semibold mb-4">Welcome to GitRouter!</h2>
+            <p className="text-muted-foreground mb-6">
+              To get started, create your team. You&apos;ll be able to connect Slack, Jira, and GitHub after creating your team.
+            </p>
+            <div className="space-y-4">
+              <div className="text-left">
+                <Label htmlFor="org-name" className="text-sm font-medium">
+                  Team Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="org-name"
+                  value={newOrgName}
+                  onChange={(e) => setNewOrgName(e.target.value)}
+                  placeholder="e.g., Engineering Team"
+                  className="mt-2"
+                />
+              </div>
+              <Button
+                onClick={handleCreateOrganization}
+                disabled={isCreatingOrg || !newOrgName.trim()}
+                className="w-full"
+              >
+                {isCreatingOrg ? 'Creating...' : 'Create Team'}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -673,23 +859,35 @@ export default function SettingPage() {
           <div>
             <h3 className="text-lg font-semibold mb-1">Repository</h3>
             <p className="text-sm text-muted-foreground mb-3">
-              GitHub Repositories (enable/disable which ones track)
+              GitHub Repositories your team tracks. Only repositories listed here will trigger notifications.
             </p>
             <div className="border rounded-lg overflow-hidden mb-3">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>Member Name</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Repository</TableHead>
+                    <TableHead className="w-32">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {repositories.map((repo) => (
                     <TableRow key={repo.id}>
-                      <TableCell className="font-medium">{repo.name}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
-                          Edit
+                        <div className="flex items-center gap-2">
+                          <Github className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <span className="font-medium">{repo.full_name}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleRemoveRepository(repo.id, repo.full_name)}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -697,7 +895,7 @@ export default function SettingPage() {
                   {repositories.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
-                        No repositories connected
+                        No repositories connected. Add a repository to start receiving notifications.
                       </TableCell>
                     </TableRow>
                   )}
@@ -709,7 +907,7 @@ export default function SettingPage() {
                 <RefreshCw className={`h-4 w-4 mr-1 ${isSyncingRepos ? 'animate-spin' : ''}`} />
                 Sync Repositories
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => setRepoDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add New Repository
               </Button>
@@ -879,6 +1077,45 @@ export default function SettingPage() {
             </Button>
             <Button onClick={handleConnectJira} disabled={isConnectingJira}>
               {isConnectingJira ? 'Connecting...' : 'Connect'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Repository Dialog */}
+      <Dialog open={repoDialogOpen} onOpenChange={setRepoDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add GitHub Repository</DialogTitle>
+            <DialogDescription>
+              Add a repository to track. Your team will only receive notifications from repositories listed here.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="repo-url">Repository</Label>
+              <Input
+                id="repo-url"
+                placeholder="owner/repository or https://github.com/owner/repo"
+                value={newRepoUrl}
+                onChange={(e) => setNewRepoUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newRepoUrl.trim()) {
+                    handleAddRepository();
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the repository in the format <code className="bg-muted px-1 rounded">owner/repo</code> or paste the full GitHub URL.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRepoDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddRepository} disabled={isAddingRepo || !newRepoUrl.trim()}>
+              {isAddingRepo ? 'Adding...' : 'Add Repository'}
             </Button>
           </DialogFooter>
         </DialogContent>
