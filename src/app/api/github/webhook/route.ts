@@ -8,6 +8,7 @@ import type {
 } from '@/lib/schema/github';
 import { jiraTicketIdPattern } from '@/lib/schema/jira';
 import { routeAndAssignReviewers } from '@/lib/routing';
+import { sendPrNotifications } from '@/lib/slack';
 
 /**
  * POST /api/github/webhook
@@ -255,8 +256,27 @@ async function handlePullRequestEvent(
         time_ms: routingResult.evaluation_time_ms,
       });
 
-      // TODO: Send Slack notifications to assigned reviewers
-      // await sendSlackNotifications(supabase, savedPr, routingResult.reviewers);
+      // Send Slack notifications to assigned reviewers
+      if (routingResult.reviewers.length > 0) {
+        const notifyResult = await sendPrNotifications(
+          supabase,
+          repo.organization_id,
+          {
+            id: savedPr.id,
+            title: savedPr.title,
+            github_pr_number: savedPr.github_pr_number,
+            author_login: savedPr.author_login,
+            html_url: savedPr.html_url,
+            files_changed: savedPr.files_changed || [],
+            additions: savedPr.additions || 0,
+            deletions: savedPr.deletions || 0,
+            jira_ticket_id: savedPr.jira_ticket_id,
+          },
+          { full_name: repository.full_name },
+          routingResult.reviewers
+        );
+        console.log('Slack notifications:', notifyResult);
+      }
     } catch (routingError) {
       console.error('Routing failed:', routingError);
       // Don't fail the webhook - PR is already saved
