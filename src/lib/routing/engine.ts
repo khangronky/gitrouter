@@ -208,7 +208,7 @@ export async function routePullRequest(
     pull_request_id: prId,
     reviewer_id: reviewer.id,
     routing_rule_id: result.rule?.id || null,
-    status: 'pending' as const,h
+    status: 'pending' as const,
     escalation_level: 'none' as const,
     assigned_at: new Date().toISOString(),
   }));
