@@ -17,7 +17,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -54,7 +58,10 @@ export async function POST(request: Request, { params }: RouteParams) {
         success: result.success,
         message: result.message,
         user: result.user
-          ? { displayName: result.user.displayName, email: result.user.emailAddress }
+          ? {
+              displayName: result.user.displayName,
+              email: result.user.emailAddress,
+            }
           : undefined,
       });
     }
@@ -83,7 +90,10 @@ export async function POST(request: Request, { params }: RouteParams) {
       success: result.success,
       message: result.message,
       user: result.user
-        ? { displayName: result.user.displayName, email: result.user.emailAddress }
+        ? {
+            displayName: result.user.displayName,
+            email: result.user.emailAddress,
+          }
         : undefined,
     });
   } catch (error) {
@@ -94,4 +104,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 }
-

@@ -24,4 +24,3 @@ export * from './slack';
 
 // Jira integration schemas
 export * from './jira';
-

@@ -192,4 +192,3 @@ export interface JiraStatusListResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

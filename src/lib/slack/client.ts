@@ -10,7 +10,9 @@ export function getSlackConfig() {
   const signingSecret = process.env.SLACK_SIGNING_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error('SLACK_CLIENT_ID and SLACK_CLIENT_SECRET must be configured');
+    throw new Error(
+      'SLACK_CLIENT_ID and SLACK_CLIENT_SECRET must be configured'
+    );
   }
 
   return { clientId, clientSecret, signingSecret };
@@ -206,4 +208,3 @@ export function verifySlackSignature(
     return false;
   }
 }
-

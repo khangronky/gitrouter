@@ -17,7 +17,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:invite');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:invite'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -74,7 +78,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:invite');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:invite'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -202,7 +210,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:invite');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:invite'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -237,11 +249,13 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ message: 'Invitation cancelled successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/organizations/[id]/invitations:', error);
+    console.error(
+      'Error in DELETE /api/organizations/[id]/invitations:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

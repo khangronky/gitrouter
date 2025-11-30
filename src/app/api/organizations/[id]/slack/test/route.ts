@@ -16,7 +16,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -42,7 +46,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
     if (!integration?.default_channel_id) {
       return NextResponse.json(
-        { error: 'No default channel configured. Please set a default channel first.' },
+        {
+          error:
+            'No default channel configured. Please set a default channel first.',
+        },
         { status: 400 }
       );
     }
@@ -80,4 +87,3 @@ export async function POST(_request: Request, { params }: RouteParams) {
     );
   }
 }
-

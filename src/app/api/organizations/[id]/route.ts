@@ -162,4 +162,3 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     );
   }
 }
-

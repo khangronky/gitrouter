@@ -49,7 +49,8 @@ async function jiraFetch<T>(
       let errorMessage = `Jira API error: ${response.status}`;
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.errorMessages?.[0] || errorJson.message || errorMessage;
+        errorMessage =
+          errorJson.errorMessages?.[0] || errorJson.message || errorMessage;
       } catch {
         // Use default error message
       }
@@ -143,10 +144,9 @@ export async function getIssueTransitions(
   config: JiraConfig,
   issueKey: string
 ): Promise<JiraTransitionType[]> {
-  const { data, error } = await jiraFetch<{ transitions: JiraTransitionType[] }>(
-    config,
-    `/issue/${issueKey}/transitions`
-  );
+  const { data, error } = await jiraFetch<{
+    transitions: JiraTransitionType[];
+  }>(config, `/issue/${issueKey}/transitions`);
 
   if (error || !data) {
     console.error(`Failed to get transitions for ${issueKey}:`, error);
@@ -191,8 +191,9 @@ export async function transitionIssueToStatus(
 
   // Find transition that leads to the desired status
   const transition = transitions.find(
-    (t) => t.to.name.toLowerCase() === statusName.toLowerCase() ||
-           t.name.toLowerCase() === statusName.toLowerCase()
+    (t) =>
+      t.to.name.toLowerCase() === statusName.toLowerCase() ||
+      t.name.toLowerCase() === statusName.toLowerCase()
   );
 
   if (!transition) {
@@ -303,10 +304,9 @@ export async function getProjectStatuses(
   config: JiraConfig,
   projectKey: string
 ): Promise<Array<{ id: string; name: string }>> {
-  const { data, error } = await jiraFetch<Array<{ statuses: Array<{ id: string; name: string }> }>>(
-    config,
-    `/project/${projectKey}/statuses`
-  );
+  const { data, error } = await jiraFetch<
+    Array<{ statuses: Array<{ id: string; name: string }> }>
+  >(config, `/project/${projectKey}/statuses`);
 
   if (error || !data) {
     console.error('Failed to get project statuses:', error);
@@ -323,4 +323,3 @@ export async function getProjectStatuses(
 
   return uniqueStatuses;
 }
-

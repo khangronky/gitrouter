@@ -318,4 +318,3 @@ export function buildFallbackText(pr: {
 }): string {
   return `New PR Review Request: #${pr.number} - ${pr.title} in ${pr.repo}. View: ${pr.url}`;
 }
-
