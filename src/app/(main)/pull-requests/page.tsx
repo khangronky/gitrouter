@@ -84,7 +84,7 @@ export default function PullRequestsPage() {
   const currentPRs = filteredPRs.slice(startIndex, endIndex);
 
   return (
-    <div className="flex flex-1 flex-col gap-4 bg-gray-50 p-4">
+    <div className="flex flex-1 flex-col gap-4 p-4">
       <div className="flex flex-col gap-2">
         <h1 className="font-bold text-2xl text-gray-900">
           Browse Pull Requests

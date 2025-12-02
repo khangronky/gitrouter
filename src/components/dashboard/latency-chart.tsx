@@ -27,21 +27,10 @@ export function LatencyChart({
   const isDark = theme === 'dark';
 
   return (
-    <Card className="p-4">
-      <SectionTitle
-        right={
-          <span className="text-[11px] text-muted-foreground">
-            Target: 4 hours
-          </span>
-        }
-      >
-        First Review Latency (Target: 4 hours)
-      </SectionTitle>
-      <div className="mt-2 text-center text-[11px] text-muted-foreground">
-        Line Chart: Hours in Vertical and Date in a Week Horizontal
-      </div>
+    <Card className="h-full p-4">
+      <SectionTitle>First Review Latency (Target: 4 hours)</SectionTitle>
       <div className="mt-4 h-48">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer>
           <LineChart
             data={latencySeries}
             margin={{ top: 5, right: 10, bottom: 5, left: -20 }}
@@ -77,7 +66,7 @@ export function LatencyChart({
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-3 text-[11px] text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         Current avg:{' '}
         <span className="font-semibold text-foreground">3.2 hours</span> (within
         target)

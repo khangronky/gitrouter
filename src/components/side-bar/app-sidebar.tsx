@@ -14,7 +14,7 @@ import { NavUser } from './nav-user';
 
 export function AppSidebar() {
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader>
         <SidebarMenuButton
           size="lg"

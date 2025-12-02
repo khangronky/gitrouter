@@ -26,7 +26,7 @@ export default async function MainLayout({
     <UserProvider>
       <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="bg-muted">
           <NavHeader />
           {children}
         </SidebarInset>

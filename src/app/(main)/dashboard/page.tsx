@@ -124,7 +124,7 @@ const recentActivity = [
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen p-6">
       <KpiRow kpis={kpis} />
 
       <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -134,7 +134,7 @@ export default function Page() {
         <WorkloadChart reviewerWorkload={reviewerWorkload} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.5fr_1fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <BottlenecksTable bottlenecks={bottlenecks} />
         <StalePullRequests stalePRs={stalePRs} />
         <RecentActivity recentActivity={recentActivity} />

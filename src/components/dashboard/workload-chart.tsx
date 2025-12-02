@@ -51,7 +51,7 @@ export function WorkloadChart({
         ))}
       </div>
 
-      <div className="mt-4 flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+      <div className="mt-4 flex items-center justify-center gap-4 text-foreground text-sm">
         <div className="flex items-center gap-1.5">
           <div className="h-3 w-3 bg-primary-700" />
           <span>Assigned</span>
