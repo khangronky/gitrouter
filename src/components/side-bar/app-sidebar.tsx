@@ -1,12 +1,4 @@
-import {
-  ChartColumnIncreasing,
-  ChartLine,
-  Factory,
-  GitBranch,
-  LifeBuoy,
-  List,
-  Settings,
-} from 'lucide-react';
+import { GitBranch } from 'lucide-react';
 
 import {
   Sidebar,
@@ -15,82 +7,11 @@ import {
   SidebarHeader,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import { navLinks } from './nav-links';
 import { NavMain } from './nav-main';
 import { NavSecondary } from './nav-secondary';
 import { NavUser } from './nav-user';
 
-// Menu items.
-const data = {
-  main_navigation: [
-    {
-      header: '',
-      items: [
-        {
-          title: 'Dashboard',
-          url: '/dashboard',
-          icon: ChartColumnIncreasing,
-        },
-      ],
-    },
-    {
-      header: 'Pull Requests',
-      items: [
-        {
-          title: 'List',
-          url: '/pull-requests',
-          icon: List,
-        },
-      ],
-    },
-    {
-      header: 'Rules',
-      items: [
-        {
-          title: 'Rules Builder',
-          url: '/rules-builder',
-          icon: Factory,
-        },
-      ],
-    },
-    {
-      header: 'Analytics',
-      items: [
-        {
-          title: 'Trend',
-          url: '/trend',
-          icon: ChartColumnIncreasing,
-        },
-        {
-          title: 'Performance',
-          url: '/performance',
-          icon: ChartLine,
-        },
-      ],
-    },
-  ],
-  help_and_support: [
-    {
-      title: 'Help',
-      items: [
-        {
-          title: 'Setting',
-          url: '/setting',
-          icon: Settings,
-        },
-      ],
-    },
-    {
-      title: 'Support',
-      items: [
-        {
-          title: 'Support',
-          url: '/support',
-          icon: LifeBuoy,
-        },
-      ],
-    },
-  ],
-};
 export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
@@ -110,25 +31,9 @@ export function AppSidebar() {
           </div>
         </SidebarMenuButton>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain data={data.main_navigation} />
-        <NavSecondary
-          data={{
-            header: 'Help and Support',
-            items: [
-              {
-                title: 'Setting',
-                url: '/setting',
-                icon: Settings,
-              },
-              {
-                title: 'Support',
-                url: '/support',
-                icon: LifeBuoy,
-              },
-            ],
-          }}
-        />
+      <SidebarContent className="justify-between">
+        <NavMain data={navLinks.main_navigation} />
+        <NavSecondary data={navLinks.help_and_support} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

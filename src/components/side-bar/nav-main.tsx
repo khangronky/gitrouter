@@ -19,11 +19,15 @@ export const NavMain = ({
   }[];
 }) => {
   return (
-    <>
+    <div>
       {data.map((item) => (
         <SidebarGroup key={item.header}>
           <SidebarGroupContent>
-            <SidebarGroupLabel>{item.header}</SidebarGroupLabel>
+            {item.header !== 'Main' && (
+              <SidebarGroupLabel className="text-muted-foreground text-xs">
+                {item.header}
+              </SidebarGroupLabel>
+            )}
             {item.items.map((item) => (
               <SidebarMenuButton asChild key={item.url}>
                 <a href={item.url}>
@@ -35,6 +39,6 @@ export const NavMain = ({
           </SidebarGroupContent>
         </SidebarGroup>
       ))}
-    </>
+    </div>
   );
 };
