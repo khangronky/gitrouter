@@ -65,13 +65,10 @@ export function useAddRepository(orgId: string) {
 
   return useMutation({
     mutationFn: (data: AddRepositorySchema) =>
-      fetcher<RepositoryResponseType>(
-        `/organizations/${orgId}/repositories`,
-        {
-          method: 'POST',
-          body: JSON.stringify(data),
-        }
-      ),
+      fetcher<RepositoryResponseType>(`/organizations/${orgId}/repositories`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: repositoryKeys.list(orgId),
@@ -153,4 +150,3 @@ export function useToggleRepositoryActive(orgId: string, repoId: string) {
     },
   });
 }
-

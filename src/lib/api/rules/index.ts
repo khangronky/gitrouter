@@ -115,12 +115,9 @@ export function useDeleteRoutingRule(orgId: string) {
 
   return useMutation({
     mutationFn: (ruleId: string) =>
-      fetcher<MessageResponseType>(
-        `/organizations/${orgId}/rules/${ruleId}`,
-        {
-          method: 'DELETE',
-        }
-      ),
+      fetcher<MessageResponseType>(`/organizations/${orgId}/rules/${ruleId}`, {
+        method: 'DELETE',
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ruleKeys.lists(),
@@ -174,4 +171,3 @@ export function useReorderRules(orgId: string) {
     },
   });
 }
-

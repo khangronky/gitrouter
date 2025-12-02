@@ -76,10 +76,9 @@ export async function GET(request: Request) {
 
     try {
       const octokit = createInstallationOctokit(installationId);
-      const { data: installation } =
-        await octokit.rest.apps.getInstallation({
-          installation_id: installationId,
-        });
+      const { data: installation } = await octokit.rest.apps.getInstallation({
+        installation_id: installationId,
+      });
 
       accountLogin = installation.account?.login || 'unknown';
       accountType = installation.account?.type || 'User';
@@ -148,10 +147,7 @@ export async function GET(request: Request) {
 
     // Redirect to repository selection page
     return NextResponse.redirect(
-      new URL(
-        `/dashboard?success=github_installed&org=${orgId}`,
-        request.url
-      )
+      new URL(`/dashboard?success=github_installed&org=${orgId}`, request.url)
     );
   } catch (error) {
     console.error('Error in GitHub install callback:', error);
@@ -160,4 +156,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
