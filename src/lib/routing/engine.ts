@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
 import type {
   PullRequestContext,
   RoutingRule,
@@ -21,7 +24,7 @@ import { evaluateAllConditions } from './matchers';
  * Performance target: <100ms for 1000+ rules (uses indexed queries)
  */
 export async function routePullRequest(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   context: PullRequestContext,
   organizationId: string
 ): Promise<RoutingResult> {
@@ -47,6 +50,8 @@ export async function routePullRequest(
     );
   }
 
+  console.log('Routing: found', rules?.length || 0, 'active rules for org', organizationId);
+  
   // Evaluate rules in priority order
   for (const rule of rules || []) {
     const typedRule: RoutingRule = {
@@ -60,9 +65,10 @@ export async function routePullRequest(
       reviewer_ids: rule.reviewer_ids,
     };
 
-    const { matched } = evaluateAllConditions(typedRule.conditions, context);
+    const evalResult = evaluateAllConditions(typedRule.conditions, context);
+    console.log('Routing: evaluating rule', typedRule.name, 'priority', typedRule.priority, '- matched:', evalResult.matched, 'details:', evalResult.results);
 
-    if (matched) {
+    if (evalResult.matched) {
       // Get reviewers for this rule
       const reviewers = await getReviewers(
         supabase,
@@ -92,7 +98,7 @@ export async function routePullRequest(
  * Tries: repo default reviewer → org default reviewer
  */
 async function createFallbackResult(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   context: PullRequestContext,
   organizationId: string,
   startTime: number
@@ -162,7 +168,7 @@ async function createFallbackResult(
  * Excludes the PR author from the list
  */
 async function getReviewers(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   reviewerIds: string[],
   authorLogin: string
 ): Promise<ReviewerInfo[]> {
@@ -192,7 +198,7 @@ async function getReviewers(
  * Create review assignments for a pull request
  */
 export async function createReviewAssignments(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   pullRequestId: string,
   routingResult: RoutingResult
 ): Promise<void> {
@@ -255,7 +261,7 @@ export function buildPrContext(
  * Full routing flow: route PR and create assignments
  */
 export async function routeAndAssignReviewers(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   pr: {
     id: string;
     repository_id: string;
