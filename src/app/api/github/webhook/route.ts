@@ -336,24 +336,40 @@ async function handlePullRequestEvent(
     }
   }
 
-  // Sync with Jira (link on open, update on merge, comment on close)
-  if (jiraTicketId) {
-    try {
-      await syncPrWithJira(supabase, repo.organization_id, {
-        id: savedPr.id,
-        title: savedPr.title,
-        number: savedPr.github_pr_number,
-        html_url: savedPr.html_url,
-        author_login: savedPr.author_login,
-        repository_full_name: repository.full_name,
-        jira_ticket_id: jiraTicketId,
-        status,
-        merged_by: pr.merged_by?.login,
-      });
-    } catch (jiraError) {
-      console.error('Jira sync failed:', jiraError);
-      // Don't fail the webhook - PR is already saved
+  // Sync with Jira (create ticket if none, link on open, update on merge, delete on close)
+  try {
+    const jiraResult = await syncPrWithJira(supabase, repo.organization_id, {
+      id: savedPr.id,
+      title: savedPr.title,
+      number: savedPr.github_pr_number,
+      html_url: savedPr.html_url,
+      author_login: savedPr.author_login,
+      repository_full_name: repository.full_name,
+      jira_ticket_id: jiraTicketId,
+      status,
+      merged_by: pr.merged_by?.login,
+    });
+
+    // If a new ticket was created, update the PR record
+    if (jiraResult.jira_ticket_id && jiraResult.jira_ticket_id !== jiraTicketId) {
+      await supabase
+        .from('pull_requests')
+        .update({ jira_ticket_id: jiraResult.jira_ticket_id })
+        .eq('id', savedPr.id);
+      console.log(`Updated PR ${savedPr.github_pr_number} with Jira ticket: ${jiraResult.jira_ticket_id}`);
     }
+
+    // If ticket was deleted (PR closed without merge), clear the reference
+    if (jiraResult.deleted && jiraTicketId) {
+      await supabase
+        .from('pull_requests')
+        .update({ jira_ticket_id: null })
+        .eq('id', savedPr.id);
+      console.log(`Cleared Jira ticket from PR ${savedPr.github_pr_number} - ticket was deleted`);
+    }
+  } catch (jiraError) {
+    console.error('Jira sync failed:', jiraError);
+    // Don't fail the webhook - PR is already saved
   }
 
   return NextResponse.json({

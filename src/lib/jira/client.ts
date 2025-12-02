@@ -389,6 +389,26 @@ export async function createRemoteLink(
 }
 
 /**
+ * Delete a Jira issue
+ */
+export async function deleteJiraIssue(
+  config: JiraConfig,
+  issueKey: string
+): Promise<boolean> {
+  const { error } = await jiraFetch(config, `/issue/${issueKey}`, {
+    method: 'DELETE',
+  });
+
+  if (error) {
+    console.error(`Failed to delete Jira issue ${issueKey}:`, error);
+    return false;
+  }
+
+  console.log(`Deleted Jira issue: ${issueKey}`);
+  return true;
+}
+
+/**
  * List projects accessible to the user
  */
 export async function listProjects(
@@ -433,4 +453,141 @@ export async function getProjectStatuses(
   );
 
   return uniqueStatuses;
+}
+
+/**
+ * Get issue types for a project
+ */
+export async function getProjectIssueTypes(
+  config: JiraConfig,
+  projectKey: string
+): Promise<Array<{ id: string; name: string }>> {
+  const { data, error } = await jiraFetch<{
+    issueTypes: Array<{ id: string; name: string; subtask: boolean }>;
+  }>(config, `/project/${projectKey}`);
+
+  if (error || !data) {
+    console.error('Failed to get project issue types:', error);
+    return [];
+  }
+
+  // Filter out subtask types
+  return data.issueTypes?.filter((t) => !t.subtask) || [];
+}
+
+/**
+ * Search for a Jira user by email or display name
+ * Tries to match GitHub username to a Jira user
+ */
+export async function searchJiraUser(
+  config: JiraConfig,
+  query: string
+): Promise<JiraUserType | null> {
+  // Try searching by query (matches email, displayName, etc.)
+  const { data, error } = await jiraFetch<JiraUserType[]>(
+    config,
+    `/user/search?query=${encodeURIComponent(query)}&maxResults=10`
+  );
+
+  if (error || !data || data.length === 0) {
+    return null;
+  }
+
+  // Look for exact matches first (case-insensitive)
+  const queryLower = query.toLowerCase();
+  
+  // Try to find by email prefix or displayName containing the query
+  const match = data.find((user) => {
+    const emailPrefix = user.emailAddress?.split('@')[0]?.toLowerCase();
+    const displayNameLower = user.displayName?.toLowerCase();
+    return (
+      emailPrefix === queryLower ||
+      displayNameLower?.includes(queryLower) ||
+      displayNameLower === queryLower
+    );
+  });
+
+  return match || data[0]; // Return best match or first result
+}
+
+/**
+ * Create a new Jira issue
+ */
+export async function createJiraIssue(
+  config: JiraConfig,
+  projectKey: string,
+  issue: {
+    summary: string;
+    description?: string;
+    issueTypeName?: string; // defaults to "Task"
+    assigneeAccountId?: string; // Jira account ID to assign to
+  }
+): Promise<{ key: string; id: string } | null> {
+  // Get issue types to find the correct ID
+  const issueTypes = await getProjectIssueTypes(config, projectKey);
+  const targetTypeName = issue.issueTypeName || 'Task';
+  
+  // Find the issue type (try exact match first, then case-insensitive)
+  let issueType = issueTypes.find((t) => t.name === targetTypeName);
+  if (!issueType) {
+    issueType = issueTypes.find(
+      (t) => t.name.toLowerCase() === targetTypeName.toLowerCase()
+    );
+  }
+  
+  if (!issueType) {
+    console.error(
+      `Issue type "${targetTypeName}" not found in project ${projectKey}. Available types: ${issueTypes.map((t) => t.name).join(', ')}`
+    );
+    return null;
+  }
+
+  // Build description in Atlassian Document Format (ADF)
+  const descriptionContent = issue.description
+    ? {
+        type: 'doc',
+        version: 1,
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                text: issue.description,
+              },
+            ],
+          },
+        ],
+      }
+    : undefined;
+
+  const { data, error } = await jiraFetch<{ id: string; key: string; self: string }>(
+    config,
+    '/issue',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        fields: {
+          project: { key: projectKey },
+          summary: issue.summary,
+          issuetype: { id: issueType.id },
+          ...(descriptionContent && { description: descriptionContent }),
+          ...(issue.assigneeAccountId && { assignee: { accountId: issue.assigneeAccountId } }),
+        },
+      }),
+    }
+  );
+
+  if (error) {
+    console.error(`Failed to create Jira issue in ${projectKey}:`, error);
+    return null;
+  }
+
+  if (!data) {
+    console.error('No data returned from Jira issue creation');
+    return null;
+  }
+
+  console.log(`Created Jira issue: ${data.key}`);
+  return { key: data.key, id: data.id };
 }
