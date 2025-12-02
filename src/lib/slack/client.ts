@@ -1,5 +1,8 @@
-import { WebClient } from '@slack/web-api';
+import { WebClient, type Block, type KnownBlock } from '@slack/web-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
 
 /**
  * Get Slack configuration from environment
@@ -27,7 +30,7 @@ export function createSlackClient(botToken: string): WebClient {
  * Get Slack client for an organization
  */
 export async function getOrgSlackClient(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string
 ): Promise<WebClient | null> {
   const { data: integration, error } = await supabase
@@ -50,7 +53,7 @@ export async function sendDirectMessage(
   client: WebClient,
   userId: string,
   text: string,
-  blocks?: unknown[]
+  blocks?: (Block | KnownBlock)[]
 ): Promise<{ ok: boolean; ts?: string; channel?: string; error?: string }> {
   try {
     // Open a DM channel with the user
@@ -90,7 +93,7 @@ export async function sendChannelMessage(
   client: WebClient,
   channelId: string,
   text: string,
-  blocks?: unknown[]
+  blocks?: (Block | KnownBlock)[]
 ): Promise<{ ok: boolean; ts?: string; error?: string }> {
   try {
     const result = await client.chat.postMessage({
@@ -120,7 +123,7 @@ export async function updateMessage(
   channelId: string,
   ts: string,
   text: string,
-  blocks?: unknown[]
+  blocks?: (Block | KnownBlock)[]
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const result = await client.chat.update({
@@ -152,6 +155,34 @@ export async function lookupUserByEmail(
     return result.user?.id || null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * List all members in the Slack workspace
+ */
+export async function listWorkspaceMembers(
+  client: WebClient
+): Promise<Array<{ id: string; name: string; real_name: string; display_name: string; email?: string }>> {
+  try {
+    const result = await client.users.list({
+      limit: 500,
+    });
+
+    return (
+      result.members
+        ?.filter((m) => !m.is_bot && !m.deleted && m.id !== 'USLACKBOT')
+        .map((m) => ({
+          id: m.id || '',
+          name: m.name || '',
+          real_name: m.real_name || m.profile?.real_name || '',
+          display_name: m.profile?.display_name || m.name || '',
+          email: m.profile?.email,
+        })) || []
+    );
+  } catch (error) {
+    console.error('Failed to list Slack workspace members:', error);
+    return [];
   }
 }
 

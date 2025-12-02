@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
-import { testJiraConnection, type JiraConfig } from '@/lib/jira';
-import { testJiraConnectionSchema } from '@/lib/schema/jira';
+import { testJiraConnection, setTokenRefreshCallback } from '@/lib/jira';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -10,9 +9,9 @@ interface RouteParams {
 
 /**
  * POST /api/organizations/[id]/jira/test
- * Test Jira connection with provided credentials
+ * Test Jira connection with stored OAuth credentials
  */
-export async function POST(request: Request, { params }: RouteParams) {
+export async function POST(_request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
     const supabase = await createClient();
@@ -25,59 +24,43 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    const body = await request.json();
+    const adminSupabase = await createDynamicAdminClient();
 
-    // If no body provided, test with existing credentials
-    if (!body || Object.keys(body).length === 0) {
-      const adminSupabase = await createDynamicAdminClient();
+    const { data: integration, error } = await adminSupabase
+      .from('jira_integrations')
+      .select('cloud_id, access_token, refresh_token, token_expires_at')
+      .eq('organization_id', id)
+      .single();
 
-      const { data: integration, error } = await adminSupabase
-        .from('jira_integrations')
-        .select('domain, email, api_token')
-        .eq('organization_id', id)
-        .single();
-
-      if (error || !integration) {
-        return NextResponse.json(
-          { error: 'No Jira integration configured' },
-          { status: 404 }
-        );
-      }
-
-      const result = await testJiraConnection({
-        domain: integration.domain,
-        email: integration.email,
-        apiToken: integration.api_token,
-      });
-
-      return NextResponse.json({
-        success: result.success,
-        message: result.message,
-        user: result.user
-          ? { displayName: result.user.displayName, email: result.user.emailAddress }
-          : undefined,
-      });
-    }
-
-    // Test with provided credentials
-    const validation = testJiraConnectionSchema.safeParse(body);
-
-    if (!validation.success) {
+    if (error || !integration) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.flatten() },
-        { status: 400 }
+        { error: 'No Jira integration configured' },
+        { status: 404 }
       );
     }
 
-    const { domain, email, api_token } = validation.data;
+    // Set up token refresh callback to persist refreshed tokens
+    setTokenRefreshCallback(async (orgId, newAccessToken, newRefreshToken, expiresAt) => {
+      await adminSupabase
+        .from('jira_integrations')
+        .update({
+          access_token: newAccessToken,
+          refresh_token: newRefreshToken,
+          token_expires_at: expiresAt.toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('organization_id', orgId);
+    });
 
-    const config: JiraConfig = {
-      domain,
-      email,
-      apiToken: api_token,
-    };
-
-    const result = await testJiraConnection(config);
+    const result = await testJiraConnection({
+      cloudId: integration.cloud_id,
+      accessToken: integration.access_token,
+      refreshToken: integration.refresh_token,
+      tokenExpiresAt: integration.token_expires_at
+        ? new Date(integration.token_expires_at)
+        : null,
+      organizationId: id,
+    });
 
     return NextResponse.json({
       success: result.success,
@@ -94,4 +77,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 }
-

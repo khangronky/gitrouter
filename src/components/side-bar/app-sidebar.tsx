@@ -73,8 +73,8 @@ const data = {
       title: 'Help',
       items: [
         {
-          title: 'Setting',
-          url: '/setting',
+          title: 'Settings',
+          url: '/settings',
           icon: Settings,
         },
       ],
@@ -117,8 +117,8 @@ export function AppSidebar() {
             header: 'Help and Support',
             items: [
               {
-                title: 'Setting',
-                url: '/setting',
+                title: 'Settings',
+                url: '/settings',
                 icon: Settings,
               },
               {

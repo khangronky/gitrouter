@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { addMemberSchema, updateMemberRoleSchema } from '@/lib/schema/organization';
+import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
+import { addMemberSchema, addMemberByEmailSchema, updateMemberRoleSchema } from '@/lib/schema/organization';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
 
 interface RouteParams {
@@ -65,7 +65,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
 /**
  * POST /api/organizations/[id]/members
- * Add a member to the organization (directly, if user exists)
+ * Add a member to the organization directly by email or user_id
  */
 export async function POST(request: Request, { params }: RouteParams) {
   try {
@@ -81,16 +81,45 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const validation = addMemberSchema.safeParse(body);
+    
+    // Try to parse as email-based request first
+    const emailValidation = addMemberByEmailSchema.safeParse(body);
+    const idValidation = addMemberSchema.safeParse(body);
 
-    if (!validation.success) {
+    let user_id: string;
+    let role: 'member' | 'admin';
+
+    if (emailValidation.success) {
+      // Adding by email
+      const { email, role: memberRole } = emailValidation.data;
+      role = memberRole;
+
+      // Use admin client to look up user by email
+      const adminSupabase = await createDynamicAdminClient();
+      const { data: user, error: userError } = await adminSupabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (userError || !user) {
+        return NextResponse.json(
+          { error: 'User not found. They must sign up first before being added to the team.' },
+          { status: 404 }
+        );
+      }
+
+      user_id = user.id;
+    } else if (idValidation.success) {
+      // Adding by user_id
+      user_id = idValidation.data.user_id;
+      role = idValidation.data.role;
+    } else {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.flatten() },
+        { error: 'Validation failed. Provide either email or user_id with role.' },
         { status: 400 }
       );
     }
-
-    const { user_id, role } = validation.data;
 
     // Prevent adding someone as owner (only one owner per org)
     if (role === 'owner') {
@@ -100,19 +129,11 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Check if user exists
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('id', user_id)
-      .single();
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    // Use admin client for the rest of operations
+    const adminSupabase = await createDynamicAdminClient();
 
     // Check if already a member
-    const { data: existing } = await supabase
+    const { data: existing } = await adminSupabase
       .from('organization_members')
       .select('id')
       .eq('organization_id', id)
@@ -127,7 +148,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Add member
-    const { data: member, error: memberError } = await supabase
+    const { data: member, error: memberError } = await adminSupabase
       .from('organization_members')
       .insert({
         organization_id: id,

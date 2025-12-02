@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
-import { upsertJiraIntegrationSchema } from '@/lib/schema/jira';
-import { testJiraConnection } from '@/lib/jira';
+import { updateJiraIntegrationSchema } from '@/lib/schema/jira';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -33,8 +32,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
         `
         id,
         organization_id,
-        domain,
-        email,
+        cloud_id,
+        site_url,
+        site_name,
         default_project_key,
         status_on_merge,
         created_at,
@@ -51,7 +51,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // Don't return the API token
+    // Don't return access_token or refresh_token
     return NextResponse.json({ integration });
   } catch (error) {
     console.error('Error in GET /api/organizations/[id]/jira:', error);
@@ -63,10 +63,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 }
 
 /**
- * POST /api/organizations/[id]/jira
- * Create or update Jira integration
+ * PATCH /api/organizations/[id]/jira
+ * Update Jira integration settings (project, status on merge)
  */
-export async function POST(request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
     const supabase = await createClient();
@@ -80,7 +80,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const validation = upsertJiraIntegrationSchema.safeParse(body);
+    const validation = updateJiraIntegrationSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json(
@@ -89,83 +89,50 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    const { domain, email, api_token, default_project_key, status_on_merge } =
-      validation.data;
-
-    // Test connection before saving
-    const testResult = await testJiraConnection({
-      domain,
-      email,
-      apiToken: api_token,
-    });
-
-    if (!testResult.success) {
-      return NextResponse.json(
-        { error: `Connection failed: ${testResult.message}` },
-        { status: 400 }
-      );
-    }
-
     const adminSupabase = await createDynamicAdminClient();
 
-    // Check if integration already exists
-    const { data: existing } = await adminSupabase
+    // Check if integration exists
+    const { data: existing, error: existingError } = await adminSupabase
       .from('jira_integrations')
       .select('id')
       .eq('organization_id', id)
       .single();
 
-    const integrationData = {
-      organization_id: id,
-      domain,
-      email,
-      api_token,
-      default_project_key: default_project_key || null,
-      status_on_merge: status_on_merge || null,
+    if (existingError || !existing) {
+      return NextResponse.json(
+        { error: 'Jira integration not found' },
+        { status: 404 }
+      );
+    }
+
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
-    let integration;
-
-    if (existing) {
-      // Update existing
-      const { data, error } = await adminSupabase
-        .from('jira_integrations')
-        .update(integrationData)
-        .eq('organization_id', id)
-        .select(
-          'id, organization_id, domain, email, default_project_key, status_on_merge, created_at, updated_at'
-        )
-        .single();
-
-      if (error) {
-        throw error;
-      }
-      integration = data;
-    } else {
-      // Create new
-      const { data, error } = await adminSupabase
-        .from('jira_integrations')
-        .insert(integrationData)
-        .select(
-          'id, organization_id, domain, email, default_project_key, status_on_merge, created_at, updated_at'
-        )
-        .single();
-
-      if (error) {
-        throw error;
-      }
-      integration = data;
+    if (validation.data.default_project_key !== undefined) {
+      updateData.default_project_key = validation.data.default_project_key;
     }
 
-    return NextResponse.json({
-      integration,
-      user: testResult.user
-        ? { displayName: testResult.user.displayName, email: testResult.user.emailAddress }
-        : null,
-    });
+    if (validation.data.status_on_merge !== undefined) {
+      updateData.status_on_merge = validation.data.status_on_merge;
+    }
+
+    const { data: integration, error } = await adminSupabase
+      .from('jira_integrations')
+      .update(updateData)
+      .eq('organization_id', id)
+      .select(
+        'id, organization_id, cloud_id, site_url, site_name, default_project_key, status_on_merge, created_at, updated_at'
+      )
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({ integration });
   } catch (error) {
-    console.error('Error in POST /api/organizations/[id]/jira:', error);
+    console.error('Error in PATCH /api/organizations/[id]/jira:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -213,4 +180,3 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     );
   }
 }
-

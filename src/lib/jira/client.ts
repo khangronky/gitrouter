@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
 import type {
   JiraIssueType,
   JiraProjectType,
@@ -7,37 +10,143 @@ import type {
 } from '@/lib/schema/jira';
 
 /**
- * Jira API client configuration
+ * Jira API client configuration (OAuth 2.0)
  */
 export interface JiraConfig {
-  domain: string; // e.g., "company.atlassian.net"
-  email: string;
-  apiToken: string;
+  cloudId: string;
+  accessToken: string;
+  refreshToken?: string | null;
+  tokenExpiresAt?: Date | null;
+  organizationId?: string;
 }
 
 /**
- * Create Basic Auth header for Jira API
+ * Token refresh callback type
  */
-function createAuthHeader(email: string, apiToken: string): string {
-  const credentials = Buffer.from(`${email}:${apiToken}`).toString('base64');
-  return `Basic ${credentials}`;
+type TokenRefreshCallback = (
+  organizationId: string,
+  newAccessToken: string,
+  newRefreshToken: string | null,
+  expiresAt: Date
+) => Promise<void>;
+
+let tokenRefreshCallback: TokenRefreshCallback | null = null;
+
+/**
+ * Set the callback for token refresh
+ */
+export function setTokenRefreshCallback(callback: TokenRefreshCallback) {
+  tokenRefreshCallback = callback;
 }
 
 /**
- * Make a request to Jira API
+ * Refresh Jira OAuth token
+ */
+async function refreshJiraToken(
+  refreshToken: string
+): Promise<{ accessToken: string; refreshToken: string | null; expiresIn: number } | null> {
+  const clientId = process.env.JIRA_CLIENT_ID;
+  const clientSecret = process.env.JIRA_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    console.error('Jira OAuth credentials not configured');
+    return null;
+  }
+
+  try {
+    const response = await fetch('https://auth.atlassian.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        grant_type: 'refresh_token',
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to refresh Jira token:', await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token || null,
+      expiresIn: data.expires_in,
+    };
+  } catch (error) {
+    console.error('Error refreshing Jira token:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if token needs refresh (within 5 minutes of expiry)
+ */
+function tokenNeedsRefresh(expiresAt: Date | null | undefined): boolean {
+  if (!expiresAt) return false;
+  const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+  return expiresAt < fiveMinutesFromNow;
+}
+
+/**
+ * Get a valid access token, refreshing if necessary
+ */
+async function getValidAccessToken(config: JiraConfig): Promise<string | null> {
+  // Check if token needs refresh
+  if (tokenNeedsRefresh(config.tokenExpiresAt) && config.refreshToken && config.organizationId) {
+    const refreshed = await refreshJiraToken(config.refreshToken);
+    if (refreshed) {
+      const newExpiresAt = new Date(Date.now() + refreshed.expiresIn * 1000);
+      
+      // Update config with new token
+      config.accessToken = refreshed.accessToken;
+      config.refreshToken = refreshed.refreshToken;
+      config.tokenExpiresAt = newExpiresAt;
+
+      // Persist the new token if callback is set
+      if (tokenRefreshCallback) {
+        await tokenRefreshCallback(
+          config.organizationId,
+          refreshed.accessToken,
+          refreshed.refreshToken,
+          newExpiresAt
+        );
+      }
+    } else {
+      console.error('Failed to refresh token');
+      return null;
+    }
+  }
+
+  return config.accessToken;
+}
+
+/**
+ * Make a request to Jira API using OAuth 2.0
  */
 async function jiraFetch<T>(
   config: JiraConfig,
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ data: T | null; error: string | null }> {
-  const url = `https://${config.domain}/rest/api/3${endpoint}`;
+  const accessToken = await getValidAccessToken(config);
+  if (!accessToken) {
+    return { data: null, error: 'Failed to get valid access token' };
+  }
+
+  // OAuth 2.0 uses the Atlassian API gateway with cloud ID
+  const url = `https://api.atlassian.com/ex/jira/${config.cloudId}/rest/api/3${endpoint}`;
 
   try {
     const response = await fetch(url, {
       ...options,
       headers: {
-        Authorization: createAuthHeader(config.email, config.apiToken),
+        Authorization: `Bearer ${accessToken}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
         ...options.headers,
@@ -70,15 +179,15 @@ async function jiraFetch<T>(
 }
 
 /**
- * Get Jira config for an organization
+ * Get Jira config for an organization (OAuth 2.0)
  */
 export async function getOrgJiraConfig(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string
 ): Promise<JiraConfig | null> {
   const { data, error } = await supabase
     .from('jira_integrations')
-    .select('domain, email, api_token')
+    .select('cloud_id, access_token, refresh_token, token_expires_at')
     .eq('organization_id', organizationId)
     .single();
 
@@ -87,9 +196,11 @@ export async function getOrgJiraConfig(
   }
 
   return {
-    domain: data.domain,
-    email: data.email,
-    apiToken: data.api_token,
+    cloudId: data.cloud_id,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    tokenExpiresAt: data.token_expires_at ? new Date(data.token_expires_at) : null,
+    organizationId,
   };
 }
 
@@ -323,4 +434,3 @@ export async function getProjectStatuses(
 
   return uniqueStatuses;
 }
-

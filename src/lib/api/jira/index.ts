@@ -5,8 +5,7 @@ import type {
   JiraConnectionTestResponseType,
   JiraProjectListResponseType,
   JiraStatusListResponseType,
-  UpsertJiraIntegrationSchema,
-  TestJiraConnectionSchema,
+  UpdateJiraIntegrationSchema,
   MessageResponseType,
 } from '@/lib/schema/jira';
 
@@ -74,26 +73,37 @@ export function useJiraStatuses(orgId: string, projectKey?: string) {
 // =============================================
 
 /**
- * Save Jira integration
+ * Get Jira OAuth URL
  */
-export function useSaveJiraIntegration(orgId: string) {
+export function useGetJiraOAuthUrl() {
+  return useMutation({
+    mutationFn: async (orgId: string) => {
+      const response = await fetcher<{ url: string }>(
+        `/jira/oauth?org_id=${orgId}`
+      );
+      return response;
+    },
+  });
+}
+
+/**
+ * Update Jira integration settings
+ */
+export function useUpdateJiraIntegration(orgId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpsertJiraIntegrationSchema) =>
-      fetcher<JiraIntegrationResponseType & { user?: { displayName: string; email: string } }>(
+    mutationFn: (data: UpdateJiraIntegrationSchema) =>
+      fetcher<JiraIntegrationResponseType>(
         `/organizations/${orgId}/jira`,
         {
-          method: 'POST',
+          method: 'PATCH',
           body: JSON.stringify(data),
         }
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: jiraKeys.integration(orgId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: jiraKeys.projects(orgId),
       });
     },
   });
@@ -104,12 +114,12 @@ export function useSaveJiraIntegration(orgId: string) {
  */
 export function useTestJiraConnection(orgId: string) {
   return useMutation({
-    mutationFn: (data?: TestJiraConnectionSchema) =>
+    mutationFn: () =>
       fetcher<JiraConnectionTestResponseType>(
         `/organizations/${orgId}/jira/test`,
         {
           method: 'POST',
-          body: data ? JSON.stringify(data) : '{}',
+          body: '{}',
         }
       ),
   });
@@ -133,4 +143,3 @@ export function useRemoveJiraIntegration(orgId: string) {
     },
   });
 }
-

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
-import { listProjects, type JiraConfig } from '@/lib/jira';
+import { listProjects, setTokenRefreshCallback, type JiraConfig } from '@/lib/jira';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -28,7 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     const { data: integration, error } = await adminSupabase
       .from('jira_integrations')
-      .select('domain, email, api_token')
+      .select('cloud_id, access_token, refresh_token, token_expires_at')
       .eq('organization_id', id)
       .single();
 
@@ -39,10 +39,27 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
+    // Set up token refresh callback to persist refreshed tokens
+    setTokenRefreshCallback(async (orgId, newAccessToken, newRefreshToken, expiresAt) => {
+      await adminSupabase
+        .from('jira_integrations')
+        .update({
+          access_token: newAccessToken,
+          refresh_token: newRefreshToken,
+          token_expires_at: expiresAt.toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('organization_id', orgId);
+    });
+
     const config: JiraConfig = {
-      domain: integration.domain,
-      email: integration.email,
-      apiToken: integration.api_token,
+      cloudId: integration.cloud_id,
+      accessToken: integration.access_token,
+      refreshToken: integration.refresh_token,
+      tokenExpiresAt: integration.token_expires_at
+        ? new Date(integration.token_expires_at)
+        : null,
+      organizationId: id,
     };
 
     const projects = await listProjects(config);
@@ -56,4 +73,3 @@ export async function GET(_request: Request, { params }: RouteParams) {
     );
   }
 }
-

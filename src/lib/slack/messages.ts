@@ -13,6 +13,7 @@ export function buildPrNotificationBlocks(pr: {
   additions: number;
   deletions: number;
   jira_ticket?: string | null;
+  reviewers?: { name: string; slack_user_id: string | null }[];
 }): SlackBlock[] {
   const blocks: SlackBlock[] = [
     // Header
@@ -55,6 +56,21 @@ export function buildPrNotificationBlocks(pr: {
       ],
     },
   ];
+
+  // Reviewers section with mentions
+  if (pr.reviewers && pr.reviewers.length > 0) {
+    const reviewerMentions = pr.reviewers
+      .map((r) => r.slack_user_id ? `<@${r.slack_user_id}>` : r.name)
+      .join(', ');
+    
+    blocks.push({
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `*Reviewers:* ${reviewerMentions}`,
+      },
+    });
+  }
 
   // Jira ticket if present
   if (pr.jira_ticket) {

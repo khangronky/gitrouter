@@ -1,40 +1,30 @@
 import { z } from 'zod';
 
 // =============================================
-// Jira Integration Schemas
+// Jira Integration Schemas (OAuth 2.0)
 // =============================================
 
 /**
- * Jira Integration Type
+ * Jira Integration Type (OAuth 2.0)
  */
 export interface JiraIntegrationType {
   id: string;
   organization_id: string;
-  domain: string;
-  email: string;
+  cloud_id: string;
+  site_url: string;
+  site_name: string | null;
   default_project_key: string | null;
   status_on_merge: string | null;
   created_at: string;
   updated_at: string;
-  // Note: api_token is never returned in responses
+  // Note: access_token, refresh_token are never returned in responses
 }
 
 /**
- * Create/Update Jira Integration Schema
+ * Update Jira Integration Settings Schema
+ * (OAuth handles creation, this is for updating settings)
  */
-export const upsertJiraIntegrationSchema = z.object({
-  domain: z
-    .string()
-    .min(1, 'Jira domain is required')
-    .regex(
-      /^[a-zA-Z0-9-]+\.atlassian\.net$/,
-      'Domain must be in format: your-domain.atlassian.net'
-    ),
-  email: z.email('Invalid email address'),
-  api_token: z
-    .string()
-    .min(1, 'API token is required')
-    .max(500, 'API token is too long'),
+export const updateJiraIntegrationSchema = z.object({
   default_project_key: z
     .string()
     .regex(/^[A-Z][A-Z0-9]*$/, 'Project key must be uppercase letters/numbers')
@@ -43,20 +33,9 @@ export const upsertJiraIntegrationSchema = z.object({
   status_on_merge: z.string().nullable().optional(),
 });
 
-export type UpsertJiraIntegrationSchema = z.infer<
-  typeof upsertJiraIntegrationSchema
+export type UpdateJiraIntegrationSchema = z.infer<
+  typeof updateJiraIntegrationSchema
 >;
-
-/**
- * Test Jira Connection Schema
- */
-export const testJiraConnectionSchema = z.object({
-  domain: z.string().min(1, 'Jira domain is required'),
-  email: z.email('Invalid email address'),
-  api_token: z.string().min(1, 'API token is required'),
-});
-
-export type TestJiraConnectionSchema = z.infer<typeof testJiraConnectionSchema>;
 
 /**
  * Jira Ticket ID Pattern
@@ -192,4 +171,3 @@ export interface JiraStatusListResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

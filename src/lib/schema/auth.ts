@@ -8,7 +8,6 @@ export const registerSchema = z
     email: z.email({ message: 'Invalid email address' }),
     password: z
       .string()
-      .min(12, 'Password must be at least 12 characters long')
       .refine(
         (val) =>
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?]).+$/.test(
@@ -21,7 +20,6 @@ export const registerSchema = z
       ),
     confirmPassword: z
       .string()
-      .min(12, 'Password must be at least 12 characters long')
       .refine(
         (val) =>
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=[\]{};':"\\|,.<>/?]).+$/.test(
@@ -82,3 +80,31 @@ export interface LoginResponseType {
     email: string;
   };
 }
+
+/**
+ * Current User Type
+ */
+export interface CurrentUserType {
+  id: string;
+  email: string;
+  username: string | null;
+  full_name: string | null;
+  github_user_id: number | null;
+  github_username: string | null;
+  slack_user_id: string | null;
+  slack_username: string | null;
+  created_at: string;
+}
+
+/**
+ * Update User Schema
+ */
+export const updateUserSchema = z.object({
+  full_name: z.string().max(100).optional(),
+  username: z.string().max(50).optional(),
+  github_username: z.string().max(39).nullable().optional(),
+  slack_user_id: z.string().nullable().optional(),
+  slack_username: z.string().max(100).nullable().optional(),
+});
+
+export type UpdateUserSchema = z.infer<typeof updateUserSchema>;

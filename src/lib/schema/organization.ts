@@ -32,6 +32,25 @@ export const createOrganizationSchema = z.object({
 export type CreateOrganizationSchema = z.infer<typeof createOrganizationSchema>;
 
 /**
+ * Notification Settings Schema
+ */
+export const notificationSettingsSchema = z.object({
+  slack_notifications: z.boolean().default(true),
+  email_notifications: z.boolean().default(false),
+  escalation_destination: z.enum(['channel', 'dm']).default('channel'),
+  notification_frequency: z.enum(['realtime', 'batched', 'daily']).default('realtime'),
+});
+
+export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
+
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  slack_notifications: true,
+  email_notifications: false,
+  escalation_destination: 'channel',
+  notification_frequency: 'realtime',
+};
+
+/**
  * Update Organization Schema
  */
 export const updateOrganizationSchema = z.object({
@@ -51,6 +70,7 @@ export const updateOrganizationSchema = z.object({
     .optional(),
   default_reviewer_id: z.string().uuid().nullable().optional(),
   settings: z.record(z.unknown()).optional(),
+  notification_settings: notificationSettingsSchema.partial().optional(),
 });
 
 export type UpdateOrganizationSchema = z.infer<typeof updateOrganizationSchema>;
@@ -65,6 +85,7 @@ export interface OrganizationType {
   created_by: string;
   default_reviewer_id: string | null;
   settings: Record<string, unknown>;
+  notification_settings: NotificationSettings;
   created_at: string;
   updated_at: string;
 }
@@ -82,14 +103,24 @@ export interface OrganizationWithRoleType extends OrganizationType {
 // =============================================
 
 /**
- * Add Member Schema
+ * Add Member Schema (by user_id)
  */
 export const addMemberSchema = z.object({
   user_id: z.string().uuid('Invalid user ID'),
-  role: organizationRoleSchema.default('member'),
+  role: z.enum(['member', 'admin']).default('member'),
 });
 
 export type AddMemberSchema = z.infer<typeof addMemberSchema>;
+
+/**
+ * Add Member by Email Schema
+ */
+export const addMemberByEmailSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['member', 'admin']).default('member'),
+});
+
+export type AddMemberByEmailSchema = z.infer<typeof addMemberByEmailSchema>;
 
 /**
  * Update Member Role Schema
@@ -119,66 +150,6 @@ export interface OrganizationMemberType {
 }
 
 // =============================================
-// Invitation Schemas
-// =============================================
-
-/**
- * Invitation Status
- */
-export const invitationStatusSchema = z.enum([
-  'pending',
-  'accepted',
-  'expired',
-  'cancelled',
-]);
-export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
-
-/**
- * Create Invitation Schema
- */
-export const createInvitationSchema = z.object({
-  email: z.email('Invalid email address'),
-  role: organizationRoleSchema.default('member'),
-});
-
-export type CreateInvitationSchema = z.infer<typeof createInvitationSchema>;
-
-/**
- * Accept Invitation Schema
- */
-export const acceptInvitationSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
-});
-
-export type AcceptInvitationSchema = z.infer<typeof acceptInvitationSchema>;
-
-/**
- * Invitation Type
- */
-export interface InvitationType {
-  id: string;
-  organization_id: string;
-  email: string;
-  role: OrganizationRole;
-  token: string;
-  status: InvitationStatus;
-  invited_by: string;
-  expires_at: string;
-  accepted_at: string | null;
-  created_at: string;
-  organization?: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  inviter?: {
-    id: string;
-    email: string;
-    full_name: string | null;
-  };
-}
-
-// =============================================
 // Response Types
 // =============================================
 
@@ -192,14 +163,6 @@ export interface OrganizationResponseType {
 
 export interface MemberListResponseType {
   members: OrganizationMemberType[];
-}
-
-export interface InvitationListResponseType {
-  invitations: InvitationType[];
-}
-
-export interface InvitationResponseType {
-  invitation: InvitationType;
 }
 
 export interface MessageResponseType {

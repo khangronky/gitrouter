@@ -85,6 +85,7 @@ export interface GitHubPullRequestType {
   updated_at: string;
   merged_at: string | null;
   closed_at: string | null;
+  merged_by: GitHubUserType | null;
   labels: Array<{
     id: number;
     name: string;

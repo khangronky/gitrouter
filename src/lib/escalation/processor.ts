@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
 import { sendReviewReminder, sendEscalationAlert } from '@/lib/slack';
 
 /**
@@ -35,7 +38,7 @@ interface PendingAssignment {
  * Process escalations for all pending review assignments
  */
 export async function processEscalations(
-  supabase: SupabaseClient
+  supabase: AnySupabaseClient
 ): Promise<{
   processed: number;
   reminders_sent: number;
@@ -186,7 +189,7 @@ export async function processEscalations(
  * Get summary of pending escalations
  */
 export async function getEscalationSummary(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string
 ): Promise<{
   pending_reviews: number;

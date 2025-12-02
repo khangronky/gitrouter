@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
 import {
   getOrgJiraConfig,
   getJiraIssue,
@@ -11,7 +14,7 @@ import {
  * Link a PR to a Jira issue when PR is opened
  */
 export async function linkPrToJiraIssue(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   ticketId: string,
   pr: {
@@ -49,7 +52,7 @@ export async function linkPrToJiraIssue(
  * Update Jira issue when PR is merged
  */
 export async function updateJiraOnMerge(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   ticketId: string,
   pr: {
@@ -101,7 +104,7 @@ export async function updateJiraOnMerge(
  * Add comment to Jira when PR is closed without merge
  */
 export async function updateJiraOnClose(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   ticketId: string,
   pr: {
@@ -126,7 +129,7 @@ export async function updateJiraOnClose(
  * Sync PR with Jira based on PR status
  */
 export async function syncPrWithJira(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   pr: {
     id: string;

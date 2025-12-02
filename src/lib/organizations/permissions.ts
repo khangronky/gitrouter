@@ -1,4 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
 import type { OrganizationRole } from '@/lib/schema/organization';
 
 /**
@@ -65,7 +68,7 @@ export function hasPermission(
  * Get user's membership in an organization
  */
 export async function getOrgMembership(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   userId: string
 ): Promise<{ role: OrganizationRole } | null> {
@@ -85,7 +88,7 @@ export async function getOrgMembership(
  * Returns the user's role if allowed, null if not
  */
 export async function checkOrgPermission(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   userId: string,
   action: PermissionAction
@@ -106,7 +109,7 @@ export async function checkOrgPermission(
  * Verify user is authenticated and return user ID
  */
 export async function getAuthenticatedUser(
-  supabase: SupabaseClient
+  supabase: AnySupabaseClient
 ): Promise<{ userId: string } | null> {
   const {
     data: { user },
@@ -121,7 +124,7 @@ export async function getAuthenticatedUser(
  * Combined auth + permission check
  */
 export async function requireOrgPermission(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   action: PermissionAction
 ): Promise<

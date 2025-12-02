@@ -50,9 +50,27 @@ export async function GET(request: Request) {
       }
     }
 
+    // If no state/org_id, try to find user's organization
+    // This handles cases where user installs directly from GitHub
+    if (!orgId) {
+      const { data: membership } = await supabase
+        .from('organization_members')
+        .select('organization_id, role')
+        .eq('user_id', auth.userId)
+        .in('role', ['owner', 'admin'])
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (membership) {
+        orgId = membership.organization_id;
+        console.log('Auto-linked installation to org:', orgId);
+      }
+    }
+
     if (!orgId) {
       return NextResponse.redirect(
-        new URL('/dashboard?error=missing_org_id', request.url)
+        new URL('/settings?error=no_organization&message=Please create or join an organization first', request.url)
       );
     }
 
@@ -73,6 +91,7 @@ export async function GET(request: Request) {
     // Get installation details from GitHub
     let accountLogin = 'unknown';
     let accountType = 'User';
+    let accountId: number | null = null;
 
     try {
       const octokit = createInstallationOctokit(installationId);
@@ -83,6 +102,7 @@ export async function GET(request: Request) {
 
       accountLogin = installation.account?.login || 'unknown';
       accountType = installation.account?.type || 'User';
+      accountId = installation.account?.id || null;
     } catch (error) {
       console.error('Failed to get installation details:', error);
     }
@@ -146,17 +166,66 @@ export async function GET(request: Request) {
       }
     }
 
-    // Redirect to repository selection page
+    // Auto-capture GitHub info for the installing user
+    // If the installation is for a User (not Org), we can link the GitHub account
+    if (accountType === 'User' && accountLogin !== 'unknown' && accountId) {
+      try {
+        // Update the user's GitHub info
+        await adminSupabase
+          .from('users')
+          .update({
+            github_user_id: accountId,
+            github_username: accountLogin,
+          })
+          .eq('id', auth.userId);
+
+        console.log(`Linked GitHub account ${accountLogin} to user ${auth.userId}`);
+
+        // Also create/update a reviewer entry for this user
+        const { data: existingReviewer } = await adminSupabase
+          .from('reviewers')
+          .select('id')
+          .eq('organization_id', orgId)
+          .eq('user_id', auth.userId)
+          .single();
+
+        if (!existingReviewer) {
+          // Create new reviewer with GitHub info
+          await adminSupabase.from('reviewers').insert({
+            organization_id: orgId,
+            user_id: auth.userId,
+            name: accountLogin,
+            github_username: accountLogin,
+          });
+          console.log(`Created reviewer for user ${auth.userId} with GitHub username ${accountLogin}`);
+        } else {
+          // Update existing reviewer with GitHub info
+          await adminSupabase
+            .from('reviewers')
+            .update({ 
+              github_username: accountLogin,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingReviewer.id);
+          console.log(`Updated reviewer ${existingReviewer.id} with GitHub username ${accountLogin}`);
+        }
+      } catch (error) {
+        console.error('Failed to link GitHub account to user:', error);
+        // Don't fail the installation - just log the error
+      }
+    }
+
+    // Redirect to settings page to add repositories
     return NextResponse.redirect(
       new URL(
-        `/dashboard?success=github_installed&org=${orgId}`,
+        `/settings?success=github_installed&org=${orgId}`,
         request.url
       )
     );
   } catch (error) {
     console.error('Error in GitHub install callback:', error);
     return NextResponse.redirect(
-      new URL('/dashboard?error=internal_error', request.url)
+      new URL('/settings?error=internal_error', request.url)
     );
   }
 }

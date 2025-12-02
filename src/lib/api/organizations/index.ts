@@ -6,13 +6,12 @@ import type {
   OrganizationListResponseType,
   OrganizationResponseType,
   MemberListResponseType,
-  InvitationListResponseType,
-  InvitationResponseType,
-  CreateInvitationSchema,
   AddMemberSchema,
+  AddMemberByEmailSchema,
   UpdateMemberRoleSchema,
   MessageResponseType,
   OrganizationMemberType,
+  NotificationSettings,
 } from '@/lib/schema/organization';
 
 // =============================================
@@ -26,8 +25,7 @@ export const organizationKeys = {
   details: () => [...organizationKeys.all, 'detail'] as const,
   detail: (id: string) => [...organizationKeys.details(), id] as const,
   members: (id: string) => [...organizationKeys.detail(id), 'members'] as const,
-  invitations: (id: string) =>
-    [...organizationKeys.detail(id), 'invitations'] as const,
+  notificationSettings: (id: string) => [...organizationKeys.detail(id), 'notification-settings'] as const,
 };
 
 // =============================================
@@ -65,18 +63,6 @@ export function useOrganizationMembers(id: string) {
     queryKey: organizationKeys.members(id),
     queryFn: () =>
       fetcher<MemberListResponseType>(`/organizations/${id}/members`),
-    enabled: !!id,
-  });
-}
-
-/**
- * Get organization invitations
- */
-export function useOrganizationInvitations(id: string) {
-  return useQuery({
-    queryKey: organizationKeys.invitations(id),
-    queryFn: () =>
-      fetcher<InvitationListResponseType>(`/organizations/${id}/invitations`),
     enabled: !!id,
   });
 }
@@ -140,13 +126,36 @@ export function useDeleteOrganization() {
 }
 
 /**
- * Add member to organization
+ * Add member to organization (by user_id)
  */
 export function useAddMember(orgId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: AddMemberSchema) =>
+      fetcher<{ member: OrganizationMemberType }>(
+        `/organizations/${orgId}/members`,
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: organizationKeys.members(orgId),
+      });
+    },
+  });
+}
+
+/**
+ * Add member to organization by email
+ */
+export function useAddMemberByEmail(orgId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: AddMemberByEmailSchema) =>
       fetcher<{ member: OrganizationMemberType }>(
         `/organizations/${orgId}/members`,
         {
@@ -207,77 +216,42 @@ export function useRemoveMember(orgId: string) {
   });
 }
 
+// =============================================
+// Notification Settings
+// =============================================
+
+interface NotificationSettingsResponse {
+  notification_settings: NotificationSettings;
+}
+
 /**
- * Create invitation
+ * Get notification settings for an organization
  */
-export function useCreateInvitation(orgId: string) {
+export function useNotificationSettings(orgId: string) {
+  return useQuery({
+    queryKey: organizationKeys.notificationSettings(orgId),
+    queryFn: () =>
+      fetcher<NotificationSettingsResponse>(`/organizations/${orgId}/notification-settings`),
+    enabled: !!orgId,
+  });
+}
+
+/**
+ * Update notification settings for an organization
+ */
+export function useUpdateNotificationSettings(orgId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateInvitationSchema) =>
-      fetcher<InvitationResponseType>(`/organizations/${orgId}/invitations`, {
-        method: 'POST',
+    mutationFn: (data: Partial<NotificationSettings>) =>
+      fetcher<NotificationSettingsResponse>(`/organizations/${orgId}/notification-settings`, {
+        method: 'PATCH',
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: organizationKeys.invitations(orgId),
+        queryKey: organizationKeys.notificationSettings(orgId),
       });
     },
   });
 }
-
-/**
- * Cancel invitation
- */
-export function useCancelInvitation(orgId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (invitationId: string) =>
-      fetcher<MessageResponseType>(
-        `/organizations/${orgId}/invitations?invitation_id=${invitationId}`,
-        {
-          method: 'DELETE',
-        }
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: organizationKeys.invitations(orgId),
-      });
-    },
-  });
-}
-
-/**
- * Accept invitation
- */
-export function useAcceptInvitation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (token: string) =>
-      fetcher<MessageResponseType & { organization?: unknown }>(
-        `/invitations/${token}/accept`,
-        {
-          method: 'POST',
-        }
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
-    },
-  });
-}
-
-/**
- * Get invitation details (for accept page)
- */
-export function useInvitationDetails(token: string) {
-  return useQuery({
-    queryKey: ['invitation', token],
-    queryFn: () =>
-      fetcher<InvitationResponseType>(`/invitations/${token}/accept`),
-    enabled: !!token,
-  });
-}
-
