@@ -153,4 +153,3 @@ export interface EscalatedPrsResponseType {
   pull_requests: PullRequestWithAssignmentsType[];
   total: number;
 }
-

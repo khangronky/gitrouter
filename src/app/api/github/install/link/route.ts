@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { getAuthenticatedUser, requireOrgPermission } from '@/lib/organizations/permissions';
+import {
+  getAuthenticatedUser,
+  requireOrgPermission,
+} from '@/lib/organizations/permissions';
 import { createInstallationOctokit } from '@/lib/github/client';
 
 /**
@@ -28,7 +31,11 @@ export async function POST(request: Request) {
     }
 
     // Verify user has permission
-    const permission = await requireOrgPermission(supabase, orgId, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      orgId,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -50,26 +57,27 @@ export async function POST(request: Request) {
       accountType = installation.account?.type || 'User';
     } catch (error: unknown) {
       console.error('Failed to verify installation:', error);
-      
+
       // Provide more specific error message
-      let errorMessage = 'Invalid installation ID or GitHub App does not have access to this installation';
-      
+      let errorMessage =
+        'Invalid installation ID or GitHub App does not have access to this installation';
+
       if (error instanceof Error) {
         if (error.message.includes('Bad credentials')) {
-          errorMessage = 'GitHub App credentials are invalid. Check GITHUB_APP_ID and GITHUB_PRIVATE_KEY in your environment variables.';
+          errorMessage =
+            'GitHub App credentials are invalid. Check GITHUB_APP_ID and GITHUB_PRIVATE_KEY in your environment variables.';
         } else if (error.message.includes('Not Found')) {
-          errorMessage = 'Installation not found. Make sure the installation ID is correct and belongs to your GitHub App.';
+          errorMessage =
+            'Installation not found. Make sure the installation ID is correct and belongs to your GitHub App.';
         } else if (error.message.includes('private key')) {
-          errorMessage = 'GitHub private key is malformed. Make sure newlines are properly formatted (use \\n or actual newlines).';
+          errorMessage =
+            'GitHub private key is malformed. Make sure newlines are properly formatted (use \\n or actual newlines).';
         } else {
           errorMessage = `GitHub API error: ${error.message}`;
         }
       }
-      
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: 400 }
-      );
+
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
     // Use admin client to bypass RLS
@@ -85,7 +93,10 @@ export async function POST(request: Request) {
     if (existingInstallation) {
       if (existingInstallation.organization_id !== orgId) {
         return NextResponse.json(
-          { error: 'This installation is already linked to another organization' },
+          {
+            error:
+              'This installation is already linked to another organization',
+          },
           { status: 409 }
         );
       }
@@ -155,4 +166,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

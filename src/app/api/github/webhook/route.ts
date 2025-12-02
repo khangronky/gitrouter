@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createDynamicAdminClient } from '@/lib/supabase/server';
-import { verifyWebhookSignature, getWebhookSecret } from '@/lib/github/signature';
-import { getPullRequestFiles, requestPullRequestReview } from '@/lib/github/client';
+import {
+  verifyWebhookSignature,
+  getWebhookSecret,
+} from '@/lib/github/signature';
+import {
+  getPullRequestFiles,
+  requestPullRequestReview,
+} from '@/lib/github/client';
 import type {
   PullRequestWebhookPayload,
   PullRequestReviewWebhookPayload,
@@ -14,7 +20,7 @@ import { jiraTicketIdPattern } from '@/lib/schema/jira';
  */
 export async function POST(request: Request) {
   console.log('=== GitHub Webhook Received ===');
-  
+
   try {
     // Get raw body for signature verification
     const rawBody = await request.text();
@@ -23,13 +29,10 @@ export async function POST(request: Request) {
     // Verify signature
     const signature = request.headers.get('x-hub-signature-256');
     console.log('Signature present:', !!signature);
-    
+
     if (!signature) {
       console.log('ERROR: Missing signature');
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
     }
 
     let secret: string;
@@ -43,16 +46,13 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-    
+
     const isValid = await verifyWebhookSignature(secret, rawBody, signature);
     console.log('Signature valid:', isValid);
 
     if (!isValid) {
       console.log('ERROR: Invalid signature');
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     // Get event info
@@ -136,7 +136,15 @@ async function handlePullRequestEvent(
   const { action, pull_request: pr, repository, installation } = payload;
 
   // Only process specific actions
-  if (!['opened', 'synchronize', 'closed', 'reopened', 'ready_for_review'].includes(action)) {
+  if (
+    ![
+      'opened',
+      'synchronize',
+      'closed',
+      'reopened',
+      'ready_for_review',
+    ].includes(action)
+  ) {
     return NextResponse.json({ message: 'Action not handled' });
   }
 
@@ -171,8 +179,9 @@ async function handlePullRequestEvent(
     return NextResponse.json({ message: 'Repository is inactive' });
   }
 
-  const installationId = (repo.github_installation as unknown as { installation_id: number } | null)?.installation_id 
-    || installation?.id;
+  const installationId =
+    (repo.github_installation as unknown as { installation_id: number } | null)
+      ?.installation_id || installation?.id;
 
   // Determine PR status
   let status: 'open' | 'merged' | 'closed' = 'open';
@@ -187,7 +196,10 @@ async function handlePullRequestEvent(
 
   // Get list of changed files for routing
   let filesChanged: string[] = [];
-  if (installationId && ['opened', 'synchronize', 'ready_for_review', 'reopened'].includes(action)) {
+  if (
+    installationId &&
+    ['opened', 'synchronize', 'ready_for_review', 'reopened'].includes(action)
+  ) {
     try {
       filesChanged = await getPullRequestFiles(
         installationId,
@@ -245,14 +257,17 @@ async function handlePullRequestEvent(
     .eq('event_id', deliveryId);
 
   // Trigger routing for new/updated PRs (including reopened)
-  if (['opened', 'reopened', 'ready_for_review'].includes(action) && status === 'open') {
+  if (
+    ['opened', 'reopened', 'ready_for_review'].includes(action) &&
+    status === 'open'
+  ) {
     console.log('Triggering routing for PR:', {
       action,
       pr_number: savedPr.github_pr_number,
       org_id: repo.organization_id,
       files_changed: savedPr.files_changed?.length || 0,
     });
-    
+
     try {
       const labels = pr.labels?.map((l) => l.name) || [];
       const routingResult = await routeAndAssignReviewers(
@@ -432,7 +447,10 @@ async function handlePullRequestReviewEvent(
  */
 async function handleInstallationEvent(
   supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
-  payload: { action: string; installation: { id: number; account: { login: string; type: string } } }
+  payload: {
+    action: string;
+    installation: { id: number; account: { login: string; type: string } };
+  }
 ) {
   const { action, installation } = payload;
 
@@ -473,4 +491,3 @@ function extractJiraTicketId(
 
   return null;
 }
-
