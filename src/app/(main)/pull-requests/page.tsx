@@ -84,18 +84,18 @@ export default function PullRequestsPage() {
   const currentPRs = filteredPRs.slice(startIndex, endIndex);
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
+    <div className="flex min-h-screen flex-col gap-8 p-4">
       <div className="flex flex-col gap-2">
-        <h1 className="font-bold text-2xl text-gray-900">
+        <h1 className="font-bold text-2xl text-foreground">
           Browse Pull Requests
         </h1>
-        <p className="text-gray-500 text-sm">
+        <p className="text-muted-foreground text-sm">
           Found {filteredPRs.length} Pull Requests in the system
         </p>
       </div>
 
       <div className="flex flex-col gap-1">
-        <h2 className="font-bold text-black text-sm uppercase">
+        <h2 className="font-bold text-foreground text-sm uppercase">
           Filter and Search
         </h2>
         <div className="flex gap-1">
@@ -103,10 +103,10 @@ export default function PullRequestsPage() {
             placeholder="Filter by PR's title.."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-[300px] border-gray-400 bg-white"
+            className="w-[300px]"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px] border-gray-400 bg-white">
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +117,7 @@ export default function PullRequestsPage() {
             </SelectContent>
           </Select>
           <Select defaultValue="all">
-            <SelectTrigger className="w-[150px] border-gray-400 bg-white">
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Repository" />
             </SelectTrigger>
             <SelectContent>
@@ -125,7 +125,7 @@ export default function PullRequestsPage() {
             </SelectContent>
           </Select>
           <Select defaultValue="all">
-            <SelectTrigger className="w-[150px] border-gray-400 bg-white">
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Reviewer" />
             </SelectTrigger>
             <SelectContent>
@@ -135,64 +135,64 @@ export default function PullRequestsPage() {
         </div>
       </div>
 
-      <div className="rounded border border-gray-300 bg-white">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-white hover:bg-white">
+            <TableRow className="bg-card hover:bg-card">
               <TableHead>
                 <div className="flex items-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     PR&apos;s ID
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
               <TableHead className="min-w-[225px]">
                 <div className="flex items-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Title
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
               <TableHead className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Author
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
               <TableHead className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Reviewer
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
               <TableHead className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Status
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
               <TableHead className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Created
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
               <TableHead className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <span className="font-medium text-gray-900 text-sm">
+                  <span className="font-medium text-foreground text-sm">
                     Action
                   </span>
-                  <ArrowUpDown className="h-4 w-4 text-gray-900" />
+                  <ArrowUpDown className="h-4 w-4 text-foreground" />
                 </div>
               </TableHead>
             </TableRow>
@@ -200,16 +200,16 @@ export default function PullRequestsPage() {
           <TableBody>
             {currentPRs.map((pr) => (
               <TableRow key={pr.id} className="h-[68px]">
-                <TableCell className="font-normal text-gray-900 text-sm">
+                <TableCell className="font-normal text-foreground text-sm">
                   #{pr.id}
                 </TableCell>
-                <TableCell className="font-normal text-gray-900 text-sm">
+                <TableCell className="font-normal text-foreground text-sm">
                   {pr.title}
                 </TableCell>
-                <TableCell className="text-center font-normal text-gray-900 text-sm">
+                <TableCell className="text-center font-normal text-foreground text-sm">
                   {pr.author}
                 </TableCell>
-                <TableCell className="text-center font-normal text-gray-900 text-sm">
+                <TableCell className="text-center font-normal text-foreground text-sm">
                   {pr.reviewer}
                 </TableCell>
                 <TableCell className="text-center">
@@ -217,15 +217,11 @@ export default function PullRequestsPage() {
                     <StatusBadge status={pr.status} />
                   </div>
                 </TableCell>
-                <TableCell className="text-center font-normal text-gray-900 text-sm">
+                <TableCell className="text-center font-normal text-foreground text-sm">
                   {pr.created}
                 </TableCell>
                 <TableCell className="text-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-300 text-gray-700"
-                  >
+                  <Button variant="outline" size="sm">
                     View Detail
                   </Button>
                 </TableCell>
@@ -234,15 +230,15 @@ export default function PullRequestsPage() {
           </TableBody>
         </Table>
 
-        <div className="flex items-center justify-between border-gray-300 border-t p-4">
-          <p className="font-medium text-gray-900 text-sm">
+        <div className="flex items-center justify-between border-t p-4">
+          <p className="font-medium text-foreground text-sm">
             Showing {startIndex + 1}-{Math.min(endIndex, filteredPRs.length)} of{' '}
             {filteredPRs.length} results
           </p>
 
           <div className="flex items-center gap-12">
             <div className="flex items-center gap-4">
-              <span className="text-gray-900 text-sm">Row per page</span>
+              <span className="text-foreground text-sm">Row per page</span>
               <Select
                 value={rowsPerPage.toString()}
                 onValueChange={(value) => {
@@ -250,7 +246,7 @@ export default function PullRequestsPage() {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="w-[80px] border-gray-300">
+                <SelectTrigger className="w-[80px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -261,7 +257,7 @@ export default function PullRequestsPage() {
               </Select>
             </div>
 
-            <p className="text-gray-900 text-sm">
+            <p className="text-foreground text-sm">
               Page <span className="font-semibold">{currentPage}</span> of{' '}
               {totalPages}
             </p>
@@ -274,7 +270,7 @@ export default function PullRequestsPage() {
                 disabled={currentPage === 1}
                 className="h-10 w-10"
               >
-                <ChevronsLeft className="h-4 w-4 text-gray-500" />
+                <ChevronsLeft className="h-4 w-4 text-muted-foreground" />
               </Button>
               <Button
                 variant="ghost"
@@ -283,7 +279,7 @@ export default function PullRequestsPage() {
                 disabled={currentPage === 1}
                 className="h-10 w-10"
               >
-                <ChevronLeft className="h-4 w-4 text-gray-500" />
+                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
               </Button>
               <Button
                 variant="ghost"
@@ -294,7 +290,7 @@ export default function PullRequestsPage() {
                 disabled={currentPage === totalPages}
                 className="h-10 w-10"
               >
-                <ChevronRight className="h-4 w-4 text-gray-900" />
+                <ChevronRight className="h-4 w-4 text-foreground" />
               </Button>
               <Button
                 variant="ghost"
@@ -303,7 +299,7 @@ export default function PullRequestsPage() {
                 disabled={currentPage === totalPages}
                 className="h-10 w-10"
               >
-                <ChevronsRight className="h-4 w-4 text-gray-900" />
+                <ChevronsRight className="h-4 w-4 text-foreground" />
               </Button>
             </div>
           </div>
