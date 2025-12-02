@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createDynamicAdminClient } from '@/lib/supabase/server';
 import { verifyWebhookSignature, getWebhookSecret } from '@/lib/github/signature';
-import { getPullRequestFiles } from '@/lib/github/client';
+import { getPullRequestFiles, requestPullRequestReview } from '@/lib/github/client';
 import type {
   PullRequestWebhookPayload,
   PullRequestReviewWebhookPayload,
@@ -13,23 +13,42 @@ import { jiraTicketIdPattern } from '@/lib/schema/jira';
  * Handle GitHub webhook events
  */
 export async function POST(request: Request) {
+  console.log('=== GitHub Webhook Received ===');
+  
   try {
     // Get raw body for signature verification
     const rawBody = await request.text();
+    console.log('Webhook payload length:', rawBody.length);
 
     // Verify signature
     const signature = request.headers.get('x-hub-signature-256');
+    console.log('Signature present:', !!signature);
+    
     if (!signature) {
+      console.log('ERROR: Missing signature');
       return NextResponse.json(
         { error: 'Missing signature' },
         { status: 401 }
       );
     }
 
-    const secret = getWebhookSecret();
+    let secret: string;
+    try {
+      secret = getWebhookSecret();
+      console.log('Webhook secret configured:', !!secret);
+    } catch (e) {
+      console.error('ERROR: GITHUB_WEBHOOK_SECRET not configured!', e);
+      return NextResponse.json(
+        { error: 'Webhook secret not configured' },
+        { status: 500 }
+      );
+    }
+    
     const isValid = await verifyWebhookSignature(secret, rawBody, signature);
+    console.log('Signature valid:', isValid);
 
     if (!isValid) {
+      console.log('ERROR: Invalid signature');
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
@@ -51,7 +70,7 @@ export async function POST(request: Request) {
     const payload = JSON.parse(rawBody);
 
     // Use admin client for webhook processing (bypasses RLS)
-    const supabase = await createAdminClient();
+    const supabase = await createDynamicAdminClient();
 
     // Check idempotency - skip if already processed
     const { data: existingEvent } = await supabase
@@ -110,7 +129,7 @@ export async function POST(request: Request) {
  * Handle pull_request events
  */
 async function handlePullRequestEvent(
-  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
   payload: PullRequestWebhookPayload,
   deliveryId: string
 ) {
@@ -152,7 +171,7 @@ async function handlePullRequestEvent(
     return NextResponse.json({ message: 'Repository is inactive' });
   }
 
-  const installationId = (repo.github_installation as { installation_id: number })?.installation_id 
+  const installationId = (repo.github_installation as unknown as { installation_id: number } | null)?.installation_id 
     || installation?.id;
 
   // Determine PR status
@@ -168,7 +187,7 @@ async function handlePullRequestEvent(
 
   // Get list of changed files for routing
   let filesChanged: string[] = [];
-  if (installationId && ['opened', 'synchronize', 'ready_for_review'].includes(action)) {
+  if (installationId && ['opened', 'synchronize', 'ready_for_review', 'reopened'].includes(action)) {
     try {
       filesChanged = await getPullRequestFiles(
         installationId,
@@ -225,16 +244,113 @@ async function handlePullRequestEvent(
     .update({ repository_id: repo.id })
     .eq('event_id', deliveryId);
 
-  // Trigger routing for new/updated PRs
-  if (['opened', 'ready_for_review'].includes(action) && status === 'open') {
-    // TODO: Call routing engine here
-    // await routePullRequest(supabase, savedPr, repo.organization_id, filesChanged);
+  // Trigger routing for new/updated PRs (including reopened)
+  if (['opened', 'reopened', 'ready_for_review'].includes(action) && status === 'open') {
+    console.log('Triggering routing for PR:', {
+      action,
+      pr_number: savedPr.github_pr_number,
+      org_id: repo.organization_id,
+      files_changed: savedPr.files_changed?.length || 0,
+    });
+    
+    try {
+      const labels = pr.labels?.map((l) => l.name) || [];
+      const routingResult = await routeAndAssignReviewers(
+        supabase,
+        {
+          id: savedPr.id,
+          repository_id: savedPr.repository_id,
+          github_pr_number: savedPr.github_pr_number,
+          title: savedPr.title,
+          author_login: savedPr.author_login,
+          head_branch: savedPr.head_branch,
+          base_branch: savedPr.base_branch,
+          files_changed: savedPr.files_changed || [],
+          created_at: savedPr.created_at,
+        },
+        repo.organization_id,
+        labels
+      );
+
+      console.log('Routing result:', {
+        pr: savedPr.github_pr_number,
+        matched: routingResult.matched,
+        reviewers: routingResult.reviewers.map((r) => r.name),
+        fallback_used: routingResult.fallback_used,
+        time_ms: routingResult.evaluation_time_ms,
+      });
+
+      // Assign reviewers on GitHub and send notifications
+      if (routingResult.reviewers.length > 0) {
+        // Get GitHub usernames for reviewers (exclude those without GitHub username)
+        const githubReviewers = routingResult.reviewers
+          .filter((r) => r.github_username)
+          .map((r) => r.github_username as string);
+
+        // Request reviews on GitHub
+        if (githubReviewers.length > 0 && installationId) {
+          try {
+            const reviewResult = await requestPullRequestReview(
+              installationId,
+              repository.owner.login,
+              repository.name,
+              pr.number,
+              githubReviewers
+            );
+            console.log('GitHub review request:', {
+              requested: githubReviewers,
+              success: !!reviewResult,
+            });
+          } catch (githubError) {
+            console.error('Failed to request GitHub reviews:', githubError);
+            // Don't fail - continue with Slack notifications
+          }
+        }
+
+        // Send Slack notifications
+        const notifyResult = await sendPrNotifications(
+          supabase,
+          repo.organization_id,
+          {
+            id: savedPr.id,
+            title: savedPr.title,
+            github_pr_number: savedPr.github_pr_number,
+            author_login: savedPr.author_login,
+            html_url: savedPr.html_url,
+            files_changed: savedPr.files_changed || [],
+            additions: savedPr.additions || 0,
+            deletions: savedPr.deletions || 0,
+            jira_ticket_id: savedPr.jira_ticket_id,
+          },
+          { full_name: repository.full_name },
+          routingResult.reviewers
+        );
+        console.log('Slack notifications:', notifyResult);
+      }
+    } catch (routingError) {
+      console.error('Routing failed:', routingError);
+      // Don't fail the webhook - PR is already saved
+    }
   }
 
-  // Handle PR merge - update Jira if configured
-  if (action === 'closed' && pr.merged && jiraTicketId) {
-    // TODO: Update Jira ticket status
-    // await updateJiraOnMerge(repo.organization_id, jiraTicketId, pr);
+  // Sync with Jira (link on open, update on merge, comment on close)
+  if (jiraTicketId) {
+    try {
+      await syncPrWithJira(supabase, repo.organization_id, {
+        id: savedPr.id,
+        title: savedPr.title,
+        number: savedPr.github_pr_number,
+        html_url: savedPr.html_url,
+        author_login: savedPr.author_login,
+        repository_full_name: repository.full_name,
+        jira_ticket_id: jiraTicketId,
+        status,
+        merged_by: pr.merged_by?.login,
+      });
+    } catch (jiraError) {
+      console.error('Jira sync failed:', jiraError);
+      // Don't fail the webhook - PR is already saved
+    }
   }
 
   return NextResponse.json({
@@ -248,7 +364,7 @@ async function handlePullRequestEvent(
  * Handle pull_request_review events
  */
 async function handlePullRequestReviewEvent(
-  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
   payload: PullRequestReviewWebhookPayload
 ) {
   const { action, review, pull_request: pr, repository } = payload;
@@ -315,7 +431,7 @@ async function handlePullRequestReviewEvent(
  * Handle installation events
  */
 async function handleInstallationEvent(
-  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
   payload: { action: string; installation: { id: number; account: { login: string; type: string } } }
 ) {
   const { action, installation } = payload;

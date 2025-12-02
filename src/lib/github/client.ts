@@ -6,7 +6,7 @@ import { createAppAuth } from '@octokit/auth-app';
  */
 function getAppConfig() {
   const appId = process.env.GITHUB_APP_ID;
-  const privateKey = process.env.GITHUB_PRIVATE_KEY;
+  const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
   const clientId = process.env.GITHUB_CLIENT_ID;
   const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 
@@ -159,5 +159,95 @@ export async function createPullRequestComment(
   });
 
   return data;
+}
+
+/**
+ * Collaborator info from GitHub
+ */
+export interface GitHubCollaborator {
+  github_username: string;
+  github_id: number;
+  avatar_url: string;
+  name: string | null;
+  email: string | null;
+}
+
+/**
+ * Get repository collaborators
+ */
+export async function getRepositoryCollaborators(
+  installationId: number,
+  owner: string,
+  repo: string
+): Promise<GitHubCollaborator[]> {
+  const octokit = createInstallationOctokit(installationId);
+
+  try {
+    const { data } = await octokit.rest.repos.listCollaborators({
+      owner,
+      repo,
+      per_page: 100,
+    });
+
+    // Get additional user details for each collaborator
+    const collaborators: GitHubCollaborator[] = [];
+
+    for (const user of data) {
+      try {
+        const { data: userDetails } = await octokit.rest.users.getByUsername({
+          username: user.login,
+        });
+
+        collaborators.push({
+          github_username: user.login,
+          github_id: user.id,
+          avatar_url: user.avatar_url || '',
+          name: userDetails.name || null,
+          email: userDetails.email || null,
+        });
+      } catch {
+        // If we can't get user details, just use basic info
+        collaborators.push({
+          github_username: user.login,
+          github_id: user.id,
+          avatar_url: user.avatar_url || '',
+          name: null,
+          email: null,
+        });
+      }
+    }
+
+    return collaborators;
+  } catch (error) {
+    console.error('Failed to get repository collaborators:', error);
+    return [];
+  }
+}
+
+/**
+ * Search for GitHub user by email
+ * Note: Only works if user has made their email public
+ */
+export async function searchUserByEmail(
+  installationId: number,
+  email: string
+): Promise<string | null> {
+  const octokit = createInstallationOctokit(installationId);
+
+  try {
+    const { data } = await octokit.rest.search.users({
+      q: `${email} in:email`,
+      per_page: 1,
+    });
+
+    if (data.total_count > 0 && data.items[0]) {
+      return data.items[0].login;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Failed to search user by email:', error);
+    return null;
+  }
 }
 
