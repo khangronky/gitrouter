@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import Link from 'next/link';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -30,10 +31,10 @@ export const NavMain = ({
             )}
             {item.items.map((item) => (
               <SidebarMenuButton asChild key={item.url}>
-                <a href={item.url}>
+                <Link href={item.url}>
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             ))}
           </SidebarGroupContent>
