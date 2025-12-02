@@ -242,8 +242,7 @@ export function AddRepositoryDialog({
                     />
                   </div>
                   <Button
-                    variant="outline"
-                    size=""
+                    variant="outline"    
                     onClick={allFilteredSelected ? deselectAllRepos : selectAllRepos}
                     disabled={filteredRepos.length === 0}
                   >

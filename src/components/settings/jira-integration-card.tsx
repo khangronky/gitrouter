@@ -87,7 +87,8 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
 
   const handleProjectChange = async (projectKey: string) => {
     try {
-      await updateIntegration.mutateAsync({ default_project_key: projectKey || null });
+      const value = projectKey === '__none__' ? null : projectKey;
+      await updateIntegration.mutateAsync({ default_project_key: value });
       toast.success('Default project updated');
     } catch {
       toast.error('Failed to update default project');
@@ -96,7 +97,8 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
 
   const handleStatusChange = async (status: string) => {
     try {
-      await updateIntegration.mutateAsync({ status_on_merge: status || null });
+      const value = status === '__none__' ? null : status;
+      await updateIntegration.mutateAsync({ status_on_merge: value });
       toast.success('Status on merge updated');
     } catch {
       toast.error('Failed to update status');
@@ -161,18 +163,18 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
             </div>
 
             {/* Default Project */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-1">
               <span className="text-sm text-muted-foreground">Default Project:</span>
               {isEditing ? (
                 <Select
-                  value={jiraData.integration.default_project_key || ''}
+                  value={jiraData.integration.default_project_key || '__none__'}
                   onValueChange={handleProjectChange}
                 >
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select project" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="__none__">None</SelectItem>
                     {projectsData?.projects?.map((project) => (
                       <SelectItem key={project.key} value={project.key}>
                         {project.name} ({project.key})
@@ -188,18 +190,18 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
             </div>
 
             {/* Status on Merge */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-1">
               <span className="text-sm text-muted-foreground">Status on Merge:</span>
               {isEditing ? (
                 <Select
-                  value={jiraData.integration.status_on_merge || ''}
+                  value={jiraData.integration.status_on_merge || '__none__'}
                   onValueChange={handleStatusChange}
                 >
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="__none__">None</SelectItem>
                     {statusesData?.statuses?.map((status) => (
                       <SelectItem key={status.id} value={status.name}>
                         {status.name}
