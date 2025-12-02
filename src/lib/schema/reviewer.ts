@@ -80,4 +80,3 @@ export interface ReviewerResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

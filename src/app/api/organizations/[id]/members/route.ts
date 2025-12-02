@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { addMemberSchema, updateMemberRoleSchema } from '@/lib/schema/organization';
+import {
+  addMemberSchema,
+  updateMemberRoleSchema,
+} from '@/lib/schema/organization';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
 
 interface RouteParams {
@@ -72,7 +75,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:invite');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:invite'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -243,7 +250,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     // Admins cannot change other admins' roles
     if (permission.role === 'admin' && targetMember.role === 'admin') {
       return NextResponse.json(
-        { error: 'Admins cannot change other admins\' roles' },
+        { error: "Admins cannot change other admins' roles" },
         { status: 403 }
       );
     }
@@ -292,7 +299,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:remove');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:remove'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -360,4 +371,3 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     );
   }
 }
-

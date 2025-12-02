@@ -70,7 +70,10 @@ export async function GET(request: Request) {
 
     if (!orgId) {
       return NextResponse.redirect(
-        new URL('/settings?error=no_organization&message=Please create or join an organization first', request.url)
+        new URL(
+          '/settings?error=no_organization&message=Please create or join an organization first',
+          request.url
+        )
       );
     }
 
@@ -95,10 +98,9 @@ export async function GET(request: Request) {
 
     try {
       const octokit = createInstallationOctokit(installationId);
-      const { data: installation } =
-        await octokit.rest.apps.getInstallation({
-          installation_id: installationId,
-        });
+      const { data: installation } = await octokit.rest.apps.getInstallation({
+        installation_id: installationId,
+      });
 
       accountLogin = installation.account?.login || 'unknown';
       accountType = installation.account?.type || 'User';
@@ -179,7 +181,9 @@ export async function GET(request: Request) {
           })
           .eq('id', auth.userId);
 
-        console.log(`Linked GitHub account ${accountLogin} to user ${auth.userId}`);
+        console.log(
+          `Linked GitHub account ${accountLogin} to user ${auth.userId}`
+        );
 
         // Also create/update a reviewer entry for this user
         const { data: existingReviewer } = await adminSupabase
@@ -197,17 +201,21 @@ export async function GET(request: Request) {
             name: accountLogin,
             github_username: accountLogin,
           });
-          console.log(`Created reviewer for user ${auth.userId} with GitHub username ${accountLogin}`);
+          console.log(
+            `Created reviewer for user ${auth.userId} with GitHub username ${accountLogin}`
+          );
         } else {
           // Update existing reviewer with GitHub info
           await adminSupabase
             .from('reviewers')
-            .update({ 
+            .update({
               github_username: accountLogin,
               updated_at: new Date().toISOString(),
             })
             .eq('id', existingReviewer.id);
-          console.log(`Updated reviewer ${existingReviewer.id} with GitHub username ${accountLogin}`);
+          console.log(
+            `Updated reviewer ${existingReviewer.id} with GitHub username ${accountLogin}`
+          );
         }
       } catch (error) {
         console.error('Failed to link GitHub account to user:', error);
@@ -217,10 +225,7 @@ export async function GET(request: Request) {
 
     // Redirect to settings page to add repositories
     return NextResponse.redirect(
-      new URL(
-        `/settings?success=github_installed&org=${orgId}`,
-        request.url
-      )
+      new URL(`/settings?success=github_installed&org=${orgId}`, request.url)
     );
   } catch (error) {
     console.error('Error in GitHub install callback:', error);
@@ -229,4 +234,3 @@ export async function GET(request: Request) {
     );
   }
 }
-
