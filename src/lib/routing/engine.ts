@@ -39,12 +39,7 @@ export async function routePullRequest(
 
   if (rulesError) {
     console.error('Failed to fetch routing rules:', rulesError);
-    return createFallbackResult(
-      supabase,
-      context,
-      organizationId,
-      startTime
-    );
+    return createFallbackResult(supabase, context, organizationId, startTime);
   }
 
   // Evaluate rules in priority order
