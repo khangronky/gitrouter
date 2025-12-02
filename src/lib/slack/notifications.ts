@@ -1,5 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getOrgSlackClient, sendDirectMessage } from './client';
+
+// biome-ignore lint: Using any for flexibility with typed/untyped clients
+type AnySupabaseClient = SupabaseClient<any>;
+import { getOrgSlackClient, sendDirectMessage, sendChannelMessage } from './client';
 import {
   buildPrNotificationBlocks,
   buildFallbackText,
@@ -7,12 +10,45 @@ import {
   buildEscalationBlocks,
 } from './messages';
 import type { ReviewerInfo } from '@/lib/routing/types';
+import {
+  DEFAULT_NOTIFICATION_SETTINGS,
+  type NotificationSettings,
+} from '@/lib/schema/organization';
+
+/**
+ * Get notification settings for an organization
+ */
+async function getNotificationSettings(
+  supabase: AnySupabaseClient,
+  organizationId: string
+): Promise<NotificationSettings> {
+  try {
+    const { data: org, error } = await supabase
+      .from('organizations')
+      .select('notification_settings')
+      .eq('id', organizationId)
+      .single();
+
+    if (error) {
+      console.log('Could not fetch notification_settings, using defaults:', error.message);
+      return DEFAULT_NOTIFICATION_SETTINGS;
+    }
+
+    return {
+      ...DEFAULT_NOTIFICATION_SETTINGS,
+      ...(org?.notification_settings as Partial<NotificationSettings>),
+    };
+  } catch (error) {
+    console.log('Error fetching notification settings, using defaults:', error);
+    return DEFAULT_NOTIFICATION_SETTINGS;
+  }
+}
 
 /**
  * Send PR notification to assigned reviewers
  */
 export async function sendPrNotifications(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   pr: {
     id: string;
@@ -30,6 +66,22 @@ export async function sendPrNotifications(
   },
   reviewers: ReviewerInfo[]
 ): Promise<{ sent: number; failed: number }> {
+  // Check notification settings first
+  const settings = await getNotificationSettings(supabase, organizationId);
+
+  if (!settings.slack_notifications) {
+    console.log('Slack notifications disabled for org:', organizationId);
+    return { sent: 0, failed: 0 };
+  }
+
+  // For batched/daily frequency, we would queue the notification instead
+  // For now, only send immediately if realtime is enabled
+  if (settings.notification_frequency !== 'realtime') {
+    console.log(`Notification frequency is ${settings.notification_frequency}, skipping immediate send`);
+    // TODO: Queue notification for batch processing
+    return { sent: 0, failed: 0 };
+  }
+
   const client = await getOrgSlackClient(supabase, organizationId);
 
   if (!client) {
@@ -47,6 +99,10 @@ export async function sendPrNotifications(
     additions: pr.additions,
     deletions: pr.deletions,
     jira_ticket: pr.jira_ticket_id,
+    reviewers: reviewers.map((r) => ({
+      name: r.name,
+      slack_user_id: r.slack_user_id,
+    })),
   });
 
   const fallbackText = buildFallbackText({
@@ -59,37 +115,89 @@ export async function sendPrNotifications(
   let sent = 0;
   let failed = 0;
 
-  for (const reviewer of reviewers) {
-    if (!reviewer.slack_user_id) {
-      console.log(`Reviewer ${reviewer.name} has no Slack ID, skipping`);
-      failed++;
-      continue;
+  // Check notification destination setting
+  if (settings.escalation_destination === 'channel') {
+    // Send to public channel
+    const { data: integration } = await supabase
+      .from('slack_integrations')
+      .select('default_channel_id')
+      .eq('organization_id', organizationId)
+      .single();
+
+    if (!integration?.default_channel_id) {
+      console.log('No default channel configured for org:', organizationId);
+      return { sent: 0, failed: 0 };
     }
 
-    const result = await sendDirectMessage(
+    console.log(`Sending PR notification to channel (channel_id: ${integration.default_channel_id})`);
+
+    const result = await sendChannelMessage(
       client,
-      reviewer.slack_user_id,
+      integration.default_channel_id,
       fallbackText,
       blocks
     );
 
-    if (result.ok) {
-      sent++;
+    console.log('Slack channel message result:', JSON.stringify(result));
 
-      // Update review assignment with Slack message info
-      await supabase
-        .from('review_assignments')
-        .update({
-          slack_message_ts: result.ts,
-          slack_channel_id: result.channel,
-          notified_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('pull_request_id', pr.id)
-        .eq('reviewer_id', reviewer.id);
+    if (result.ok) {
+      sent = 1;
+
+      // Update all review assignments with Slack message info
+      for (const reviewer of reviewers) {
+        await supabase
+          .from('review_assignments')
+          .update({
+            slack_message_ts: result.ts,
+            slack_channel_id: integration.default_channel_id,
+            notified_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('pull_request_id', pr.id)
+          .eq('reviewer_id', reviewer.id);
+      }
     } else {
-      console.error(`Failed to notify ${reviewer.name}:`, result.error);
-      failed++;
+      console.error('Failed to send channel message:', result.error);
+      failed = 1;
+    }
+  } else {
+    // Send DMs to reviewers (private)
+    for (const reviewer of reviewers) {
+      if (!reviewer.slack_user_id) {
+        console.log(`Reviewer ${reviewer.name} has no Slack ID, skipping`);
+        failed++;
+        continue;
+      }
+
+      console.log(`Sending Slack DM to ${reviewer.name} (slack_user_id: ${reviewer.slack_user_id})`);
+
+      const result = await sendDirectMessage(
+        client,
+        reviewer.slack_user_id,
+        fallbackText,
+        blocks
+      );
+
+      console.log(`Slack DM result for ${reviewer.name}:`, JSON.stringify(result));
+
+      if (result.ok) {
+        sent++;
+
+        // Update review assignment with Slack message info
+        await supabase
+          .from('review_assignments')
+          .update({
+            slack_message_ts: result.ts,
+            slack_channel_id: result.channel,
+            notified_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('pull_request_id', pr.id)
+          .eq('reviewer_id', reviewer.id);
+      } else {
+        console.error(`Failed to notify ${reviewer.name}:`, result.error);
+        failed++;
+      }
     }
   }
 
@@ -100,7 +208,7 @@ export async function sendPrNotifications(
  * Send 24h reminder to a reviewer
  */
 export async function sendReviewReminder(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   assignment: {
     id: string;
@@ -116,6 +224,14 @@ export async function sendReviewReminder(
   },
   hoursPending: number
 ): Promise<boolean> {
+  // Check notification settings
+  const settings = await getNotificationSettings(supabase, organizationId);
+
+  if (!settings.slack_notifications) {
+    console.log('Slack notifications disabled for org:', organizationId);
+    return false;
+  }
+
   const client = await getOrgSlackClient(supabase, organizationId);
 
   if (!client) {
@@ -168,7 +284,7 @@ export async function sendReviewReminder(
  * Send 48h escalation alert to team leads
  */
 export async function sendEscalationAlert(
-  supabase: SupabaseClient,
+  supabase: AnySupabaseClient,
   organizationId: string,
   assignment: {
     id: string;
@@ -185,6 +301,14 @@ export async function sendEscalationAlert(
   },
   hoursPending: number
 ): Promise<boolean> {
+  // Check notification settings
+  const settings = await getNotificationSettings(supabase, organizationId);
+
+  if (!settings.slack_notifications) {
+    console.log('Slack notifications disabled for org:', organizationId);
+    return false;
+  }
+
   const client = await getOrgSlackClient(supabase, organizationId);
 
   if (!client) {
@@ -233,27 +357,30 @@ export async function sendEscalationAlert(
 
   let sent = false;
 
-  // Send to default channel if configured
-  if (integration?.default_channel_id) {
-    const { sendChannelMessage } = await import('./client');
-    const result = await sendChannelMessage(
-      client,
-      integration.default_channel_id,
-      text,
-      blocks
-    );
-    sent = result.ok;
-  }
-
-  // Also DM admins
-  for (const admin of adminReviewers || []) {
-    if (admin.slack_user_id) {
-      await sendDirectMessage(client, admin.slack_user_id, text, blocks);
+  // Check escalation destination setting
+  if (settings.escalation_destination === 'channel') {
+    // Send to default channel if configured
+    if (integration?.default_channel_id) {
+      const result = await sendChannelMessage(
+        client,
+        integration.default_channel_id,
+        text,
+        blocks
+      );
+      sent = result.ok;
+    }
+  } else {
+    // Send DM to admins only (private)
+    for (const admin of adminReviewers || []) {
+      if (admin.slack_user_id) {
+        const result = await sendDirectMessage(client, admin.slack_user_id, text, blocks);
+        if (result.ok) sent = true;
+      }
     }
   }
 
   // Record escalation
-  if (sent || (adminReviewers && adminReviewers.length > 0)) {
+  if (sent) {
     await supabase.from('escalations').insert({
       review_assignment_id: assignment.id,
       level: 'alert_48h',

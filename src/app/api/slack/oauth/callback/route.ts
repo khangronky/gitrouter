@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createDynamicClient, createDynamicAdminClient } from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
-import { getSlackConfig } from '@/lib/slack/client';
+import { getSlackConfig, createSlackClient } from '@/lib/slack/client';
 
 /**
  * GET /api/slack/oauth/callback
@@ -26,13 +26,13 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.redirect(
-        new URL(`/dashboard?error=slack_${error}`, request.url)
+        new URL(`/settings?error=slack_${error}`, request.url)
       );
     }
 
     if (!code) {
       return NextResponse.redirect(
-        new URL('/dashboard?error=slack_missing_code', request.url)
+        new URL('/settings?error=slack_missing_code', request.url)
       );
     }
 
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 
     if (!orgId) {
       return NextResponse.redirect(
-        new URL('/dashboard?error=slack_invalid_state', request.url)
+        new URL('/settings?error=slack_invalid_state', request.url)
       );
     }
 
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
     if (!membership || !['owner', 'admin'].includes(membership.role)) {
       return NextResponse.redirect(
-        new URL('/dashboard?error=slack_unauthorized', request.url)
+        new URL('/settings?error=slack_unauthorized', request.url)
       );
     }
 
@@ -89,7 +89,7 @@ export async function GET(request: Request) {
     if (!tokenData.ok) {
       console.error('Slack OAuth error:', tokenData);
       return NextResponse.redirect(
-        new URL(`/dashboard?error=slack_token_${tokenData.error}`, request.url)
+        new URL(`/settings?error=slack_token_${tokenData.error}`, request.url)
       );
     }
 
@@ -124,13 +124,74 @@ export async function GET(request: Request) {
       await adminSupabase.from('slack_integrations').insert(integrationData);
     }
 
+    // Auto-capture Slack info for the installing user
+    const authedUserId = tokenData.authed_user?.id;
+    if (authedUserId) {
+      try {
+        const slackClient = createSlackClient(tokenData.access_token);
+        const userInfo = await slackClient.users.info({ user: authedUserId });
+        
+        if (userInfo.ok && userInfo.user) {
+          const slackUsername = userInfo.user.profile?.display_name || 
+                                userInfo.user.profile?.real_name || 
+                                userInfo.user.name || '';
+          const slackEmail = userInfo.user.profile?.email;
+
+          // Update the user's Slack info
+          await adminSupabase
+            .from('users')
+            .update({
+              slack_user_id: authedUserId,
+              slack_username: slackUsername,
+            })
+            .eq('id', auth.userId);
+
+          console.log(`Linked Slack account ${slackUsername} (${authedUserId}) to user ${auth.userId}`);
+
+          // Also create/update a reviewer entry for this user
+          const { data: existingReviewer } = await adminSupabase
+            .from('reviewers')
+            .select('id, name')
+            .eq('organization_id', orgId)
+            .eq('user_id', auth.userId)
+            .single();
+
+          if (!existingReviewer) {
+            // Create new reviewer with Slack info
+            await adminSupabase.from('reviewers').insert({
+              organization_id: orgId,
+              user_id: auth.userId,
+              name: userInfo.user.real_name || slackUsername || 'Unknown',
+              slack_user_id: authedUserId,
+              email: slackEmail || null,
+            });
+            console.log(`Created reviewer for user ${auth.userId} with Slack ID ${authedUserId}`);
+          } else {
+            // Update existing reviewer with Slack info
+            await adminSupabase
+              .from('reviewers')
+              .update({ 
+                slack_user_id: authedUserId,
+                email: slackEmail || undefined,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existingReviewer.id);
+            console.log(`Updated reviewer ${existingReviewer.id} with Slack ID ${authedUserId}`);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get Slack user info:', error);
+        // Don't fail the OAuth flow - just log the error
+      }
+    }
+
     return NextResponse.redirect(
-      new URL(`/dashboard?success=slack_connected&org=${orgId}`, request.url)
+      new URL(`/settings?success=slack_connected&org=${orgId}`, request.url)
     );
   } catch (error) {
     console.error('Error in Slack OAuth callback:', error);
     return NextResponse.redirect(
-      new URL('/dashboard?error=slack_internal', request.url)
+      new URL('/settings?error=slack_internal', request.url)
     );
   }
 }
