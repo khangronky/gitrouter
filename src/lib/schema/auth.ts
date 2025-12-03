@@ -108,3 +108,10 @@ export const updateUserSchema = z.object({
 });
 
 export type UpdateUserSchema = z.infer<typeof updateUserSchema>;
+
+/**
+ * Common Response Type
+ */
+export interface MessageResponseType {
+  message: string;
+}
