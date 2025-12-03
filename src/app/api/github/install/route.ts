@@ -36,7 +36,10 @@ export async function GET(request: Request) {
 
     if (!membership || !['owner', 'admin'].includes(membership.role)) {
       return NextResponse.json(
-        { error: 'You do not have permission to install GitHub App for this organization' },
+        {
+          error:
+            'You do not have permission to install GitHub App for this organization',
+        },
         { status: 403 }
       );
     }
@@ -65,7 +68,9 @@ export async function GET(request: Request) {
     }
 
     // Create state parameter with org_id for callback
-    const state = Buffer.from(JSON.stringify({ org_id: orgId })).toString('base64');
+    const state = Buffer.from(JSON.stringify({ org_id: orgId })).toString(
+      'base64'
+    );
 
     // Build GitHub App installation URL
     const installUrl = `https://github.com/apps/${appSlug}/installations/new?state=${state}`;
@@ -79,4 +84,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

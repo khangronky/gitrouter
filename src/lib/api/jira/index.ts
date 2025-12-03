@@ -15,7 +15,8 @@ import type {
 
 export const jiraKeys = {
   all: ['jira'] as const,
-  integration: (orgId: string) => [...jiraKeys.all, 'integration', orgId] as const,
+  integration: (orgId: string) =>
+    [...jiraKeys.all, 'integration', orgId] as const,
   projects: (orgId: string) => [...jiraKeys.all, 'projects', orgId] as const,
   statuses: (orgId: string, projectKey?: string) =>
     [...jiraKeys.all, 'statuses', orgId, projectKey] as const,
@@ -94,13 +95,10 @@ export function useUpdateJiraIntegration(orgId: string) {
 
   return useMutation({
     mutationFn: (data: UpdateJiraIntegrationSchema) =>
-      fetcher<JiraIntegrationResponseType>(
-        `/organizations/${orgId}/jira`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(data),
-        }
-      ),
+      fetcher<JiraIntegrationResponseType>(`/organizations/${orgId}/jira`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: jiraKeys.integration(orgId),

@@ -125,9 +125,12 @@ export function useSyncReviewersSlack(orgId: string) {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<SyncSlackResponse>(`/organizations/${orgId}/reviewers/sync-slack`, {
-        method: 'POST',
-      }),
+      fetcher<SyncSlackResponse>(
+        `/organizations/${orgId}/reviewers/sync-slack`,
+        {
+          method: 'POST',
+        }
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: reviewerKeys.list(orgId),
@@ -155,9 +158,12 @@ export function useSyncReviewersGitHub(orgId: string) {
 
   return useMutation({
     mutationFn: () =>
-      fetcher<SyncGitHubResponse>(`/organizations/${orgId}/reviewers/sync-github`, {
-        method: 'POST',
-      }),
+      fetcher<SyncGitHubResponse>(
+        `/organizations/${orgId}/reviewers/sync-github`,
+        {
+          method: 'POST',
+        }
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: reviewerKeys.list(orgId),
@@ -165,4 +171,3 @@ export function useSyncReviewersGitHub(orgId: string) {
     },
   });
 }
-

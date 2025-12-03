@@ -29,7 +29,9 @@ export const slackOAuthCallbackQuerySchema = z.object({
   error_description: z.string().optional(),
 });
 
-export type SlackOAuthCallbackQuery = z.infer<typeof slackOAuthCallbackQuerySchema>;
+export type SlackOAuthCallbackQuery = z.infer<
+  typeof slackOAuthCallbackQuerySchema
+>;
 
 /**
  * Update Slack Integration Schema
@@ -38,7 +40,9 @@ export const updateSlackIntegrationSchema = z.object({
   default_channel_id: z.string().nullable().optional(),
 });
 
-export type UpdateSlackIntegrationSchema = z.infer<typeof updateSlackIntegrationSchema>;
+export type UpdateSlackIntegrationSchema = z.infer<
+  typeof updateSlackIntegrationSchema
+>;
 
 // =============================================
 // Slack OAuth Response Types (from Slack API)
@@ -231,4 +235,3 @@ export interface SlackChannelListResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

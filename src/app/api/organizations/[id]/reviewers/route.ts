@@ -119,7 +119,10 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       if (existingReviewer) {
         return NextResponse.json(
-          { error: 'Reviewer already exists for this user', reviewer: existingReviewer },
+          {
+            error: 'Reviewer already exists for this user',
+            reviewer: existingReviewer,
+          },
           { status: 409 }
         );
       }
@@ -169,4 +172,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 }
-

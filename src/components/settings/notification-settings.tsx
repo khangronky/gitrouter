@@ -110,15 +110,11 @@ export function NotificationSettings({ orgId }: NotificationSettingsProps) {
         >
           <label className="flex items-center gap-2">
             <RadioGroupItem value="channel" />
-            <span className="text-sm">
-              Post to channel (public)
-            </span>
+            <span className="text-sm">Post to channel (public)</span>
           </label>
           <label className="flex items-center gap-2">
             <RadioGroupItem value="dm" />
-            <span className="text-sm">
-              Send DM to reviewers (private)
-            </span>
+            <span className="text-sm">Send DM to reviewers (private)</span>
           </label>
         </RadioGroup>
       </div>

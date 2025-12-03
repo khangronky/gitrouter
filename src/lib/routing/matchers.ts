@@ -20,14 +20,16 @@ export function matchFilePattern(
   }
 
   // Compile regex patterns
-  const regexPatterns = patterns.map((p) => {
-    try {
-      return new RegExp(p);
-    } catch {
-      console.warn(`Invalid regex pattern: ${p}`);
-      return null;
-    }
-  }).filter(Boolean) as RegExp[];
+  const regexPatterns = patterns
+    .map((p) => {
+      try {
+        return new RegExp(p);
+      } catch {
+        console.warn(`Invalid regex pattern: ${p}`);
+        return null;
+      }
+    })
+    .filter(Boolean) as RegExp[];
 
   if (regexPatterns.length === 0) {
     return {
@@ -160,14 +162,16 @@ export function matchBranch(
     branch_type === 'head' ? context.head_branch : context.base_branch;
 
   // Compile regex patterns
-  const regexPatterns = patterns.map((p) => {
-    try {
-      return new RegExp(p);
-    } catch {
-      console.warn(`Invalid branch regex pattern: ${p}`);
-      return null;
-    }
-  }).filter(Boolean) as RegExp[];
+  const regexPatterns = patterns
+    .map((p) => {
+      try {
+        return new RegExp(p);
+      } catch {
+        console.warn(`Invalid branch regex pattern: ${p}`);
+        return null;
+      }
+    })
+    .filter(Boolean) as RegExp[];
 
   if (regexPatterns.length === 0) {
     return {

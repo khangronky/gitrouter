@@ -19,7 +19,9 @@ export async function GET() {
     const adminSupabase = await createAdminClient();
     const { data: user, error } = await adminSupabase
       .from('users')
-      .select('id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, created_at')
+      .select(
+        'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, created_at'
+      )
       .eq('id', auth.userId)
       .single();
 
@@ -30,7 +32,10 @@ export async function GET() {
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error in GET /api/auth/me:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -70,18 +75,25 @@ export async function PATCH(request: Request) {
       .from('users')
       .update(validation.data)
       .eq('id', auth.userId)
-      .select('id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, created_at')
+      .select(
+        'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, created_at'
+      )
       .single();
 
     if (error) {
       console.error('Error updating user:', error);
-      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to update user' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Error in PATCH /api/auth/me:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
-

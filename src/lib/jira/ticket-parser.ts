@@ -104,4 +104,3 @@ export function isValidTicketId(ticketId: string): boolean {
 export function buildJiraUrl(domain: string, ticketId: string): string {
   return `https://${domain}/browse/${ticketId}`;
 }
-

@@ -49,7 +49,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ notification_settings: settings });
   } catch (error) {
-    console.error('Error in GET /api/organizations/[id]/notification-settings:', error);
+    console.error(
+      'Error in GET /api/organizations/[id]/notification-settings:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -123,13 +126,17 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       );
     }
 
-    return NextResponse.json({ notification_settings: org.notification_settings });
+    return NextResponse.json({
+      notification_settings: org.notification_settings,
+    });
   } catch (error) {
-    console.error('Error in PATCH /api/organizations/[id]/notification-settings:', error);
+    console.error(
+      'Error in PATCH /api/organizations/[id]/notification-settings:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

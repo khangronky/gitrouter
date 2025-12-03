@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createDynamicClient } from '@/lib/supabase/server';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
-import { getOrgSlackClient, lookupUserByEmail, listWorkspaceMembers } from '@/lib/slack/client';
+import {
+  getOrgSlackClient,
+  lookupUserByEmail,
+  listWorkspaceMembers,
+} from '@/lib/slack/client';
 import { searchUserByEmail as searchGitHubUserByEmail } from '@/lib/github/client';
 
 interface RouteParams {
@@ -17,7 +21,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createDynamicClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'reviewers:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'reviewers:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -73,7 +81,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
         continue;
       }
 
-      const updates: { slack_user_id?: string; github_username?: string; updated_at: string } = {
+      const updates: {
+        slack_user_id?: string;
+        github_username?: string;
+        updated_at: string;
+      } = {
         updated_at: new Date().toISOString(),
       };
       let hasUpdates = false;
@@ -87,7 +99,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
           try {
             slackUserId = await lookupUserByEmail(slackClient, reviewer.email);
           } catch (error) {
-            console.error(`Error looking up Slack user by email for ${reviewer.name}:`, error);
+            console.error(
+              `Error looking up Slack user by email for ${reviewer.name}:`,
+              error
+            );
           }
         }
 
@@ -102,7 +117,9 @@ export async function POST(_request: Request, { params }: RouteParams) {
           );
           if (matchedMember) {
             slackUserId = matchedMember.id;
-            console.log(`Matched reviewer ${reviewer.name} to Slack user ${matchedMember.display_name || matchedMember.name} by name`);
+            console.log(
+              `Matched reviewer ${reviewer.name} to Slack user ${matchedMember.display_name || matchedMember.name} by name`
+            );
           }
         }
 
@@ -128,7 +145,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
             results.github_synced++;
           }
         } catch (error) {
-          console.error(`Error looking up GitHub user for ${reviewer.name}:`, error);
+          console.error(
+            `Error looking up GitHub user for ${reviewer.name}:`,
+            error
+          );
         }
       }
 
@@ -140,7 +160,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
           .eq('id', reviewer.id);
 
         if (updateError) {
-          console.error(`Error updating reviewer ${reviewer.name}:`, updateError);
+          console.error(
+            `Error updating reviewer ${reviewer.name}:`,
+            updateError
+          );
           results.errors.push(reviewer.name);
         }
       } else if (!reviewer.slack_user_id) {
@@ -150,11 +173,13 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error('Error in POST /api/organizations/[id]/reviewers/sync-slack:', error);
+    console.error(
+      'Error in POST /api/organizations/[id]/reviewers/sync-slack:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

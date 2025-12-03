@@ -16,7 +16,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:view');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:view'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -43,4 +47,3 @@ export async function GET(_request: Request, { params }: RouteParams) {
     );
   }
 }
-

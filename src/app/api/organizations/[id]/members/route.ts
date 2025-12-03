@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
-import { addMemberSchema, addMemberByEmailSchema, updateMemberRoleSchema } from '@/lib/schema/organization';
+import {
+  addMemberSchema,
+  addMemberByEmailSchema,
+  updateMemberRoleSchema,
+} from '@/lib/schema/organization';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
 
 interface RouteParams {
@@ -72,7 +76,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:invite');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:invite'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -81,7 +89,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    
+
     // Try to parse as email-based request first
     const emailValidation = addMemberByEmailSchema.safeParse(body);
     const idValidation = addMemberSchema.safeParse(body);
@@ -104,7 +112,10 @@ export async function POST(request: Request, { params }: RouteParams) {
 
       if (userError || !user) {
         return NextResponse.json(
-          { error: 'User not found. They must sign up first before being added to the team.' },
+          {
+            error:
+              'User not found. They must sign up first before being added to the team.',
+          },
           { status: 404 }
         );
       }
@@ -116,7 +127,10 @@ export async function POST(request: Request, { params }: RouteParams) {
       role = idValidation.data.role;
     } else {
       return NextResponse.json(
-        { error: 'Validation failed. Provide either email or user_id with role.' },
+        {
+          error:
+            'Validation failed. Provide either email or user_id with role.',
+        },
         { status: 400 }
       );
     }
@@ -264,7 +278,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     // Admins cannot change other admins' roles
     if (permission.role === 'admin' && targetMember.role === 'admin') {
       return NextResponse.json(
-        { error: 'Admins cannot change other admins\' roles' },
+        { error: "Admins cannot change other admins' roles" },
         { status: 403 }
       );
     }
@@ -313,7 +327,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'members:remove');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'members:remove'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -381,4 +399,3 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     );
   }
 }
-

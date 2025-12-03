@@ -16,7 +16,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createDynamicClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'reviewers:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'reviewers:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -66,16 +70,19 @@ export async function POST(_request: Request, { params }: RouteParams) {
     };
 
     // Collect all unique collaborators from all repos
-    const allCollaborators = new Map<string, {
-      github_username: string;
-      github_id: number;
-      name: string | null;
-      email: string | null;
-    }>();
+    const allCollaborators = new Map<
+      string,
+      {
+        github_username: string;
+        github_id: number;
+        name: string | null;
+        email: string | null;
+      }
+    >();
 
     for (const repo of repos) {
       const [owner, repoName] = repo.full_name.split('/');
-      
+
       try {
         const collaborators = await getRepositoryCollaborators(
           installation.installation_id,
@@ -95,7 +102,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
           }
         }
       } catch (error) {
-        console.error(`Failed to get collaborators for ${repo.full_name}:`, error);
+        console.error(
+          `Failed to get collaborators for ${repo.full_name}:`,
+          error
+        );
       }
     }
 
@@ -105,7 +115,9 @@ export async function POST(_request: Request, { params }: RouteParams) {
     for (const collab of allCollaborators.values()) {
       // Check if reviewer already exists by GitHub username
       const existingByUsername = existingReviewers?.find(
-        (r) => r.github_username?.toLowerCase() === collab.github_username.toLowerCase()
+        (r) =>
+          r.github_username?.toLowerCase() ===
+          collab.github_username.toLowerCase()
       );
 
       if (existingByUsername) {
@@ -160,15 +172,13 @@ export async function POST(_request: Request, { params }: RouteParams) {
       }
 
       // Create new reviewer
-      const { error: createError } = await supabase
-        .from('reviewers')
-        .insert({
-          organization_id: id,
-          name: collab.name || collab.github_username,
-          github_username: collab.github_username,
-          email: collab.email,
-          is_active: true,
-        });
+      const { error: createError } = await supabase.from('reviewers').insert({
+        organization_id: id,
+        name: collab.name || collab.github_username,
+        github_username: collab.github_username,
+        email: collab.email,
+        is_active: true,
+      });
 
       if (!createError) {
         results.created++;
@@ -177,11 +187,13 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error('Error in POST /api/organizations/[id]/reviewers/sync-github:', error);
+    console.error(
+      'Error in POST /api/organizations/[id]/reviewers/sync-github:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

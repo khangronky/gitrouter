@@ -25,7 +25,8 @@ export const organizationKeys = {
   details: () => [...organizationKeys.all, 'detail'] as const,
   detail: (id: string) => [...organizationKeys.details(), id] as const,
   members: (id: string) => [...organizationKeys.detail(id), 'members'] as const,
-  notificationSettings: (id: string) => [...organizationKeys.detail(id), 'notification-settings'] as const,
+  notificationSettings: (id: string) =>
+    [...organizationKeys.detail(id), 'notification-settings'] as const,
 };
 
 // =============================================
@@ -38,8 +39,7 @@ export const organizationKeys = {
 export function useOrganizations() {
   return useQuery({
     queryKey: organizationKeys.list(),
-    queryFn: () =>
-      fetcher<OrganizationListResponseType>('/organizations'),
+    queryFn: () => fetcher<OrganizationListResponseType>('/organizations'),
   });
 }
 
@@ -49,8 +49,7 @@ export function useOrganizations() {
 export function useOrganization(id: string) {
   return useQuery({
     queryKey: organizationKeys.detail(id),
-    queryFn: () =>
-      fetcher<OrganizationResponseType>(`/organizations/${id}`),
+    queryFn: () => fetcher<OrganizationResponseType>(`/organizations/${id}`),
     enabled: !!id,
   });
 }
@@ -231,7 +230,9 @@ export function useNotificationSettings(orgId: string) {
   return useQuery({
     queryKey: organizationKeys.notificationSettings(orgId),
     queryFn: () =>
-      fetcher<NotificationSettingsResponse>(`/organizations/${orgId}/notification-settings`),
+      fetcher<NotificationSettingsResponse>(
+        `/organizations/${orgId}/notification-settings`
+      ),
     enabled: !!orgId,
   });
 }
@@ -244,10 +245,13 @@ export function useUpdateNotificationSettings(orgId: string) {
 
   return useMutation({
     mutationFn: (data: Partial<NotificationSettings>) =>
-      fetcher<NotificationSettingsResponse>(`/organizations/${orgId}/notification-settings`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+      fetcher<NotificationSettingsResponse>(
+        `/organizations/${orgId}/notification-settings`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: organizationKeys.notificationSettings(orgId),
