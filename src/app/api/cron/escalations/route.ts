@@ -19,10 +19,7 @@ export async function GET(request: Request) {
 
     // In production, verify the cron secret
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     console.log('Starting escalation processing...');
@@ -69,10 +66,7 @@ export async function POST(request: Request) {
   // Check for admin authorization (you could add more checks here)
   const authHeader = request.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   console.log('Manual escalation trigger...');
@@ -90,4 +84,3 @@ export async function POST(request: Request) {
     triggered_by: 'manual',
   });
 }
-
