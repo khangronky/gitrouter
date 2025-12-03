@@ -16,7 +16,11 @@ export default function SettingsPage() {
 
   // Auto-select first org (user's own org)
   useEffect(() => {
-    if (data?.organizations && data.organizations.length > 0 && !selectedOrgId) {
+    if (
+      data?.organizations &&
+      data.organizations.length > 0 &&
+      !selectedOrgId
+    ) {
       setSelectedOrgId(data.organizations[0].id);
     }
   }, [data?.organizations, selectedOrgId]);
@@ -105,4 +109,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
