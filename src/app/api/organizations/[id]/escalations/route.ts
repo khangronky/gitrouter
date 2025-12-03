@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createDynamicClient } from '@/lib/supabase/server';
-import { requireOrgPermission } from '@/lib/organizations/permissions';
 import { getEscalationSummary } from '@/lib/escalation';
+import { requireOrgPermission } from '@/lib/organizations/permissions';
+import { createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -14,7 +14,7 @@ interface RouteParams {
 export async function GET(_request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const supabase = await createDynamicClient();
+    const supabase = await createClient();
 
     const permission = await requireOrgPermission(supabase, id, 'org:view');
     if (!permission.success) {

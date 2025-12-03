@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import {
-  createDynamicClient,
-  createDynamicAdminClient,
-} from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
-import { getSlackConfig, createSlackClient } from '@/lib/slack/client';
+import { createSlackClient, getSlackConfig } from '@/lib/slack/client';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/slack/oauth/callback
@@ -12,7 +9,7 @@ import { getSlackConfig, createSlackClient } from '@/lib/slack/client';
  */
 export async function GET(request: Request) {
   try {
-    const supabase = await createDynamicClient();
+    const supabase = await createClient();
 
     const auth = await getAuthenticatedUser(supabase);
     if (!auth) {
@@ -97,7 +94,7 @@ export async function GET(request: Request) {
     }
 
     // Use admin client to save token
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     // Check if integration already exists
     const { data: existing } = await adminSupabase

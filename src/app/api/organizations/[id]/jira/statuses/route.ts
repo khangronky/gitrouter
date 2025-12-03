@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
-import { requireOrgPermission } from '@/lib/organizations/permissions';
 import {
   getProjectStatuses,
-  setTokenRefreshCallback,
   type JiraConfig,
+  setTokenRefreshCallback,
 } from '@/lib/jira';
+import { requireOrgPermission } from '@/lib/organizations/permissions';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -36,7 +36,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const { searchParams } = new URL(request.url);
     const projectKey = searchParams.get('project_key');
 
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     const { data: integration, error } = await adminSupabase
       .from('jira_integrations')

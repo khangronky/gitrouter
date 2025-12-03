@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
+import { requireOrgPermission } from '@/lib/organizations/permissions';
 import {
-  addMemberSchema,
   addMemberByEmailSchema,
+  addMemberSchema,
   updateMemberRoleSchema,
 } from '@/lib/schema/organization';
-import { requireOrgPermission } from '@/lib/organizations/permissions';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -103,7 +103,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       role = memberRole;
 
       // Use admin client to look up user by email
-      const adminSupabase = await createDynamicAdminClient();
+      const adminSupabase = await createAdminClient();
       const { data: user, error: userError } = await adminSupabase
         .from('users')
         .select('id')
@@ -136,7 +136,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Use admin client for the rest of operations
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     // Check if already a member
     const { data: existing } = await adminSupabase

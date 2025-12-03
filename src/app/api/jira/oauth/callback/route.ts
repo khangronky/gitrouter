@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import {
-  createDynamicClient,
-  createDynamicAdminClient,
-} from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { getJiraConfig } from '../route';
 
 interface AtlassianTokenResponse {
@@ -28,7 +25,7 @@ interface AtlassianResource {
  */
 export async function GET(request: Request) {
   try {
-    const supabase = await createDynamicClient();
+    const supabase = await createClient();
 
     const auth = await getAuthenticatedUser(supabase);
     if (!auth) {
@@ -153,7 +150,7 @@ export async function GET(request: Request) {
     const tokenExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
     // Use admin client to save token
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     // Check if integration already exists
     const { data: existing } = await adminSupabase

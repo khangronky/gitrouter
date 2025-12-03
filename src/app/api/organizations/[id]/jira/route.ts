@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
 import { updateJiraIntegrationSchema } from '@/lib/schema/jira';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -28,7 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     const { data: integration, error } = await adminSupabase
       .from('jira_integrations')
@@ -97,7 +97,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       );
     }
 
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     // Check if integration exists
     const { data: existing, error: existingError } = await adminSupabase
@@ -169,7 +169,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       );
     }
 
-    const adminSupabase = await createDynamicAdminClient();
+    const adminSupabase = await createAdminClient();
 
     const { error } = await adminSupabase
       .from('jira_integrations')

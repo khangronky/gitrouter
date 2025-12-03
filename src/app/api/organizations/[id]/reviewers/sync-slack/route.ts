@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createDynamicClient } from '@/lib/supabase/server';
+import { searchUserByEmail as searchGitHubUserByEmail } from '@/lib/github/client';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
 import {
   getOrgSlackClient,
-  lookupUserByEmail,
   listWorkspaceMembers,
+  lookupUserByEmail,
 } from '@/lib/slack/client';
-import { searchUserByEmail as searchGitHubUserByEmail } from '@/lib/github/client';
+import { createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -19,7 +19,7 @@ interface RouteParams {
 export async function POST(_request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const supabase = await createDynamicClient();
+    const supabase = await createClient();
 
     const permission = await requireOrgPermission(
       supabase,

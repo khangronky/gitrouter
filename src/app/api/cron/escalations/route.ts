@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createDynamicAdminClient } from '@/lib/supabase/server';
 import { processEscalations } from '@/lib/escalation';
+import { createAdminClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/cron/escalations
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     console.log('Starting escalation processing...');
     const startTime = Date.now();
 
-    const supabase = await createDynamicAdminClient();
+    const supabase = await createAdminClient();
 
     const stats = await processEscalations(supabase);
 
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   // For manual triggers, require authentication
-  const supabase = await createDynamicAdminClient();
+  const supabase = await createAdminClient();
 
   // Check for admin authorization (you could add more checks here)
   const authHeader = request.headers.get('authorization');

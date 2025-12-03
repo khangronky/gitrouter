@@ -1,25 +1,27 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { createDynamicAdminClient } from '@/lib/supabase/server';
-import {
-  verifyWebhookSignature,
-  getWebhookSecret,
-} from '@/lib/github/signature';
 import {
   getPullRequestFiles,
   requestPullRequestReview,
 } from '@/lib/github/client';
+import {
+  getWebhookSecret,
+  verifyWebhookSignature,
+} from '@/lib/github/signature';
+import { syncPrWithJira } from '@/lib/jira';
+import { routeAndAssignReviewers } from '@/lib/routing';
 import type {
-  PullRequestWebhookPayload,
   PullRequestReviewWebhookPayload,
+  PullRequestWebhookPayload,
 } from '@/lib/schema/github';
 import { jiraTicketIdPattern } from '@/lib/schema/jira';
-import { routeAndAssignReviewers } from '@/lib/routing';
 import {
-  sendPrNotifications,
   sendPrClosedNotification,
   sendPrMergedNotification,
+  sendPrNotifications,
 } from '@/lib/slack';
-import { syncPrWithJira } from '@/lib/jira';
+import { createAdminClient } from '@/lib/supabase/server';
+import type { Database } from '@/types/supabase';
 
 /**
  * POST /api/github/webhook
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
     const payload = JSON.parse(rawBody);
 
     // Use admin client for webhook processing (bypasses RLS)
-    const supabase = await createDynamicAdminClient();
+    const supabase = await createAdminClient();
 
     // Check idempotency - skip if already processed
     const { data: existingEvent } = await supabase
@@ -136,7 +138,7 @@ export async function POST(request: Request) {
  * Handle pull_request events
  */
 async function handlePullRequestEvent(
-  supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
+  supabase: SupabaseClient<Database>,
   payload: PullRequestWebhookPayload,
   deliveryId: string
 ) {
@@ -464,10 +466,10 @@ async function handlePullRequestEvent(
  * Handle pull_request_review events
  */
 async function handlePullRequestReviewEvent(
-  supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
+  supabase: SupabaseClient<Database>,
   payload: PullRequestReviewWebhookPayload
 ) {
-  const { action, review, pull_request: pr, repository } = payload;
+  const { action, review, pull_request: pr } = payload;
 
   if (action !== 'submitted') {
     return NextResponse.json({ message: 'Action not handled' });
@@ -510,7 +512,7 @@ async function handlePullRequestReviewEvent(
   const { error: updateError } = await supabase
     .from('review_assignments')
     .update({
-      status: reviewStatus,
+      status: reviewStatus as Database['public']['Enums']['review_status'],
       reviewed_at: review.submitted_at,
       updated_at: new Date().toISOString(),
     })
@@ -531,7 +533,7 @@ async function handlePullRequestReviewEvent(
  * Handle installation events
  */
 async function handleInstallationEvent(
-  supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
+  supabase: SupabaseClient<Database>,
   payload: {
     action: string;
     installation: { id: number; account: { login: string; type: string } };
