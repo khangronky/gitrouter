@@ -89,4 +89,3 @@ export interface AvailableRepositoriesResponseType {
   repositories: GitHubAvailableRepositoryType[];
   installation_id: number;
 }
-
