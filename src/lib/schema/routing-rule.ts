@@ -160,4 +160,3 @@ export interface RoutingRuleListResponseType {
 export interface RoutingRuleResponseType {
   rule: RoutingRuleType;
 }
-

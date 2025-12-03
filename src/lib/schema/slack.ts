@@ -231,4 +231,3 @@ export interface SlackChannelType {
 export interface SlackChannelListResponseType {
   channels: SlackChannelType[];
 }
-

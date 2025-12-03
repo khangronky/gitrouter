@@ -167,4 +167,3 @@ export interface JiraProjectListResponseType {
 export interface JiraStatusListResponseType {
   statuses: JiraStatusType[];
 }
-
