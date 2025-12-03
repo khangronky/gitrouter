@@ -163,9 +163,7 @@ export async function lookupUserByEmail(
 /**
  * List all members in the Slack workspace
  */
-export async function listWorkspaceMembers(
-  client: WebClient
-): Promise<
+export async function listWorkspaceMembers(client: WebClient): Promise<
   Array<{
     id: string;
     name: string;
