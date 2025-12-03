@@ -1,11 +1,49 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetcher } from '@/lib/api';
 import type {
+  CurrentUserType,
   LoginResponseType,
   LoginSchema,
   RegisterResponseType,
   RegisterSchema,
+  UpdateUserSchema,
 } from '@/lib/schema/auth';
+
+/**
+ * Query Keys
+ */
+export const authKeys = {
+  me: ['auth', 'me'] as const,
+};
+
+/**
+ * Get current user
+ */
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: authKeys.me,
+    queryFn: () => fetcher<{ user: CurrentUserType }>('/auth/me'),
+  });
+}
+
+/**
+ * Update current user
+ */
+export function useUpdateCurrentUser() {
+  const queryClient = useQueryClient();
+
+  // This will be implemented in the future
+  return useMutation({
+    mutationFn: (data: UpdateUserSchema) =>
+      fetcher<{ user: CurrentUserType }>('/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.me });
+    },
+  });
+}
 
 /**
  * Login Mutation

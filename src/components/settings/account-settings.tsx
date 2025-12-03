@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Edit2, User, Github, MessageSquare } from 'lucide-react';
+import { Edit2, Github, MessageSquare, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -13,9 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useCurrentUser, useUpdateCurrentUser } from '@/lib/api/auth';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { useCurrentUser, useUpdateCurrentUser } from '@/lib/api/auth';
 
 export function AccountSettings() {
   const { data, isLoading } = useCurrentUser();
@@ -71,7 +71,7 @@ export function AccountSettings() {
 
   if (!user) {
     return (
-      <div className="text-center text-muted-foreground py-4">
+      <div className="py-4 text-center text-muted-foreground">
         Unable to load account information
       </div>
     );
@@ -85,7 +85,7 @@ export function AccountSettings() {
           <div className="flex items-center gap-3">
             <User className="h-4 w-4 text-muted-foreground" />
             <div>
-              <p className="text-sm text-muted-foreground">Name</p>
+              <p className="text-muted-foreground text-sm">Name</p>
               <p className="font-medium">
                 {user.full_name || user.username || 'Not set'}
               </p>
@@ -96,7 +96,7 @@ export function AccountSettings() {
           <div className="flex items-center gap-3">
             <div className="h-4 w-4" /> {/* Spacer */}
             <div>
-              <p className="text-sm text-muted-foreground">Email</p>
+              <p className="text-muted-foreground text-sm">Email</p>
               <p className="font-medium">{user.email}</p>
             </div>
           </div>
@@ -105,7 +105,7 @@ export function AccountSettings() {
           <div className="flex items-center gap-3">
             <Github className="h-4 w-4 text-muted-foreground" />
             <div>
-              <p className="text-sm text-muted-foreground">GitHub Username</p>
+              <p className="text-muted-foreground text-sm">GitHub Username</p>
               <p className="font-medium">
                 {user.github_username || 'Not linked'}
               </p>
@@ -116,7 +116,7 @@ export function AccountSettings() {
           <div className="flex items-center gap-3">
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
             <div>
-              <p className="text-sm text-muted-foreground">Slack</p>
+              <p className="text-muted-foreground text-sm">Slack</p>
               <p className="font-medium">
                 {user.slack_username
                   ? `${user.slack_username}${user.slack_user_id ? ` (${user.slack_user_id})` : ''}`
@@ -189,7 +189,7 @@ export function AccountSettings() {
                 }
                 placeholder="e.g., octocat"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Your GitHub username for PR assignments
               </p>
             </div>
@@ -211,7 +211,7 @@ export function AccountSettings() {
                 }
                 placeholder="e.g., U12345678"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 Your Slack user ID for mentions (starts with U)
               </p>
             </div>
