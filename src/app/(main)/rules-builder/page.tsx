@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useOrganizations } from '@/lib/api/organizations';
-import { useRoutingRules, useCreateRoutingRule, useDeleteRoutingRule, useUpdateRoutingRule } from '@/lib/api/rules';
-import { useReviewers, useEnsureCurrentUserReviewer } from '@/lib/api/reviewers';
+import {
+  useRoutingRules,
+  useCreateRoutingRule,
+  useDeleteRoutingRule,
+  useUpdateRoutingRule,
+} from '@/lib/api/rules';
+import {
+  useReviewers,
+  useEnsureCurrentUserReviewer,
+} from '@/lib/api/reviewers';
 import { useUserStore } from '@/stores/user-store';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -45,7 +53,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, MoreVertical, Pencil, Copy, Trash2, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { RoutingRuleType, RoutingCondition } from '@/lib/schema/routing-rule';
+import type {
+  RoutingRuleType,
+  RoutingCondition,
+} from '@/lib/schema/routing-rule';
 import type { ReviewerType } from '@/lib/schema/reviewer';
 
 type MatchType = 'file_pattern' | 'author' | 'time_window' | 'branch';
@@ -80,44 +91,68 @@ export default function RulesBuilderPage() {
 
   // Auto-select first org
   useEffect(() => {
-    if (orgData?.organizations && orgData.organizations.length > 0 && !selectedOrgId) {
+    if (
+      orgData?.organizations &&
+      orgData.organizations.length > 0 &&
+      !selectedOrgId
+    ) {
       setSelectedOrgId(orgData.organizations[0].id);
     }
   }, [orgData?.organizations, selectedOrgId]);
 
-  const { data: rulesData, isLoading: rulesLoading } = useRoutingRules(selectedOrgId || '');
+  const { data: rulesData, isLoading: rulesLoading } = useRoutingRules(
+    selectedOrgId || ''
+  );
   const { data: reviewersData } = useReviewers(selectedOrgId || '');
   const createRuleMutation = useCreateRoutingRule(selectedOrgId || '');
   const deleteRuleMutation = useDeleteRoutingRule(selectedOrgId || '');
-  const ensureReviewerMutation = useEnsureCurrentUserReviewer(selectedOrgId || '');
-  const updateRuleMutation = useUpdateRoutingRule(selectedOrgId || '', editingRule?.id || '');
+  const ensureReviewerMutation = useEnsureCurrentUserReviewer(
+    selectedOrgId || ''
+  );
+  const updateRuleMutation = useUpdateRoutingRule(
+    selectedOrgId || '',
+    editingRule?.id || ''
+  );
 
   const rules = rulesData?.rules || [];
   const reviewers = reviewersData?.reviewers || [];
 
-  const buildConditions = (matchType: MatchType, matchValue: string): RoutingCondition[] => {
+  const buildConditions = (
+    matchType: MatchType,
+    matchValue: string
+  ): RoutingCondition[] => {
     switch (matchType) {
       case 'file_pattern':
-        return [{ type: 'file_pattern', patterns: [matchValue], match_mode: 'any' }];
+        return [
+          { type: 'file_pattern', patterns: [matchValue], match_mode: 'any' },
+        ];
       case 'author':
         return [{ type: 'author', usernames: [matchValue], mode: 'include' }];
       case 'branch':
-        return [{ type: 'branch', patterns: [matchValue], branch_type: 'head' }];
+        return [
+          { type: 'branch', patterns: [matchValue], branch_type: 'head' },
+        ];
       case 'time_window':
         // Default time window for weekdays 9-5
-        return [{
-          type: 'time_window',
-          timezone: 'UTC',
-          days: ['mon', 'tue', 'wed', 'thu', 'fri'],
-          start_hour: 9,
-          end_hour: 17,
-        }];
+        return [
+          {
+            type: 'time_window',
+            timezone: 'UTC',
+            days: ['mon', 'tue', 'wed', 'thu', 'fri'],
+            start_hour: 9,
+            end_hour: 17,
+          },
+        ];
       default:
-        return [{ type: 'file_pattern', patterns: [matchValue], match_mode: 'any' }];
+        return [
+          { type: 'file_pattern', patterns: [matchValue], match_mode: 'any' },
+        ];
     }
   };
 
-  const parseConditions = (conditions: RoutingCondition[]): { matchType: MatchType; matchValue: string } => {
+  const parseConditions = (
+    conditions: RoutingCondition[]
+  ): { matchType: MatchType; matchValue: string } => {
     if (!conditions || conditions.length === 0) {
       return { matchType: 'file_pattern', matchValue: '' };
     }
@@ -125,11 +160,20 @@ export default function RulesBuilderPage() {
     const condition = conditions[0];
     switch (condition.type) {
       case 'file_pattern':
-        return { matchType: 'file_pattern', matchValue: condition.patterns?.[0] || '' };
+        return {
+          matchType: 'file_pattern',
+          matchValue: condition.patterns?.[0] || '',
+        };
       case 'author':
-        return { matchType: 'author', matchValue: condition.usernames?.[0] || '' };
+        return {
+          matchType: 'author',
+          matchValue: condition.usernames?.[0] || '',
+        };
       case 'branch':
-        return { matchType: 'branch', matchValue: condition.patterns?.[0] || '' };
+        return {
+          matchType: 'branch',
+          matchValue: condition.patterns?.[0] || '',
+        };
       case 'time_window':
         return { matchType: 'time_window', matchValue: 'Custom Schedule' };
       default:
@@ -235,14 +279,17 @@ export default function RulesBuilderPage() {
       // Create the default catch-all rule with lowest priority (highest number)
       await createRuleMutation.mutateAsync({
         name: 'Default - Auto Assign to Me',
-        description: 'Catch-all rule that assigns PRs to me when no other rule matches',
+        description:
+          'Catch-all rule that assigns PRs to me when no other rule matches',
         conditions: [{ type: 'branch', patterns: ['.*'], branch_type: 'head' }],
         reviewer_ids: [result.reviewer.id],
         priority: 9999, // Lowest priority (highest number = evaluated last)
         is_active: true,
       });
 
-      toast.success('Default rule created! You will be assigned when no other rule matches.');
+      toast.success(
+        'Default rule created! You will be assigned when no other rule matches.'
+      );
     } catch (error) {
       toast.error('Failed to create default rule');
       console.error(error);
@@ -264,11 +311,16 @@ export default function RulesBuilderPage() {
     }
   };
 
-  const getReviewerNames = (reviewerIds: string[], allReviewers: ReviewerType[]) => {
+  const getReviewerNames = (
+    reviewerIds: string[],
+    allReviewers: ReviewerType[]
+  ) => {
     return reviewerIds
       .map((id) => {
         const reviewer = allReviewers.find((r) => r.id === id);
-        return reviewer ? `@${reviewer.github_username || reviewer.name}` : null;
+        return reviewer
+          ? `@${reviewer.github_username || reviewer.name}`
+          : null;
       })
       .filter(Boolean)
       .join(', ');
@@ -324,7 +376,9 @@ export default function RulesBuilderPage() {
           <Button
             variant="outline"
             onClick={handleCreateDefaultRule}
-            disabled={ensureReviewerMutation.isPending || createRuleMutation.isPending}
+            disabled={
+              ensureReviewerMutation.isPending || createRuleMutation.isPending
+            }
           >
             <Wand2 className="mr-2 h-4 w-4" />
             Create Default Rule (Assign to Me)
@@ -338,12 +392,15 @@ export default function RulesBuilderPage() {
           <div className="rounded-lg border bg-card p-12 text-center">
             <h3 className="text-lg font-medium">No rules yet</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Create your first routing rule to automatically assign reviewers to PRs.
+              Create your first routing rule to automatically assign reviewers
+              to PRs.
             </p>
             <Button
               className="mt-4"
               onClick={handleCreateDefaultRule}
-              disabled={ensureReviewerMutation.isPending || createRuleMutation.isPending}
+              disabled={
+                ensureReviewerMutation.isPending || createRuleMutation.isPending
+              }
             >
               <Wand2 className="mr-2 h-4 w-4" />
               Quick Start: Create Default Rule
@@ -356,7 +413,9 @@ export default function RulesBuilderPage() {
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
-                      checked={selectedRows.size === rules.length && rules.length > 0}
+                      checked={
+                        selectedRows.size === rules.length && rules.length > 0
+                      }
                       onCheckedChange={(checked) => {
                         if (checked) {
                           setSelectedRows(new Set(rules.map((r) => r.id)));
@@ -376,7 +435,9 @@ export default function RulesBuilderPage() {
               </TableHeader>
               <TableBody>
                 {rules.map((rule) => {
-                  const { matchType, matchValue } = parseConditions(rule.conditions);
+                  const { matchType, matchValue } = parseConditions(
+                    rule.conditions
+                  );
                   return (
                     <TableRow key={rule.id}>
                       <TableCell>
@@ -394,10 +455,13 @@ export default function RulesBuilderPage() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{rule.name}</TableCell>
-                      <TableCell className="font-mono text-sm">{matchValue}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {matchValue}
+                      </TableCell>
                       <TableCell>{getMatchTypeLabel(matchType)}</TableCell>
                       <TableCell>
-                        {getReviewerNames(rule.reviewer_ids, reviewers) || 'No reviewers'}
+                        {getReviewerNames(rule.reviewer_ids, reviewers) ||
+                          'No reviewers'}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -419,11 +483,15 @@ export default function RulesBuilderPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditDialog(rule)}>
+                            <DropdownMenuItem
+                              onClick={() => openEditDialog(rule)}
+                            >
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicateRule(rule)}>
+                            <DropdownMenuItem
+                              onClick={() => handleDuplicateRule(rule)}
+                            >
                               <Copy className="mr-2 h-4 w-4" />
                               Duplicate
                             </DropdownMenuItem>
@@ -472,7 +540,9 @@ export default function RulesBuilderPage() {
                   id="rule-name"
                   placeholder="Provide a rule name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
 
@@ -584,7 +654,10 @@ export default function RulesBuilderPage() {
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setCreateDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
@@ -616,7 +689,9 @@ export default function RulesBuilderPage() {
                 <Input
                   id="edit-rule-name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
 
@@ -631,7 +706,10 @@ export default function RulesBuilderPage() {
                   }
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="file_pattern" id="edit-file_pattern" />
+                    <RadioGroupItem
+                      value="file_pattern"
+                      id="edit-file_pattern"
+                    />
                     <Label htmlFor="edit-file_pattern" className="font-normal">
                       Files (regex)
                     </Label>
@@ -718,7 +796,10 @@ export default function RulesBuilderPage() {
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+              >
                 Cancel
               </Button>
               <Button
@@ -734,4 +815,3 @@ export default function RulesBuilderPage() {
     </div>
   );
 }
-
