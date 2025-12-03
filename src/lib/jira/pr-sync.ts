@@ -82,13 +82,20 @@ export async function updateJiraOnMerge(
   const targetStatus = integration?.status_on_merge || 'Done';
 
   // Transition to target status
-  const transitioned = await transitionIssueToStatus(config, ticketId, targetStatus);
+  const transitioned = await transitionIssueToStatus(
+    config,
+    ticketId,
+    targetStatus
+  );
   if (transitioned) {
-    console.log(`Transitioned Jira ticket ${ticketId} to ${targetStatus} - PR #${pr.number} merged`);
+    console.log(
+      `Transitioned Jira ticket ${ticketId} to ${targetStatus} - PR #${pr.number} merged`
+    );
   }
 
   // Add merge comment
-  const comment = `✅ PR #${pr.number} merged!\n\n` +
+  const comment =
+    `✅ PR #${pr.number} merged!\n\n` +
     `*${pr.title}*\n` +
     `Repository: ${pr.repository_full_name}\n` +
     (pr.merged_by ? `Merged by: ${pr.merged_by}\n` : '') +
@@ -120,7 +127,9 @@ export async function updateJiraOnClose(
   // Delete the Jira ticket since PR was closed without merge
   const deleted = await deleteJiraIssue(config, ticketId);
   if (deleted) {
-    console.log(`Deleted Jira ticket ${ticketId} - PR #${pr.number} was closed without merge`);
+    console.log(
+      `Deleted Jira ticket ${ticketId} - PR #${pr.number} was closed without merge`
+    );
   }
 
   return { deleted };
@@ -164,24 +173,31 @@ export async function createJiraTicketForPr(
   const jiraUser = await searchJiraUser(config, pr.author_login);
   if (jiraUser) {
     assigneeAccountId = jiraUser.accountId;
-    console.log(`Found Jira user for ${pr.author_login}: ${jiraUser.displayName}`);
+    console.log(
+      `Found Jira user for ${pr.author_login}: ${jiraUser.displayName}`
+    );
   } else {
     console.log(`No Jira user found for GitHub user: ${pr.author_login}`);
     authorNote = `\n\n⚠️ GitHub user @${pr.author_login} could not be matched to a Jira user. Please assign manually.`;
   }
 
   // Create the issue
-  const description = `Pull Request: ${pr.html_url}\n` +
+  const description =
+    `Pull Request: ${pr.html_url}\n` +
     `Author: ${pr.author_login}\n` +
     `Repository: ${pr.repository_full_name}` +
     authorNote;
 
-  const result = await createJiraIssue(config, integration.default_project_key, {
-    summary: `[PR#${pr.number}] <${pr.repository_full_name}> ${pr.title}`,
-    description,
-    issueTypeName: 'Task',
-    assigneeAccountId,
-  });
+  const result = await createJiraIssue(
+    config,
+    integration.default_project_key,
+    {
+      summary: `[PR#${pr.number}] <${pr.repository_full_name}> ${pr.title}`,
+      description,
+      issueTypeName: 'Task',
+      assigneeAccountId,
+    }
+  );
 
   if (!result) {
     console.error('Failed to create Jira ticket for PR:', pr.number);
@@ -195,7 +211,9 @@ export async function createJiraTicketForPr(
     summary: `Pull request by ${pr.author_login} in ${pr.repository_full_name}`,
   });
 
-  console.log(`Created and linked Jira ticket ${result.key} for PR #${pr.number}${assigneeAccountId ? ' (assigned)' : ''}`);
+  console.log(
+    `Created and linked Jira ticket ${result.key} for PR #${pr.number}${assigneeAccountId ? ' (assigned)' : ''}`
+  );
   return result.key;
 }
 
@@ -217,7 +235,11 @@ export async function syncPrWithJira(
     status: 'open' | 'merged' | 'closed';
     merged_by?: string;
   }
-): Promise<{ jira_ticket_id: string | null; deleted?: boolean; merged?: boolean }> {
+): Promise<{
+  jira_ticket_id: string | null;
+  deleted?: boolean;
+  merged?: boolean;
+}> {
   let ticketId = pr.jira_ticket_id;
 
   // For open PRs without a ticket, create one
@@ -244,14 +266,18 @@ export async function syncPrWithJira(
       return { jira_ticket_id: ticketId, merged: true };
 
     case 'closed': {
-      const result = await updateJiraOnClose(supabase, organizationId, ticketId, pr);
+      const result = await updateJiraOnClose(
+        supabase,
+        organizationId,
+        ticketId,
+        pr
+      );
       if (result.deleted) {
         return { jira_ticket_id: null, deleted: true };
       }
       break;
-  }
+    }
   }
 
   return { jira_ticket_id: ticketId };
 }
-

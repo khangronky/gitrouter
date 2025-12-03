@@ -15,7 +15,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:view');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:view'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -25,7 +29,9 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     const { data: installation, error } = await supabase
       .from('github_installations')
-      .select('id, installation_id, account_login, account_type, created_at, updated_at')
+      .select(
+        'id, installation_id, account_login, account_type, created_at, updated_at'
+      )
       .eq('organization_id', id)
       .single();
 
@@ -35,7 +41,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ installation });
   } catch (error) {
-    console.error('Error in GET /api/organizations/[id]/github-installation:', error);
+    console.error(
+      'Error in GET /api/organizations/[id]/github-installation:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -52,7 +61,11 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -82,11 +95,13 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ message: 'GitHub installation removed' });
   } catch (error) {
-    console.error('Error in DELETE /api/organizations/[id]/github-installation:', error);
+    console.error(
+      'Error in DELETE /api/organizations/[id]/github-installation:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

@@ -37,9 +37,7 @@ interface PendingAssignment {
 /**
  * Process escalations for all pending review assignments
  */
-export async function processEscalations(
-  supabase: AnySupabaseClient
-): Promise<{
+export async function processEscalations(supabase: AnySupabaseClient): Promise<{
   processed: number;
   reminders_sent: number;
   escalations_sent: number;
@@ -101,7 +99,8 @@ export async function processEscalations(
         const repo = pr.repository;
 
         const assignedAt = new Date(typedAssignment.assigned_at);
-        const hoursPending = (now.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
+        const hoursPending =
+          (now.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
 
         // Check if needs 48h escalation
         if (hoursPending >= ESCALATION_THRESHOLDS.ALERT_48H) {
@@ -246,7 +245,8 @@ export async function getEscalationSummary(
 
   const mappedAssignments = assignments.map((a: any) => {
     const assignedAt = new Date(a.assigned_at);
-    const hoursPending = (now.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
+    const hoursPending =
+      (now.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
 
     if (hoursPending >= ESCALATION_THRESHOLDS.ALERT_48H) {
       overdue48h++;
@@ -273,4 +273,3 @@ export async function getEscalationSummary(
     ),
   };
 }
-

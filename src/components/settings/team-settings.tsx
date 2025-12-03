@@ -62,15 +62,19 @@ interface MemberToEdit {
 export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
   const [teamName, setTeamName] = useState(orgName);
   const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState<'member' | 'admin'>('member');
+  const [newMemberRole, setNewMemberRole] = useState<'member' | 'admin'>(
+    'member'
+  );
   const [isEditingName, setIsEditingName] = useState(false);
-  
+
   // Edit member state
   const [editingMember, setEditingMember] = useState<MemberToEdit | null>(null);
   const [editRole, setEditRole] = useState<'member' | 'admin'>('member');
-  
+
   // Delete member state
-  const [memberToDelete, setMemberToDelete] = useState<MemberToEdit | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<MemberToEdit | null>(
+    null
+  );
 
   const { data: membersData, isLoading } = useOrganizationMembers(orgId);
   const addMember = useAddMemberByEmail(orgId);
@@ -171,7 +175,11 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
             className="max-w-xs"
           />
           {isEditingName ? (
-            <Button size="sm" onClick={handleUpdateName} disabled={updateOrg.isPending}>
+            <Button
+              size="sm"
+              onClick={handleUpdateName}
+              disabled={updateOrg.isPending}
+            >
               Save
             </Button>
           ) : (
@@ -207,15 +215,17 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
               {membersData?.members?.map((member) => (
                 <TableRow key={member.id}>
                   <TableCell>
-                    {member.user?.full_name || member.user?.username || 'Unknown'}
+                    {member.user?.full_name ||
+                      member.user?.username ||
+                      'Unknown'}
                   </TableCell>
                   <TableCell>{member.user?.email}</TableCell>
                   <TableCell className="capitalize">{member.role}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button 
-                        variant="link" 
-                        size="sm" 
+                      <Button
+                        variant="link"
+                        size="sm"
                         className="h-auto p-0"
                         onClick={() => handleEditMember(member)}
                         disabled={member.role === 'owner'}
@@ -227,11 +237,16 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 text-destructive hover:text-destructive"
-                          onClick={() => setMemberToDelete({
-                            id: member.id,
-                            role: member.role as 'member' | 'admin' | 'owner',
-                            userName: member.user?.full_name || member.user?.username || 'Unknown',
-                          })}
+                          onClick={() =>
+                            setMemberToDelete({
+                              id: member.id,
+                              role: member.role as 'member' | 'admin' | 'owner',
+                              userName:
+                                member.user?.full_name ||
+                                member.user?.username ||
+                                'Unknown',
+                            })
+                          }
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -242,7 +257,10 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
               ))}
               {(!membersData?.members || membersData.members.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={4}
+                    className="text-center text-muted-foreground"
+                  >
                     No members found
                   </TableCell>
                 </TableRow>
@@ -298,7 +316,10 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
       </div>
 
       {/* Edit Member Dialog */}
-      <Dialog open={!!editingMember} onOpenChange={(open) => !open && setEditingMember(null)}>
+      <Dialog
+        open={!!editingMember}
+        onOpenChange={(open) => !open && setEditingMember(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Member Role</DialogTitle>
@@ -325,7 +346,10 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
             <Button variant="outline" onClick={() => setEditingMember(null)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveRole} disabled={updateMemberRole.isPending}>
+            <Button
+              onClick={handleSaveRole}
+              disabled={updateMemberRole.isPending}
+            >
               {updateMemberRole.isPending ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
@@ -333,12 +357,16 @@ export function TeamSettings({ orgId, orgName }: TeamSettingsProps) {
       </Dialog>
 
       {/* Delete Member Confirmation */}
-      <AlertDialog open={!!memberToDelete} onOpenChange={(open) => !open && setMemberToDelete(null)}>
+      <AlertDialog
+        open={!!memberToDelete}
+        onOpenChange={(open) => !open && setMemberToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Member</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove {memberToDelete?.userName} from the team? This action cannot be undone.
+              Are you sure you want to remove {memberToDelete?.userName} from
+              the team? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

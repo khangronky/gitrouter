@@ -25,7 +25,8 @@ export interface EscalationSummary {
 
 export const escalationKeys = {
   all: ['escalations'] as const,
-  summary: (orgId: string) => [...escalationKeys.all, 'summary', orgId] as const,
+  summary: (orgId: string) =>
+    [...escalationKeys.all, 'summary', orgId] as const,
 };
 
 // =============================================
@@ -44,4 +45,3 @@ export function useEscalationSummary(orgId: string) {
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 }
-

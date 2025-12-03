@@ -12,7 +12,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
-import { useRepositories, useUpdateRepository, useRemoveRepository } from '@/lib/api/repositories';
+import {
+  useRepositories,
+  useUpdateRepository,
+  useRemoveRepository,
+} from '@/lib/api/repositories';
 import { useAvailableRepositories } from '@/lib/api/github';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
@@ -56,10 +60,15 @@ export function RepositorySettings({ orgId }: RepositorySettingsProps) {
           {reposData?.repositories?.map((repo) => (
             <RepositoryRow key={repo.id} orgId={orgId} repo={repo} />
           ))}
-          {(!reposData?.repositories || reposData.repositories.length === 0) && (
+          {(!reposData?.repositories ||
+            reposData.repositories.length === 0) && (
             <TableRow>
-              <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No repositories added yet. Click "Add New Repository" to add one.
+              <TableCell
+                colSpan={3}
+                className="text-center text-muted-foreground"
+              >
+                No repositories added yet. Click "Add New Repository" to add
+                one.
               </TableCell>
             </TableRow>
           )}
@@ -143,4 +152,3 @@ function RepositoryRow({ orgId, repo }: RepositoryRowProps) {
     </TableRow>
   );
 }
-

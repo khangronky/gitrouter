@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createDynamicClient, createDynamicAdminClient } from '@/lib/supabase/server';
+import {
+  createDynamicClient,
+  createDynamicAdminClient,
+} from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
 import { getJiraConfig } from '../route';
 
@@ -89,19 +92,22 @@ export async function GET(request: Request) {
     const { clientId, clientSecret } = getJiraConfig();
     const redirectUri = `${getBaseUrl(request)}/api/jira/oauth/callback`;
 
-    const tokenResponse = await fetch('https://auth.atlassian.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        grant_type: 'authorization_code',
-        client_id: clientId,
-        client_secret: clientSecret,
-        code,
-        redirect_uri: redirectUri,
-      }),
-    });
+    const tokenResponse = await fetch(
+      'https://auth.atlassian.com/oauth/token',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          grant_type: 'authorization_code',
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+          redirect_uri: redirectUri,
+        }),
+      }
+    );
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
@@ -193,4 +199,3 @@ function getBaseUrl(request: Request): string {
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
-

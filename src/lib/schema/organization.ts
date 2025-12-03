@@ -38,7 +38,9 @@ export const notificationSettingsSchema = z.object({
   slack_notifications: z.boolean().default(true),
   email_notifications: z.boolean().default(false),
   escalation_destination: z.enum(['channel', 'dm']).default('channel'),
-  notification_frequency: z.enum(['realtime', 'batched', 'daily']).default('realtime'),
+  notification_frequency: z
+    .enum(['realtime', 'batched', 'daily'])
+    .default('realtime'),
 });
 
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
@@ -168,4 +170,3 @@ export interface MemberListResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

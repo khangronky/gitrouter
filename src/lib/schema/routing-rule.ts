@@ -87,7 +87,9 @@ export const createRoutingRuleSchema = z.object({
   repository_id: z.string().uuid().nullable().optional(), // null = applies to all repos
   priority: z.number().int().min(0).default(0),
   is_active: z.boolean().default(true),
-  conditions: z.array(routingConditionSchema).min(1, 'At least one condition is required'),
+  conditions: z
+    .array(routingConditionSchema)
+    .min(1, 'At least one condition is required'),
   reviewer_ids: z
     .array(z.string().uuid())
     .min(1, 'At least one reviewer is required'),
@@ -162,4 +164,3 @@ export interface RoutingRuleResponseType {
 export interface MessageResponseType {
   message: string;
 }
-

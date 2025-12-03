@@ -22,7 +22,11 @@ export async function GET(request: Request) {
       );
     }
 
-    const permission = await requireOrgPermission(supabase, orgId, 'repos:view');
+    const permission = await requireOrgPermission(
+      supabase,
+      orgId,
+      'repos:view'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -50,7 +54,9 @@ export async function GET(request: Request) {
       .select('github_repo_id')
       .eq('organization_id', orgId);
 
-    const addedRepoIds = new Set(addedRepos?.map((r) => r.github_repo_id) || []);
+    const addedRepoIds = new Set(
+      addedRepos?.map((r) => r.github_repo_id) || []
+    );
 
     // Fetch repositories from GitHub
     const githubRepos = await listInstallationRepositories(
@@ -81,4 +87,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

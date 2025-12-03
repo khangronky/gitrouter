@@ -42,9 +42,11 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error listing GitHub installations:', error);
     return NextResponse.json(
-      { error: 'Failed to list installations. Check your GITHUB_APP_ID and GITHUB_PRIVATE_KEY configuration.' },
+      {
+        error:
+          'Failed to list installations. Check your GITHUB_APP_ID and GITHUB_PRIVATE_KEY configuration.',
+      },
       { status: 500 }
     );
   }
 }
-

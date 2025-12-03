@@ -2,7 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 // biome-ignore lint: Using any for flexibility with typed/untyped clients
 type AnySupabaseClient = SupabaseClient<any>;
-import { getOrgSlackClient, sendDirectMessage, sendChannelMessage } from './client';
+import {
+  getOrgSlackClient,
+  sendDirectMessage,
+  sendChannelMessage,
+} from './client';
 import {
   buildPrNotificationBlocks,
   buildFallbackText,
@@ -32,7 +36,10 @@ async function getNotificationSettings(
       .single();
 
     if (error) {
-      console.log('Could not fetch notification_settings, using defaults:', error.message);
+      console.log(
+        'Could not fetch notification_settings, using defaults:',
+        error.message
+      );
       return DEFAULT_NOTIFICATION_SETTINGS;
     }
 
@@ -79,7 +86,9 @@ export async function sendPrNotifications(
   // For batched/daily frequency, we would queue the notification instead
   // For now, only send immediately if realtime is enabled
   if (settings.notification_frequency !== 'realtime') {
-    console.log(`Notification frequency is ${settings.notification_frequency}, skipping immediate send`);
+    console.log(
+      `Notification frequency is ${settings.notification_frequency}, skipping immediate send`
+    );
     // TODO: Queue notification for batch processing
     return { sent: 0, failed: 0 };
   }
@@ -131,7 +140,9 @@ export async function sendPrNotifications(
       return { sent: 0, failed: 0 };
     }
 
-    console.log(`Sending PR notification to channel (channel_id: ${integration.default_channel_id})`);
+    console.log(
+      `Sending PR notification to channel (channel_id: ${integration.default_channel_id})`
+    );
 
     const result = await sendChannelMessage(
       client,
@@ -171,7 +182,9 @@ export async function sendPrNotifications(
         continue;
       }
 
-      console.log(`Sending Slack DM to ${reviewer.name} (slack_user_id: ${reviewer.slack_user_id})`);
+      console.log(
+        `Sending Slack DM to ${reviewer.name} (slack_user_id: ${reviewer.slack_user_id})`
+      );
 
       const result = await sendDirectMessage(
         client,
@@ -180,7 +193,10 @@ export async function sendPrNotifications(
         blocks
       );
 
-      console.log(`Slack DM result for ${reviewer.name}:`, JSON.stringify(result));
+      console.log(
+        `Slack DM result for ${reviewer.name}:`,
+        JSON.stringify(result)
+      );
 
       if (result.ok) {
         sent++;
@@ -375,7 +391,12 @@ export async function sendEscalationAlert(
     // Send DM to admins only (private)
     for (const admin of adminReviewers || []) {
       if (admin.slack_user_id) {
-        const result = await sendDirectMessage(client, admin.slack_user_id, text, blocks);
+        const result = await sendDirectMessage(
+          client,
+          admin.slack_user_id,
+          text,
+          blocks
+        );
         if (result.ok) sent = true;
       }
     }
@@ -386,7 +407,8 @@ export async function sendEscalationAlert(
     await supabase.from('escalations').insert({
       review_assignment_id: assignment.id,
       level: 'alert_48h',
-      notified_user_ids: adminReviewers?.map((a) => a.slack_user_id).filter(Boolean) || [],
+      notified_user_ids:
+        adminReviewers?.map((a) => a.slack_user_id).filter(Boolean) || [],
     });
 
     return true;
@@ -540,4 +562,3 @@ export async function sendPrMergedNotification(
   console.error('Failed to send PR merged notification:', result.error);
   return false;
 }
-

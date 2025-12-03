@@ -13,7 +13,9 @@ export function getSlackConfig() {
   const signingSecret = process.env.SLACK_SIGNING_SECRET;
 
   if (!clientId || !clientSecret) {
-    throw new Error('SLACK_CLIENT_ID and SLACK_CLIENT_SECRET must be configured');
+    throw new Error(
+      'SLACK_CLIENT_ID and SLACK_CLIENT_SECRET must be configured'
+    );
   }
 
   return { clientId, clientSecret, signingSecret };
@@ -163,7 +165,15 @@ export async function lookupUserByEmail(
  */
 export async function listWorkspaceMembers(
   client: WebClient
-): Promise<Array<{ id: string; name: string; real_name: string; display_name: string; email?: string }>> {
+): Promise<
+  Array<{
+    id: string;
+    name: string;
+    real_name: string;
+    display_name: string;
+    email?: string;
+  }>
+> {
   try {
     const result = await client.users.list({
       limit: 500,
@@ -237,4 +247,3 @@ export function verifySlackSignature(
     return false;
   }
 }
-
