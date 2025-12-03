@@ -60,9 +60,9 @@ export function buildPrNotificationBlocks(pr: {
   // Reviewers section with mentions
   if (pr.reviewers && pr.reviewers.length > 0) {
     const reviewerMentions = pr.reviewers
-      .map((r) => r.slack_user_id ? `<@${r.slack_user_id}>` : r.name)
+      .map((r) => (r.slack_user_id ? `<@${r.slack_user_id}>` : r.name))
       .join(', ');
-    
+
     blocks.push({
       type: 'section',
       text: {
@@ -417,10 +417,14 @@ export function buildPrMergedNotificationBlocks(pr: {
           type: 'mrkdwn',
           text: `*Author:*\n${pr.author}`,
         },
-        ...(pr.merged_by ? [{
-          type: 'mrkdwn' as const,
-          text: `*Merged by:*\n${pr.merged_by}`,
-        }] : []),
+        ...(pr.merged_by
+          ? [
+              {
+                type: 'mrkdwn' as const,
+                text: `*Merged by:*\n${pr.merged_by}`,
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -469,4 +473,3 @@ export function buildFallbackText(pr: {
 }): string {
   return `New PR Review Request: #${pr.number} - ${pr.title} in ${pr.repo}. View: ${pr.url}`;
 }
-
