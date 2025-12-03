@@ -21,6 +21,7 @@
 /build
 
 # misc
+copy-files.ps1
 .DS_Store
 *.pem
 
