@@ -16,7 +16,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:manage');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:manage'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -40,17 +44,19 @@ export async function POST(_request: Request, { params }: RouteParams) {
     }
 
     // Set up token refresh callback to persist refreshed tokens
-    setTokenRefreshCallback(async (orgId, newAccessToken, newRefreshToken, expiresAt) => {
-      await adminSupabase
-        .from('jira_integrations')
-        .update({
-          access_token: newAccessToken,
-          refresh_token: newRefreshToken,
-          token_expires_at: expiresAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('organization_id', orgId);
-    });
+    setTokenRefreshCallback(
+      async (orgId, newAccessToken, newRefreshToken, expiresAt) => {
+        await adminSupabase
+          .from('jira_integrations')
+          .update({
+            access_token: newAccessToken,
+            refresh_token: newRefreshToken,
+            token_expires_at: expiresAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('organization_id', orgId);
+      }
+    );
 
     const result = await testJiraConnection({
       cloudId: integration.cloud_id,
@@ -66,7 +72,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
       success: result.success,
       message: result.message,
       user: result.user
-        ? { displayName: result.user.displayName, email: result.user.emailAddress }
+        ? {
+            displayName: result.user.displayName,
+            email: result.user.emailAddress,
+          }
         : undefined,
     });
   } catch (error) {

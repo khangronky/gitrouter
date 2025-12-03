@@ -44,7 +44,11 @@ export function setTokenRefreshCallback(callback: TokenRefreshCallback) {
  */
 async function refreshJiraToken(
   refreshToken: string
-): Promise<{ accessToken: string; refreshToken: string | null; expiresIn: number } | null> {
+): Promise<{
+  accessToken: string;
+  refreshToken: string | null;
+  expiresIn: number;
+} | null> {
   const clientId = process.env.JIRA_CLIENT_ID;
   const clientSecret = process.env.JIRA_CLIENT_SECRET;
 
@@ -98,11 +102,15 @@ function tokenNeedsRefresh(expiresAt: Date | null | undefined): boolean {
  */
 async function getValidAccessToken(config: JiraConfig): Promise<string | null> {
   // Check if token needs refresh
-  if (tokenNeedsRefresh(config.tokenExpiresAt) && config.refreshToken && config.organizationId) {
+  if (
+    tokenNeedsRefresh(config.tokenExpiresAt) &&
+    config.refreshToken &&
+    config.organizationId
+  ) {
     const refreshed = await refreshJiraToken(config.refreshToken);
     if (refreshed) {
       const newExpiresAt = new Date(Date.now() + refreshed.expiresIn * 1000);
-      
+
       // Update config with new token
       config.accessToken = refreshed.accessToken;
       config.refreshToken = refreshed.refreshToken;
@@ -158,7 +166,8 @@ async function jiraFetch<T>(
       let errorMessage = `Jira API error: ${response.status}`;
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.errorMessages?.[0] || errorJson.message || errorMessage;
+        errorMessage =
+          errorJson.errorMessages?.[0] || errorJson.message || errorMessage;
       } catch {
         // Use default error message
       }
@@ -199,7 +208,9 @@ export async function getOrgJiraConfig(
     cloudId: data.cloud_id,
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
-    tokenExpiresAt: data.token_expires_at ? new Date(data.token_expires_at) : null,
+    tokenExpiresAt: data.token_expires_at
+      ? new Date(data.token_expires_at)
+      : null,
     organizationId,
   };
 }
@@ -254,10 +265,9 @@ export async function getIssueTransitions(
   config: JiraConfig,
   issueKey: string
 ): Promise<JiraTransitionType[]> {
-  const { data, error } = await jiraFetch<{ transitions: JiraTransitionType[] }>(
-    config,
-    `/issue/${issueKey}/transitions`
-  );
+  const { data, error } = await jiraFetch<{
+    transitions: JiraTransitionType[];
+  }>(config, `/issue/${issueKey}/transitions`);
 
   if (error || !data) {
     console.error(`Failed to get transitions for ${issueKey}:`, error);
@@ -302,8 +312,9 @@ export async function transitionIssueToStatus(
 
   // Find transition that leads to the desired status
   const transition = transitions.find(
-    (t) => t.to.name.toLowerCase() === statusName.toLowerCase() ||
-           t.name.toLowerCase() === statusName.toLowerCase()
+    (t) =>
+      t.to.name.toLowerCase() === statusName.toLowerCase() ||
+      t.name.toLowerCase() === statusName.toLowerCase()
   );
 
   if (!transition) {
@@ -434,10 +445,9 @@ export async function getProjectStatuses(
   config: JiraConfig,
   projectKey: string
 ): Promise<Array<{ id: string; name: string }>> {
-  const { data, error } = await jiraFetch<Array<{ statuses: Array<{ id: string; name: string }> }>>(
-    config,
-    `/project/${projectKey}/statuses`
-  );
+  const { data, error } = await jiraFetch<
+    Array<{ statuses: Array<{ id: string; name: string }> }>
+  >(config, `/project/${projectKey}/statuses`);
 
   if (error || !data) {
     console.error('Failed to get project statuses:', error);
@@ -495,7 +505,7 @@ export async function searchJiraUser(
 
   // Look for exact matches first (case-insensitive)
   const queryLower = query.toLowerCase();
-  
+
   // Try to find by email prefix or displayName containing the query
   const match = data.find((user) => {
     const emailPrefix = user.emailAddress?.split('@')[0]?.toLowerCase();
@@ -526,7 +536,7 @@ export async function createJiraIssue(
   // Get issue types to find the correct ID
   const issueTypes = await getProjectIssueTypes(config, projectKey);
   const targetTypeName = issue.issueTypeName || 'Task';
-  
+
   // Find the issue type (try exact match first, then case-insensitive)
   let issueType = issueTypes.find((t) => t.name === targetTypeName);
   if (!issueType) {
@@ -534,7 +544,7 @@ export async function createJiraIssue(
       (t) => t.name.toLowerCase() === targetTypeName.toLowerCase()
     );
   }
-  
+
   if (!issueType) {
     console.error(
       `Issue type "${targetTypeName}" not found in project ${projectKey}. Available types: ${issueTypes.map((t) => t.name).join(', ')}`
@@ -561,22 +571,24 @@ export async function createJiraIssue(
       }
     : undefined;
 
-  const { data, error } = await jiraFetch<{ id: string; key: string; self: string }>(
-    config,
-    '/issue',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        fields: {
-          project: { key: projectKey },
-          summary: issue.summary,
-          issuetype: { id: issueType.id },
-          ...(descriptionContent && { description: descriptionContent }),
-          ...(issue.assigneeAccountId && { assignee: { accountId: issue.assigneeAccountId } }),
-        },
-      }),
-    }
-  );
+  const { data, error } = await jiraFetch<{
+    id: string;
+    key: string;
+    self: string;
+  }>(config, '/issue', {
+    method: 'POST',
+    body: JSON.stringify({
+      fields: {
+        project: { key: projectKey },
+        summary: issue.summary,
+        issuetype: { id: issueType.id },
+        ...(descriptionContent && { description: descriptionContent }),
+        ...(issue.assigneeAccountId && {
+          assignee: { accountId: issue.assigneeAccountId },
+        }),
+      },
+    }),
+  });
 
   if (error) {
     console.error(`Failed to create Jira issue in ${projectKey}:`, error);

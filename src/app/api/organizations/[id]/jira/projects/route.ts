@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient, createDynamicAdminClient } from '@/lib/supabase/server';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
-import { listProjects, setTokenRefreshCallback, type JiraConfig } from '@/lib/jira';
+import {
+  listProjects,
+  setTokenRefreshCallback,
+  type JiraConfig,
+} from '@/lib/jira';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -16,7 +20,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    const permission = await requireOrgPermission(supabase, id, 'integrations:view');
+    const permission = await requireOrgPermission(
+      supabase,
+      id,
+      'integrations:view'
+    );
     if (!permission.success) {
       return NextResponse.json(
         { error: permission.error },
@@ -40,17 +48,19 @@ export async function GET(_request: Request, { params }: RouteParams) {
     }
 
     // Set up token refresh callback to persist refreshed tokens
-    setTokenRefreshCallback(async (orgId, newAccessToken, newRefreshToken, expiresAt) => {
-      await adminSupabase
-        .from('jira_integrations')
-        .update({
-          access_token: newAccessToken,
-          refresh_token: newRefreshToken,
-          token_expires_at: expiresAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('organization_id', orgId);
-    });
+    setTokenRefreshCallback(
+      async (orgId, newAccessToken, newRefreshToken, expiresAt) => {
+        await adminSupabase
+          .from('jira_integrations')
+          .update({
+            access_token: newAccessToken,
+            refresh_token: newRefreshToken,
+            token_expires_at: expiresAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('organization_id', orgId);
+      }
+    );
 
     const config: JiraConfig = {
       cloudId: integration.cloud_id,
