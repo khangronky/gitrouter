@@ -1,23 +1,24 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
-// biome-ignore lint: Using any for flexibility with typed/untyped clients
-type AnySupabaseClient = SupabaseClient<any>;
+type TypedSupabaseClient = SupabaseClient<Database>;
+
 import {
-  getOrgJiraConfig,
-  getJiraIssue,
-  transitionIssueToStatus,
   addIssueComment,
-  createRemoteLink,
   createJiraIssue,
-  searchJiraUser,
+  createRemoteLink,
   deleteJiraIssue,
+  getJiraIssue,
+  getOrgJiraConfig,
+  searchJiraUser,
+  transitionIssueToStatus,
 } from './client';
 
 /**
  * Link a PR to a Jira issue when PR is opened
  */
 export async function linkPrToJiraIssue(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   ticketId: string,
   pr: {
@@ -55,7 +56,7 @@ export async function linkPrToJiraIssue(
  * Update Jira issue when PR is merged (transition to Done)
  */
 export async function updateJiraOnMerge(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   ticketId: string,
   pr: {
@@ -110,7 +111,7 @@ export async function updateJiraOnMerge(
  * Delete Jira ticket when PR is closed without merge
  */
 export async function updateJiraOnClose(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   ticketId: string,
   pr: {
@@ -139,7 +140,7 @@ export async function updateJiraOnClose(
  * Create a Jira ticket for a PR
  */
 export async function createJiraTicketForPr(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   pr: {
     title: string;
@@ -222,7 +223,7 @@ export async function createJiraTicketForPr(
  * Returns the Jira ticket ID and status flags
  */
 export async function syncPrWithJira(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   pr: {
     id: string;

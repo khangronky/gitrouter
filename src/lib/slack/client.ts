@@ -1,8 +1,8 @@
-import { WebClient, type Block, type KnownBlock } from '@slack/web-api';
+import { type Block, type KnownBlock, WebClient } from '@slack/web-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
-// biome-ignore lint: Using any for flexibility with typed/untyped clients
-type AnySupabaseClient = SupabaseClient<any>;
+type TypedSupabaseClient = SupabaseClient<Database>;
 
 /**
  * Get Slack configuration from environment
@@ -32,7 +32,7 @@ export function createSlackClient(botToken: string): WebClient {
  * Get Slack client for an organization
  */
 export async function getOrgSlackClient(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string
 ): Promise<WebClient | null> {
   const { data: integration, error } = await supabase

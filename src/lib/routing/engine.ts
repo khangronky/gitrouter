@@ -1,14 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
-// biome-ignore lint: Using any for flexibility with typed/untyped clients
-type AnySupabaseClient = SupabaseClient<any>;
+type TypedSupabaseClient = SupabaseClient<Database>;
+
+import { evaluateAllConditions } from './matchers';
 import type {
   PullRequestContext,
-  RoutingRule,
   ReviewerInfo,
   RoutingResult,
+  RoutingRule,
 } from './types';
-import { evaluateAllConditions } from './matchers';
 
 /**
  * Route a pull request to reviewers based on configured rules
@@ -24,7 +25,7 @@ import { evaluateAllConditions } from './matchers';
  * Performance target: <100ms for 1000+ rules (uses indexed queries)
  */
 export async function routePullRequest(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   context: PullRequestContext,
   organizationId: string
 ): Promise<RoutingResult> {
@@ -107,7 +108,7 @@ export async function routePullRequest(
  * Tries: repo default reviewer → org default reviewer
  */
 async function createFallbackResult(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   context: PullRequestContext,
   organizationId: string,
   startTime: number
@@ -177,7 +178,7 @@ async function createFallbackResult(
  * Excludes the PR author from the list
  */
 async function getReviewers(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   reviewerIds: string[],
   authorLogin: string
 ): Promise<ReviewerInfo[]> {
@@ -207,7 +208,7 @@ async function getReviewers(
  * Create review assignments for a pull request
  */
 export async function createReviewAssignments(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   pullRequestId: string,
   routingResult: RoutingResult
 ): Promise<void> {
@@ -219,7 +220,7 @@ export async function createReviewAssignments(
     pull_request_id: pullRequestId,
     reviewer_id: reviewer.id,
     routing_rule_id: routingResult.rule?.id || null,
-    status: 'pending',
+    status: 'pending' as Database['public']['Enums']['review_status'],
     assigned_at: new Date().toISOString(),
   }));
 
@@ -270,7 +271,7 @@ export function buildPrContext(
  * Full routing flow: route PR and create assignments
  */
 export async function routeAndAssignReviewers(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   pr: {
     id: string;
     repository_id: string;

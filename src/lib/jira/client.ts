@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
-// biome-ignore lint: Using any for flexibility with typed/untyped clients
-type AnySupabaseClient = SupabaseClient<any>;
+type TypedSupabaseClient = SupabaseClient<Database>;
+
 import type {
   JiraIssueType,
   JiraProjectType,
@@ -189,7 +190,7 @@ async function jiraFetch<T>(
  * Get Jira config for an organization (OAuth 2.0)
  */
 export async function getOrgJiraConfig(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string
 ): Promise<JiraConfig | null> {
   const { data, error } = await supabase

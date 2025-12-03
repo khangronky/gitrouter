@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
-// biome-ignore lint: Using any for flexibility with typed/untyped clients
-type AnySupabaseClient = SupabaseClient<any>;
-import { sendReviewReminder, sendEscalationAlert } from '@/lib/slack';
+type TypedSupabaseClient = SupabaseClient<Database>;
+
+import { sendEscalationAlert, sendReviewReminder } from '@/lib/slack';
 
 /**
  * Escalation thresholds in hours
@@ -37,7 +38,9 @@ interface PendingAssignment {
 /**
  * Process escalations for all pending review assignments
  */
-export async function processEscalations(supabase: AnySupabaseClient): Promise<{
+export async function processEscalations(
+  supabase: TypedSupabaseClient
+): Promise<{
   processed: number;
   reminders_sent: number;
   escalations_sent: number;
@@ -188,7 +191,7 @@ export async function processEscalations(supabase: AnySupabaseClient): Promise<{
  * Get summary of pending escalations
  */
 export async function getEscalationSummary(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string
 ): Promise<{
   pending_reviews: number;

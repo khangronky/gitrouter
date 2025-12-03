@@ -1,31 +1,32 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
-// biome-ignore lint: Using any for flexibility with typed/untyped clients
-type AnySupabaseClient = SupabaseClient<any>;
-import {
-  getOrgSlackClient,
-  sendDirectMessage,
-  sendChannelMessage,
-} from './client';
-import {
-  buildPrNotificationBlocks,
-  buildFallbackText,
-  buildReminderBlocks,
-  buildEscalationBlocks,
-  buildPrClosedBlocks,
-  buildPrMergedNotificationBlocks,
-} from './messages';
+type TypedSupabaseClient = SupabaseClient<Database>;
+
 import type { ReviewerInfo } from '@/lib/routing/types';
 import {
   DEFAULT_NOTIFICATION_SETTINGS,
   type NotificationSettings,
 } from '@/lib/schema/organization';
+import {
+  getOrgSlackClient,
+  sendChannelMessage,
+  sendDirectMessage,
+} from './client';
+import {
+  buildEscalationBlocks,
+  buildFallbackText,
+  buildPrClosedBlocks,
+  buildPrMergedNotificationBlocks,
+  buildPrNotificationBlocks,
+  buildReminderBlocks,
+} from './messages';
 
 /**
  * Get notification settings for an organization
  */
 async function getNotificationSettings(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string
 ): Promise<NotificationSettings> {
   try {
@@ -57,7 +58,7 @@ async function getNotificationSettings(
  * Send PR notification to assigned reviewers
  */
 export async function sendPrNotifications(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   pr: {
     id: string;
@@ -226,7 +227,7 @@ export async function sendPrNotifications(
  * Send 24h reminder to a reviewer
  */
 export async function sendReviewReminder(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   assignment: {
     id: string;
@@ -302,7 +303,7 @@ export async function sendReviewReminder(
  * Send 48h escalation alert to team leads
  */
 export async function sendEscalationAlert(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   assignment: {
     id: string;
@@ -407,8 +408,7 @@ export async function sendEscalationAlert(
     await supabase.from('escalations').insert({
       review_assignment_id: assignment.id,
       level: 'alert_48h',
-      notified_user_ids:
-        adminReviewers?.map((a) => a.slack_user_id).filter(Boolean) || [],
+      notified_user_ids: adminReviewers?.map((a) => a.slack_user_id || ''),
     });
 
     return true;
@@ -421,7 +421,7 @@ export async function sendEscalationAlert(
  * Send notification when a PR is closed without merge
  */
 export async function sendPrClosedNotification(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   pr: {
     id: string;
@@ -493,7 +493,7 @@ export async function sendPrClosedNotification(
  * Send notification when a PR is merged
  */
 export async function sendPrMergedNotification(
-  supabase: AnySupabaseClient,
+  supabase: TypedSupabaseClient,
   organizationId: string,
   pr: {
     id: string;
