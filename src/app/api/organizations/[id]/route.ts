@@ -89,7 +89,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const updateData = {
       ...validation.data,
       updated_at: new Date().toISOString(),
-    };
+    } as any;
 
     const { data: org, error } = await supabase
       .from('organizations')

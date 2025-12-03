@@ -71,7 +71,7 @@ export const updateOrganizationSchema = z.object({
     )
     .optional(),
   default_reviewer_id: z.string().uuid().nullable().optional(),
-  settings: z.record(z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
   notification_settings: notificationSettingsSchema.partial().optional(),
 });
 
@@ -167,6 +167,3 @@ export interface MemberListResponseType {
   members: OrganizationMemberType[];
 }
 
-export interface MessageResponseType {
-  message: string;
-}
