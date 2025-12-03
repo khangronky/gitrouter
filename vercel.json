@@ -5,5 +5,13 @@
       "path": "/api/cron/escalations",
       "schedule": "0 * * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": false
+  },
+  "functions": {
+    "src/app/api/**/*": {
+      "maxDuration": 300
+    }
+  }
 }
