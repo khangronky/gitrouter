@@ -42,9 +42,7 @@ export function setTokenRefreshCallback(callback: TokenRefreshCallback) {
 /**
  * Refresh Jira OAuth token
  */
-async function refreshJiraToken(
-  refreshToken: string
-): Promise<{
+async function refreshJiraToken(refreshToken: string): Promise<{
   accessToken: string;
   refreshToken: string | null;
   expiresIn: number;
