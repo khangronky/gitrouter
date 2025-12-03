@@ -42,16 +42,16 @@ export async function routePullRequest(
 
   if (rulesError) {
     console.error('Failed to fetch routing rules:', rulesError);
-    return createFallbackResult(
-      supabase,
-      context,
-      organizationId,
-      startTime
-    );
+    return createFallbackResult(supabase, context, organizationId, startTime);
   }
 
-  console.log('Routing: found', rules?.length || 0, 'active rules for org', organizationId);
-  
+  console.log(
+    'Routing: found',
+    rules?.length || 0,
+    'active rules for org',
+    organizationId
+  );
+
   // Evaluate rules in priority order
   for (const rule of rules || []) {
     const typedRule: RoutingRule = {
@@ -66,7 +66,16 @@ export async function routePullRequest(
     };
 
     const evalResult = evaluateAllConditions(typedRule.conditions, context);
-    console.log('Routing: evaluating rule', typedRule.name, 'priority', typedRule.priority, '- matched:', evalResult.matched, 'details:', evalResult.results);
+    console.log(
+      'Routing: evaluating rule',
+      typedRule.name,
+      'priority',
+      typedRule.priority,
+      '- matched:',
+      evalResult.matched,
+      'details:',
+      evalResult.results
+    );
 
     if (evalResult.matched) {
       // Get reviewers for this rule

@@ -69,7 +69,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/organizations/[id]/rules/[ruleId]:', error);
+    console.error(
+      'Error in GET /api/organizations/[id]/rules/[ruleId]:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -183,7 +186,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ rule });
   } catch (error) {
-    console.error('Error in PATCH /api/organizations/[id]/rules/[ruleId]:', error);
+    console.error(
+      'Error in PATCH /api/organizations/[id]/rules/[ruleId]:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -240,11 +246,13 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       message: `Routing rule "${existingRule.name}" deleted successfully`,
     });
   } catch (error) {
-    console.error('Error in DELETE /api/organizations/[id]/rules/[ruleId]:', error);
+    console.error(
+      'Error in DELETE /api/organizations/[id]/rules/[ruleId]:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-

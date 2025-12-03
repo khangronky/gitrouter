@@ -53,7 +53,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 
     // Filter by repository if specified
     if (repositoryId) {
-      query = query.or(`repository_id.is.null,repository_id.eq.${repositoryId}`);
+      query = query.or(
+        `repository_id.is.null,repository_id.eq.${repositoryId}`
+      );
     }
 
     const { data: rules, error } = await query;
@@ -196,4 +198,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 }
-
