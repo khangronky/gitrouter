@@ -157,14 +157,17 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-sm text-primary hover:underline"
               >
-                {jiraData.integration.site_name || jiraData.integration.site_url}
+                {jiraData.integration.site_name ||
+                  jiraData.integration.site_url}
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
 
             {/* Default Project */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">Default Project:</span>
+              <span className="text-sm text-muted-foreground">
+                Default Project:
+              </span>
               {isEditing ? (
                 <Select
                   value={jiraData.integration.default_project_key || '__none__'}
@@ -191,7 +194,9 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
 
             {/* Status on Merge */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">Status on Merge:</span>
+              <span className="text-sm text-muted-foreground">
+                Status on Merge:
+              </span>
               {isEditing ? (
                 <Select
                   value={jiraData.integration.status_on_merge || '__none__'}
@@ -246,7 +251,9 @@ export function JiraIntegrationCard({ orgId }: JiraIntegrationCardProps) {
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{isEditing ? 'Done editing' : 'Edit settings'}</TooltipContent>
+                <TooltipContent>
+                  {isEditing ? 'Done editing' : 'Edit settings'}
+                </TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
