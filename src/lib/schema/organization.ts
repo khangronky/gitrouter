@@ -166,4 +166,3 @@ export interface OrganizationResponseType {
 export interface MemberListResponseType {
   members: OrganizationMemberType[];
 }
-
