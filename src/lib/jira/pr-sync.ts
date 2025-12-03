@@ -52,7 +52,7 @@ export async function linkPrToJiraIssue(
 }
 
 /**
- * Update Jira issue when PR is merged
+ * Update Jira issue when PR is merged (transition to Done)
  */
 export async function updateJiraOnMerge(
   supabase: AnySupabaseClient,
@@ -72,23 +72,19 @@ export async function updateJiraOnMerge(
     return { transitioned: false, commented: false };
   }
 
-  // Get the configured status to transition to
+  // Get the configured status to transition to (default to Done)
   const { data: integration } = await supabase
     .from('jira_integrations')
     .select('status_on_merge')
     .eq('organization_id', organizationId)
     .single();
 
-  let transitioned = false;
-  let commented = false;
+  const targetStatus = integration?.status_on_merge || 'Done';
 
-  // Transition to configured status if set
-  if (integration?.status_on_merge) {
-    transitioned = await transitionIssueToStatus(
-      config,
-      ticketId,
-      integration.status_on_merge
-    );
+  // Transition to target status
+  const transitioned = await transitionIssueToStatus(config, ticketId, targetStatus);
+  if (transitioned) {
+    console.log(`Transitioned Jira ticket ${ticketId} to ${targetStatus} - PR #${pr.number} merged`);
   }
 
   // Add merge comment
@@ -98,7 +94,7 @@ export async function updateJiraOnMerge(
     (pr.merged_by ? `Merged by: ${pr.merged_by}\n` : '') +
     `View: ${pr.html_url}`;
 
-  commented = await addIssueComment(config, ticketId, comment);
+  const commented = await addIssueComment(config, ticketId, comment);
 
   return { transitioned, commented };
 }
@@ -205,7 +201,7 @@ export async function createJiraTicketForPr(
 
 /**
  * Sync PR with Jira based on PR status
- * Returns the Jira ticket ID (existing, newly created, or null if deleted)
+ * Returns the Jira ticket ID and status flags
  */
 export async function syncPrWithJira(
   supabase: AnySupabaseClient,
@@ -221,7 +217,7 @@ export async function syncPrWithJira(
     status: 'open' | 'merged' | 'closed';
     merged_by?: string;
   }
-): Promise<{ jira_ticket_id: string | null; deleted?: boolean }> {
+): Promise<{ jira_ticket_id: string | null; deleted?: boolean; merged?: boolean }> {
   let ticketId = pr.jira_ticket_id;
 
   // For open PRs without a ticket, create one
@@ -245,7 +241,7 @@ export async function syncPrWithJira(
 
     case 'merged':
       await updateJiraOnMerge(supabase, organizationId, ticketId, pr);
-      break;
+      return { jira_ticket_id: ticketId, merged: true };
 
     case 'closed': {
       const result = await updateJiraOnClose(supabase, organizationId, ticketId, pr);
@@ -253,7 +249,7 @@ export async function syncPrWithJira(
         return { jira_ticket_id: null, deleted: true };
       }
       break;
-    }
+  }
   }
 
   return { jira_ticket_id: ticketId };

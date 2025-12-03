@@ -8,6 +8,8 @@ import {
   buildFallbackText,
   buildReminderBlocks,
   buildEscalationBlocks,
+  buildPrClosedBlocks,
+  buildPrMergedNotificationBlocks,
 } from './messages';
 import type { ReviewerInfo } from '@/lib/routing/types';
 import {
@@ -390,6 +392,152 @@ export async function sendEscalationAlert(
     return true;
   }
 
+  return false;
+}
+
+/**
+ * Send notification when a PR is closed without merge
+ */
+export async function sendPrClosedNotification(
+  supabase: AnySupabaseClient,
+  organizationId: string,
+  pr: {
+    id: string;
+    title: string;
+    github_pr_number: number;
+    author_login: string;
+    html_url: string;
+  },
+  repository: {
+    full_name: string;
+  },
+  jiraTicketDeleted?: string | null
+): Promise<boolean> {
+  // Check notification settings
+  const settings = await getNotificationSettings(supabase, organizationId);
+
+  if (!settings.slack_notifications) {
+    console.log('Slack notifications disabled for org:', organizationId);
+    return false;
+  }
+
+  const client = await getOrgSlackClient(supabase, organizationId);
+
+  if (!client) {
+    console.log('No Slack integration for org:', organizationId);
+    return false;
+  }
+
+  const blocks = buildPrClosedBlocks({
+    title: pr.title,
+    number: pr.github_pr_number,
+    repo: repository.full_name,
+    url: pr.html_url,
+    author: pr.author_login,
+    jira_ticket_deleted: jiraTicketDeleted,
+  });
+
+  const text = `🔴 PR #${pr.github_pr_number} was closed without merge${jiraTicketDeleted ? ` (Jira ticket ${jiraTicketDeleted} deleted)` : ''}`;
+
+  // Send to default channel if configured
+  const { data: integration } = await supabase
+    .from('slack_integrations')
+    .select('default_channel_id')
+    .eq('organization_id', organizationId)
+    .single();
+
+  if (!integration?.default_channel_id) {
+    console.log('No default channel configured for org:', organizationId);
+    return false;
+  }
+
+  const result = await sendChannelMessage(
+    client,
+    integration.default_channel_id,
+    text,
+    blocks
+  );
+
+  if (result.ok) {
+    console.log(`Sent PR closed notification for PR #${pr.github_pr_number}`);
+    return true;
+  }
+
+  console.error('Failed to send PR closed notification:', result.error);
+  return false;
+}
+
+/**
+ * Send notification when a PR is merged
+ */
+export async function sendPrMergedNotification(
+  supabase: AnySupabaseClient,
+  organizationId: string,
+  pr: {
+    id: string;
+    title: string;
+    github_pr_number: number;
+    author_login: string;
+    html_url: string;
+    merged_by?: string;
+  },
+  repository: {
+    full_name: string;
+  },
+  jiraTicket?: string | null
+): Promise<boolean> {
+  // Check notification settings
+  const settings = await getNotificationSettings(supabase, organizationId);
+
+  if (!settings.slack_notifications) {
+    console.log('Slack notifications disabled for org:', organizationId);
+    return false;
+  }
+
+  const client = await getOrgSlackClient(supabase, organizationId);
+
+  if (!client) {
+    console.log('No Slack integration for org:', organizationId);
+    return false;
+  }
+
+  const blocks = buildPrMergedNotificationBlocks({
+    title: pr.title,
+    number: pr.github_pr_number,
+    repo: repository.full_name,
+    url: pr.html_url,
+    author: pr.author_login,
+    merged_by: pr.merged_by,
+    jira_ticket: jiraTicket,
+  });
+
+  const text = `🟣 PR #${pr.github_pr_number} was merged${jiraTicket ? ` (Jira ticket ${jiraTicket} moved to Done)` : ''}`;
+
+  // Send to default channel if configured
+  const { data: integration } = await supabase
+    .from('slack_integrations')
+    .select('default_channel_id')
+    .eq('organization_id', organizationId)
+    .single();
+
+  if (!integration?.default_channel_id) {
+    console.log('No default channel configured for org:', organizationId);
+    return false;
+  }
+
+  const result = await sendChannelMessage(
+    client,
+    integration.default_channel_id,
+    text,
+    blocks
+  );
+
+  if (result.ok) {
+    console.log(`Sent PR merged notification for PR #${pr.github_pr_number}`);
+    return true;
+  }
+
+  console.error('Failed to send PR merged notification:', result.error);
   return false;
 }
 

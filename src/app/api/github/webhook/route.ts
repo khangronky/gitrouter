@@ -8,7 +8,7 @@ import type {
 } from '@/lib/schema/github';
 import { jiraTicketIdPattern } from '@/lib/schema/jira';
 import { routeAndAssignReviewers } from '@/lib/routing';
-import { sendPrNotifications } from '@/lib/slack';
+import { sendPrNotifications, sendPrClosedNotification, sendPrMergedNotification } from '@/lib/slack';
 import { syncPrWithJira } from '@/lib/jira';
 
 /**
@@ -186,7 +186,18 @@ async function handlePullRequestEvent(
   }
 
   // Extract Jira ticket ID from title or body
-  const jiraTicketId = extractJiraTicketId(pr.title, pr.body);
+  const extractedJiraTicketId = extractJiraTicketId(pr.title, pr.body);
+
+  // Check if PR already exists in database (to preserve existing jira_ticket_id)
+  const { data: existingPr } = await supabase
+    .from('pull_requests')
+    .select('id, jira_ticket_id')
+    .eq('repository_id', repo.id)
+    .eq('github_pr_id', pr.id)
+    .single();
+
+  // Use extracted ticket ID, or preserve existing one from database
+  const jiraTicketId = extractedJiraTicketId || existingPr?.jira_ticket_id || null;
 
   // Get list of changed files for routing
   let filesChanged: string[] = [];
@@ -359,17 +370,56 @@ async function handlePullRequestEvent(
       console.log(`Updated PR ${savedPr.github_pr_number} with Jira ticket: ${jiraResult.jira_ticket_id}`);
     }
 
-    // If ticket was deleted (PR closed without merge), clear the reference
+    // If Jira ticket was deleted, clear the reference
     if (jiraResult.deleted && jiraTicketId) {
       await supabase
         .from('pull_requests')
         .update({ jira_ticket_id: null })
         .eq('id', savedPr.id);
-      console.log(`Cleared Jira ticket from PR ${savedPr.github_pr_number} - ticket was deleted`);
+      console.log(`Jira ticket ${jiraTicketId} deleted - PR #${savedPr.github_pr_number} was closed`);
     }
   } catch (jiraError) {
     console.error('Jira sync failed:', jiraError);
     // Don't fail the webhook - PR is already saved
+  }
+
+  // Send Slack notifications for closed/merged PRs (regardless of Jira status)
+  try {
+    if (status === 'closed') {
+      console.log(`Sending Slack notification for closed PR #${savedPr.github_pr_number}`);
+      await sendPrClosedNotification(
+        supabase,
+        repo.organization_id,
+        {
+          id: savedPr.id,
+          title: savedPr.title,
+          github_pr_number: savedPr.github_pr_number,
+          author_login: savedPr.author_login,
+          html_url: savedPr.html_url,
+        },
+        { full_name: repository.full_name },
+        jiraTicketId
+      );
+    } else if (status === 'merged') {
+      console.log(`Sending Slack notification for merged PR #${savedPr.github_pr_number}`);
+      await sendPrMergedNotification(
+        supabase,
+        repo.organization_id,
+        {
+          id: savedPr.id,
+          title: savedPr.title,
+          github_pr_number: savedPr.github_pr_number,
+          author_login: savedPr.author_login,
+          html_url: savedPr.html_url,
+          merged_by: pr.merged_by?.login,
+        },
+        { full_name: repository.full_name },
+        jiraTicketId
+      );
+    }
+  } catch (slackError) {
+    console.error('Slack notification failed:', slackError);
+    // Don't fail the webhook
   }
 
   return NextResponse.json({

@@ -54,11 +54,13 @@ export async function GET(request: Request) {
     // Required scopes for Jira API access
     // - read:jira-work: Read project and issue data
     // - write:jira-work: Create/update issues, transitions, comments
+    // - delete:jira-work: Delete issues
     // - read:jira-user: Read user information
     // - offline_access: Get refresh token for long-lived access
     const scopes = [
       'read:jira-work',
       'write:jira-work',
+      'delete:jira-work',
       'read:jira-user',
       'offline_access',
     ].join(' ');
