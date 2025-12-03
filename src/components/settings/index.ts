@@ -8,4 +8,3 @@ export * from './jira-connect-dialog';
 export * from './repository-settings';
 export * from './add-repository-dialog';
 export * from './notification-settings';
-

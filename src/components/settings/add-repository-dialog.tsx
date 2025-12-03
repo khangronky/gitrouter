@@ -16,7 +16,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAvailableRepositories, useAddRepositoriesFromGitHub } from '@/lib/api/github';
+import {
+  useAvailableRepositories,
+  useAddRepositoriesFromGitHub,
+} from '@/lib/api/github';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
@@ -39,7 +42,9 @@ function parseGitHubUrl(input: string): { owner: string; repo: string } | null {
   const trimmed = input.trim();
 
   // Try owner/repo format first
-  const simpleMatch = trimmed.match(/^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+?)(?:\.git)?$/);
+  const simpleMatch = trimmed.match(
+    /^([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+?)(?:\.git)?$/
+  );
   if (simpleMatch) {
     return { owner: simpleMatch[1], repo: simpleMatch[2] };
   }
@@ -103,7 +108,8 @@ export function AddRepositoryDialog({
     setSelectedRepos(new Set());
   };
 
-  const allFilteredSelected = filteredRepos.length > 0 && 
+  const allFilteredSelected =
+    filteredRepos.length > 0 &&
     filteredRepos.every((r) => selectedRepos.has(r.id));
 
   const handleAddSelected = async () => {
@@ -140,7 +146,9 @@ export function AddRepositoryDialog({
 
     const parsed = parseGitHubUrl(gitUrl);
     if (!parsed) {
-      setUrlError('Invalid GitHub URL. Use format: owner/repo or https://github.com/owner/repo');
+      setUrlError(
+        'Invalid GitHub URL. Use format: owner/repo or https://github.com/owner/repo'
+      );
       return;
     }
 
@@ -242,8 +250,10 @@ export function AddRepositoryDialog({
                     />
                   </div>
                   <Button
-                    variant="outline"    
-                    onClick={allFilteredSelected ? deselectAllRepos : selectAllRepos}
+                    variant="outline"
+                    onClick={
+                      allFilteredSelected ? deselectAllRepos : selectAllRepos
+                    }
                     disabled={filteredRepos.length === 0}
                   >
                     {allFilteredSelected ? 'Deselect All' : 'Select All'}
@@ -257,27 +267,31 @@ export function AddRepositoryDialog({
                       </div>
                     ) : (
                       filteredRepos.map((repo) => (
-                    <label
-                      key={repo.id}
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selectedRepos.has(repo.id)}
-                        onCheckedChange={() => toggleRepo(repo.id)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{repo.full_name}</p>
-                        {repo.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {repo.description}
-                          </p>
-                        )}
-                      </div>
-                      {repo.private && (
-                        <span className="text-xs text-muted-foreground shrink-0">Private</span>
-                      )}
-                    </label>
-                  ))
+                        <label
+                          key={repo.id}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            checked={selectedRepos.has(repo.id)}
+                            onCheckedChange={() => toggleRepo(repo.id)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">
+                              {repo.full_name}
+                            </p>
+                            {repo.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-1">
+                                {repo.description}
+                              </p>
+                            )}
+                          </div>
+                          {repo.private && (
+                            <span className="text-xs text-muted-foreground shrink-0">
+                              Private
+                            </span>
+                          )}
+                        </label>
+                      ))
                     )}
                   </div>
                 </ScrollArea>
@@ -292,7 +306,9 @@ export function AddRepositoryDialog({
                 onClick={handleAddSelected}
                 disabled={selectedRepos.size === 0 || addRepos.isPending}
               >
-                {addRepos.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {addRepos.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Add {selectedRepos.size > 0 ? `(${selectedRepos.size})` : ''}
               </Button>
             </DialogFooter>
@@ -321,13 +337,15 @@ export function AddRepositoryDialog({
                   <p className="text-sm text-destructive">{urlError}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Supported formats: owner/repo, https://github.com/owner/repo, git@github.com:owner/repo.git
+                  Supported formats: owner/repo, https://github.com/owner/repo,
+                  git@github.com:owner/repo.git
                 </p>
               </div>
 
               {!error && (
                 <p className="text-sm text-muted-foreground">
-                  Note: The repository must be accessible to your GitHub App installation.
+                  Note: The repository must be accessible to your GitHub App
+                  installation.
                 </p>
               )}
             </div>
@@ -340,7 +358,9 @@ export function AddRepositoryDialog({
                 onClick={handleAddByUrl}
                 disabled={!gitUrl.trim() || addRepos.isPending || isLoading}
               >
-                {addRepos.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {addRepos.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Add Repository
               </Button>
             </DialogFooter>
@@ -350,4 +370,3 @@ export function AddRepositoryDialog({
     </Dialog>
   );
 }
-

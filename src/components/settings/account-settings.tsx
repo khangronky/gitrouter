@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 export function AccountSettings() {
   const { data, isLoading } = useCurrentUser();
   const updateUser = useUpdateCurrentUser();
-  
+
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -86,7 +86,9 @@ export function AccountSettings() {
             <User className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Name</p>
-              <p className="font-medium">{user.full_name || user.username || 'Not set'}</p>
+              <p className="font-medium">
+                {user.full_name || user.username || 'Not set'}
+              </p>
             </div>
           </div>
 
@@ -104,7 +106,9 @@ export function AccountSettings() {
             <Github className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">GitHub Username</p>
-              <p className="font-medium">{user.github_username || 'Not linked'}</p>
+              <p className="font-medium">
+                {user.github_username || 'Not linked'}
+              </p>
             </div>
           </div>
 
@@ -114,7 +118,7 @@ export function AccountSettings() {
             <div>
               <p className="text-sm text-muted-foreground">Slack</p>
               <p className="font-medium">
-                {user.slack_username 
+                {user.slack_username
                   ? `${user.slack_username}${user.slack_user_id ? ` (${user.slack_user_id})` : ''}`
                   : user.slack_user_id || 'Not linked'}
               </p>
@@ -148,7 +152,9 @@ export function AccountSettings() {
               <Input
                 id="full_name"
                 value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, full_name: e.target.value })
+                }
                 placeholder="Your full name"
               />
             </div>
@@ -159,21 +165,28 @@ export function AccountSettings() {
               <Input
                 id="username"
                 value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
                 placeholder="Your username"
               />
             </div>
 
             {/* GitHub Username */}
             <div className="space-y-2">
-              <Label htmlFor="github_username" className="flex items-center gap-2">
+              <Label
+                htmlFor="github_username"
+                className="flex items-center gap-2"
+              >
                 <Github className="h-4 w-4" />
                 GitHub Username
               </Label>
               <Input
                 id="github_username"
                 value={formData.github_username}
-                onChange={(e) => setFormData({ ...formData, github_username: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, github_username: e.target.value })
+                }
                 placeholder="e.g., octocat"
               />
               <p className="text-xs text-muted-foreground">
@@ -183,14 +196,19 @@ export function AccountSettings() {
 
             {/* Slack User ID */}
             <div className="space-y-2">
-              <Label htmlFor="slack_user_id" className="flex items-center gap-2">
+              <Label
+                htmlFor="slack_user_id"
+                className="flex items-center gap-2"
+              >
                 <MessageSquare className="h-4 w-4" />
                 Slack User ID
               </Label>
               <Input
                 id="slack_user_id"
                 value={formData.slack_user_id}
-                onChange={(e) => setFormData({ ...formData, slack_user_id: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, slack_user_id: e.target.value })
+                }
                 placeholder="e.g., U12345678"
               />
               <p className="text-xs text-muted-foreground">
@@ -204,14 +222,19 @@ export function AccountSettings() {
               <Input
                 id="slack_username"
                 value={formData.slack_username}
-                onChange={(e) => setFormData({ ...formData, slack_username: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, slack_username: e.target.value })
+                }
                 placeholder="Your Slack display name"
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={updateUser.isPending}>
@@ -223,4 +246,3 @@ export function AccountSettings() {
     </div>
   );
 }
-
