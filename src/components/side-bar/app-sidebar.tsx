@@ -1,4 +1,12 @@
-import { GitBranch } from 'lucide-react';
+import {
+  ChartColumnIncreasing,
+  ChartLine,
+  Factory,
+  GitBranch,
+  LifeBuoy,
+  List,
+  Settings,
+} from 'lucide-react';
 
 import {
   Sidebar,
@@ -7,7 +15,6 @@ import {
   SidebarHeader,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { navLinks } from './nav-links';
 import { NavMain } from './nav-main';
 import { NavSecondary } from './nav-secondary';
 import { NavUser } from './nav-user';
@@ -61,32 +68,11 @@ const data = {
       ],
     },
   ],
-  help_and_support: [
-    {
-      title: 'Help',
-      items: [
-        {
-          title: 'Settings',
-          url: '/settings',
-          icon: Settings,
-        },
-      ],
-    },
-    {
-      title: 'Support',
-      items: [
-        {
-          title: 'Support',
-          url: '/support',
-          icon: LifeBuoy,
-        },
-      ],
-    },
-  ],
 };
+
 export function AppSidebar() {
   return (
-    <Sidebar variant="sidebar" collapsible="icon">
+    <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <SidebarMenuButton
           size="lg"
@@ -110,8 +96,8 @@ export function AppSidebar() {
             header: 'Help and Support',
             items: [
               {
-                title: 'Settings',
-                url: '/settings',
+                title: 'Setting',
+                url: '/setting',
                 icon: Settings,
               },
               {
