@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createDynamicClient, createDynamicAdminClient } from '@/lib/supabase/server';
+import {
+  createDynamicClient,
+  createDynamicAdminClient,
+} from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
 import { getSlackConfig, createSlackClient } from '@/lib/slack/client';
 
@@ -130,11 +133,13 @@ export async function GET(request: Request) {
       try {
         const slackClient = createSlackClient(tokenData.access_token);
         const userInfo = await slackClient.users.info({ user: authedUserId });
-        
+
         if (userInfo.ok && userInfo.user) {
-          const slackUsername = userInfo.user.profile?.display_name || 
-                                userInfo.user.profile?.real_name || 
-                                userInfo.user.name || '';
+          const slackUsername =
+            userInfo.user.profile?.display_name ||
+            userInfo.user.profile?.real_name ||
+            userInfo.user.name ||
+            '';
           const slackEmail = userInfo.user.profile?.email;
 
           // Update the user's Slack info
@@ -146,7 +151,9 @@ export async function GET(request: Request) {
             })
             .eq('id', auth.userId);
 
-          console.log(`Linked Slack account ${slackUsername} (${authedUserId}) to user ${auth.userId}`);
+          console.log(
+            `Linked Slack account ${slackUsername} (${authedUserId}) to user ${auth.userId}`
+          );
 
           // Also create/update a reviewer entry for this user
           const { data: existingReviewer } = await adminSupabase
@@ -165,18 +172,22 @@ export async function GET(request: Request) {
               slack_user_id: authedUserId,
               email: slackEmail || null,
             });
-            console.log(`Created reviewer for user ${auth.userId} with Slack ID ${authedUserId}`);
+            console.log(
+              `Created reviewer for user ${auth.userId} with Slack ID ${authedUserId}`
+            );
           } else {
             // Update existing reviewer with Slack info
             await adminSupabase
               .from('reviewers')
-              .update({ 
+              .update({
                 slack_user_id: authedUserId,
                 email: slackEmail || undefined,
                 updated_at: new Date().toISOString(),
               })
               .eq('id', existingReviewer.id);
-            console.log(`Updated reviewer ${existingReviewer.id} with Slack ID ${authedUserId}`);
+            console.log(
+              `Updated reviewer ${existingReviewer.id} with Slack ID ${authedUserId}`
+            );
           }
         }
       } catch (error) {
@@ -200,4 +211,3 @@ function getBaseUrl(request: Request): string {
   const url = new URL(request.url);
   return `${url.protocol}//${url.host}`;
 }
-
