@@ -232,6 +232,3 @@ export interface SlackChannelListResponseType {
   channels: SlackChannelType[];
 }
 
-export interface MessageResponseType {
-  message: string;
-}

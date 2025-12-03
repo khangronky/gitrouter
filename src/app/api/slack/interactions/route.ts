@@ -141,7 +141,7 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
  * Log interaction for analytics
  */
 async function logInteraction(
-  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  supabase: any,
   payload: SlackInteractionPayload,
   actionType: string,
   value?: string

@@ -4,8 +4,8 @@ import type {
   SlackIntegrationResponseType,
   SlackChannelListResponseType,
   UpdateSlackIntegrationSchema,
-  MessageResponseType,
 } from '@/lib/schema/slack';
+import type { MessageResponseType } from '@/lib/schema/auth';
 
 // =============================================
 // Query Keys
