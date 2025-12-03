@@ -1,12 +1,4 @@
-import {
-  ChartColumnIncreasing,
-  ChartLine,
-  Factory,
-  GitBranch,
-  LifeBuoy,
-  List,
-  Settings,
-} from 'lucide-react';
+import { GitBranch } from 'lucide-react';
 
 import {
   Sidebar,
@@ -15,6 +7,7 @@ import {
   SidebarHeader,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import { navLinks } from './nav-links';
 import { NavMain } from './nav-main';
 import { NavSecondary } from './nav-secondary';
 import { NavUser } from './nav-user';
@@ -93,7 +86,7 @@ const data = {
 };
 export function AppSidebar() {
   return (
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader>
         <SidebarMenuButton
           size="lg"
