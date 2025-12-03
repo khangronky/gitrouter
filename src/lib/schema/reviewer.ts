@@ -76,4 +76,3 @@ export interface ReviewerListResponseType {
 export interface ReviewerResponseType {
   reviewer: ReviewerType;
 }
-
