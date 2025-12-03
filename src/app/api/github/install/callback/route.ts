@@ -103,14 +103,10 @@ export async function GET(request: Request) {
       });
 
       // Handle both User (has login) and Organization (has name) account types
-      const account = installation.account;
+      const account = installation.account as any;
       if (account) {
         accountLogin =
-          'login' in account && account.login
-            ? account.login
-            : 'name' in account && account.name
-              ? account.name
-              : 'unknown';
+          account.login || account.name || 'unknown';
         accountType = account.type || 'User';
         accountId = account.id || null;
       }

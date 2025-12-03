@@ -77,6 +77,3 @@ export interface ReviewerResponseType {
   reviewer: ReviewerType;
 }
 
-export interface MessageResponseType {
-  message: string;
-}

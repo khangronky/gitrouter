@@ -5,8 +5,8 @@ import type {
   UpdateRepositorySchema,
   RepositoryListResponseType,
   RepositoryResponseType,
-  MessageResponseType,
 } from '@/lib/schema/repository';
+import type { MessageResponseType } from '@/lib/schema/auth';
 
 // =============================================
 // Query Keys

@@ -168,6 +168,3 @@ export interface JiraStatusListResponseType {
   statuses: JiraStatusType[];
 }
 
-export interface MessageResponseType {
-  message: string;
-}

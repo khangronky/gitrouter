@@ -9,10 +9,10 @@ import type {
   AddMemberSchema,
   AddMemberByEmailSchema,
   UpdateMemberRoleSchema,
-  MessageResponseType,
   OrganizationMemberType,
   NotificationSettings,
 } from '@/lib/schema/organization';
+import type { MessageResponseType } from '@/lib/schema/auth';
 
 // =============================================
 // Query Keys

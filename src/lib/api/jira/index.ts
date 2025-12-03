@@ -6,8 +6,8 @@ import type {
   JiraProjectListResponseType,
   JiraStatusListResponseType,
   UpdateJiraIntegrationSchema,
-  MessageResponseType,
 } from '@/lib/schema/jira';
+import type { MessageResponseType } from '@/lib/schema/auth';
 
 // =============================================
 // Query Keys

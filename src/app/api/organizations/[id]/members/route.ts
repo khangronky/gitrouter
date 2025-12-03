@@ -135,14 +135,6 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Prevent adding someone as owner (only one owner per org)
-    if (role === 'owner') {
-      return NextResponse.json(
-        { error: 'Cannot add another owner. Use transfer ownership instead.' },
-        { status: 400 }
-      );
-    }
-
     // Use admin client for the rest of operations
     const adminSupabase = await createDynamicAdminClient();
 
