@@ -90,6 +90,3 @@ export interface AvailableRepositoriesResponseType {
   installation_id: number;
 }
 
-export interface MessageResponseType {
-  message: string;
-}
