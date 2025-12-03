@@ -6,8 +6,8 @@ import type {
   RoutingRuleListResponseType,
   RoutingRuleResponseType,
   ReorderRulesSchema,
-  MessageResponseType,
 } from '@/lib/schema/routing-rule';
+import type { MessageResponseType } from '@/lib/schema/auth';
 
 // =============================================
 // Query Keys

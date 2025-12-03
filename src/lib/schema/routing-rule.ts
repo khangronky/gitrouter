@@ -161,6 +161,3 @@ export interface RoutingRuleResponseType {
   rule: RoutingRuleType;
 }
 
-export interface MessageResponseType {
-  message: string;
-}
