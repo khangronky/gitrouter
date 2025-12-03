@@ -41,7 +41,7 @@ export default function NavHeader() {
   const breadcrumb = getBreadcrumbData();
 
   return (
-    <header className="flex shrink-0 items-center gap-2  px-4 py-2.5">
+    <header className="flex shrink-0 items-center gap-2 bg-background px-4 py-2.5">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator
