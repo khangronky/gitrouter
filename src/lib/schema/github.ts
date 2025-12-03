@@ -144,7 +144,12 @@ export interface PullRequestReviewWebhookPayload {
  * Installation Webhook Payload
  */
 export interface InstallationWebhookPayload {
-  action: 'created' | 'deleted' | 'suspend' | 'unsuspend' | 'new_permissions_accepted';
+  action:
+    | 'created'
+    | 'deleted'
+    | 'suspend'
+    | 'unsuspend'
+    | 'new_permissions_accepted';
   installation: {
     id: number;
     account: GitHubUserType;
@@ -212,4 +217,3 @@ export interface WebhookResponseType {
   success: boolean;
   message?: string;
 }
-
