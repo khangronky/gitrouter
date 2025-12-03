@@ -114,8 +114,13 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    const { github_repo_id, full_name, default_branch, default_reviewer_id, is_active } =
-      validation.data;
+    const {
+      github_repo_id,
+      full_name,
+      default_branch,
+      default_reviewer_id,
+      is_active,
+    } = validation.data;
 
     // Check if org has a GitHub installation
     const { data: installation, error: installError } = await supabase
@@ -126,7 +131,10 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     if (installError || !installation) {
       return NextResponse.json(
-        { error: 'No GitHub App installation found. Please install the GitHub App first.' },
+        {
+          error:
+            'No GitHub App installation found. Please install the GitHub App first.',
+        },
         { status: 400 }
       );
     }
@@ -196,4 +204,3 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 }
-

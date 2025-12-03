@@ -76,7 +76,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.error('Error in GET /api/organizations/[id]/repositories/[repoId]:', error);
+    console.error(
+      'Error in GET /api/organizations/[id]/repositories/[repoId]:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -161,7 +164,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ repository });
   } catch (error) {
-    console.error('Error in PATCH /api/organizations/[id]/repositories/[repoId]:', error);
+    console.error(
+      'Error in PATCH /api/organizations/[id]/repositories/[repoId]:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -219,11 +225,13 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       message: `Repository ${existingRepo.full_name} removed successfully`,
     });
   } catch (error) {
-    console.error('Error in DELETE /api/organizations/[id]/repositories/[repoId]:', error);
+    console.error(
+      'Error in DELETE /api/organizations/[id]/repositories/[repoId]:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-
