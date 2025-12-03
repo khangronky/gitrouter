@@ -1,11 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": {
-    "deploymentEnabled": false
-  },
-  "functions": {
-    "src/app/api/**/*": {
-      "maxDuration": 300
+  "crons": [
+    {
+      "path": "/api/cron/escalations",
+      "schedule": "0 * * * *"
     }
-  }
+  ]
 }
+
