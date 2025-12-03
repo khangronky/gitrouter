@@ -100,7 +100,6 @@ export default function RegisterForm() {
                   </div>
                   <p className="text-gray-500 text-xs">
                     <ul>
-                      <li>At least 12 characters</li>
                       <li>Contains at least one uppercase letter</li>
                       <li>Contains at least one lowercase letter</li>
                       <li>Contains at least one number</li>
