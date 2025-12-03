@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
 import { createDynamicAdminClient } from '@/lib/supabase/server';
-import { verifyWebhookSignature, getWebhookSecret } from '@/lib/github/signature';
-import { getPullRequestFiles, requestPullRequestReview } from '@/lib/github/client';
+import {
+  verifyWebhookSignature,
+  getWebhookSecret,
+} from '@/lib/github/signature';
+import {
+  getPullRequestFiles,
+  requestPullRequestReview,
+} from '@/lib/github/client';
 import type {
   PullRequestWebhookPayload,
   PullRequestReviewWebhookPayload,
 } from '@/lib/schema/github';
 import { jiraTicketIdPattern } from '@/lib/schema/jira';
 import { routeAndAssignReviewers } from '@/lib/routing';
-import { sendPrNotifications, sendPrClosedNotification, sendPrMergedNotification } from '@/lib/slack';
+import {
+  sendPrNotifications,
+  sendPrClosedNotification,
+  sendPrMergedNotification,
+} from '@/lib/slack';
 import { syncPrWithJira } from '@/lib/jira';
 
 /**
@@ -17,7 +27,7 @@ import { syncPrWithJira } from '@/lib/jira';
  */
 export async function POST(request: Request) {
   console.log('=== GitHub Webhook Received ===');
-  
+
   try {
     // Get raw body for signature verification
     const rawBody = await request.text();
@@ -26,13 +36,10 @@ export async function POST(request: Request) {
     // Verify signature
     const signature = request.headers.get('x-hub-signature-256');
     console.log('Signature present:', !!signature);
-    
+
     if (!signature) {
       console.log('ERROR: Missing signature');
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
     }
 
     let secret: string;
@@ -46,16 +53,13 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-    
+
     const isValid = await verifyWebhookSignature(secret, rawBody, signature);
     console.log('Signature valid:', isValid);
 
     if (!isValid) {
       console.log('ERROR: Invalid signature');
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     // Get event info
@@ -139,7 +143,15 @@ async function handlePullRequestEvent(
   const { action, pull_request: pr, repository, installation } = payload;
 
   // Only process specific actions
-  if (!['opened', 'synchronize', 'closed', 'reopened', 'ready_for_review'].includes(action)) {
+  if (
+    ![
+      'opened',
+      'synchronize',
+      'closed',
+      'reopened',
+      'ready_for_review',
+    ].includes(action)
+  ) {
     return NextResponse.json({ message: 'Action not handled' });
   }
 
@@ -174,8 +186,9 @@ async function handlePullRequestEvent(
     return NextResponse.json({ message: 'Repository is inactive' });
   }
 
-  const installationId = (repo.github_installation as unknown as { installation_id: number } | null)?.installation_id 
-    || installation?.id;
+  const installationId =
+    (repo.github_installation as unknown as { installation_id: number } | null)
+      ?.installation_id || installation?.id;
 
   // Determine PR status
   let status: 'open' | 'merged' | 'closed' = 'open';
@@ -197,11 +210,15 @@ async function handlePullRequestEvent(
     .single();
 
   // Use extracted ticket ID, or preserve existing one from database
-  const jiraTicketId = extractedJiraTicketId || existingPr?.jira_ticket_id || null;
+  const jiraTicketId =
+    extractedJiraTicketId || existingPr?.jira_ticket_id || null;
 
   // Get list of changed files for routing
   let filesChanged: string[] = [];
-  if (installationId && ['opened', 'synchronize', 'ready_for_review', 'reopened'].includes(action)) {
+  if (
+    installationId &&
+    ['opened', 'synchronize', 'ready_for_review', 'reopened'].includes(action)
+  ) {
     try {
       filesChanged = await getPullRequestFiles(
         installationId,
@@ -259,14 +276,17 @@ async function handlePullRequestEvent(
     .eq('event_id', deliveryId);
 
   // Trigger routing for new/updated PRs (including reopened)
-  if (['opened', 'reopened', 'ready_for_review'].includes(action) && status === 'open') {
+  if (
+    ['opened', 'reopened', 'ready_for_review'].includes(action) &&
+    status === 'open'
+  ) {
     console.log('Triggering routing for PR:', {
       action,
       pr_number: savedPr.github_pr_number,
       org_id: repo.organization_id,
       files_changed: savedPr.files_changed?.length || 0,
     });
-    
+
     try {
       const labels = pr.labels?.map((l) => l.name) || [];
       const routingResult = await routeAndAssignReviewers(
@@ -362,12 +382,17 @@ async function handlePullRequestEvent(
     });
 
     // If a new ticket was created, update the PR record
-    if (jiraResult.jira_ticket_id && jiraResult.jira_ticket_id !== jiraTicketId) {
+    if (
+      jiraResult.jira_ticket_id &&
+      jiraResult.jira_ticket_id !== jiraTicketId
+    ) {
       await supabase
         .from('pull_requests')
         .update({ jira_ticket_id: jiraResult.jira_ticket_id })
         .eq('id', savedPr.id);
-      console.log(`Updated PR ${savedPr.github_pr_number} with Jira ticket: ${jiraResult.jira_ticket_id}`);
+      console.log(
+        `Updated PR ${savedPr.github_pr_number} with Jira ticket: ${jiraResult.jira_ticket_id}`
+      );
     }
 
     // If Jira ticket was deleted, clear the reference
@@ -376,7 +401,9 @@ async function handlePullRequestEvent(
         .from('pull_requests')
         .update({ jira_ticket_id: null })
         .eq('id', savedPr.id);
-      console.log(`Jira ticket ${jiraTicketId} deleted - PR #${savedPr.github_pr_number} was closed`);
+      console.log(
+        `Jira ticket ${jiraTicketId} deleted - PR #${savedPr.github_pr_number} was closed`
+      );
     }
   } catch (jiraError) {
     console.error('Jira sync failed:', jiraError);
@@ -386,7 +413,9 @@ async function handlePullRequestEvent(
   // Send Slack notifications for closed/merged PRs (regardless of Jira status)
   try {
     if (status === 'closed') {
-      console.log(`Sending Slack notification for closed PR #${savedPr.github_pr_number}`);
+      console.log(
+        `Sending Slack notification for closed PR #${savedPr.github_pr_number}`
+      );
       await sendPrClosedNotification(
         supabase,
         repo.organization_id,
@@ -401,7 +430,9 @@ async function handlePullRequestEvent(
         jiraTicketId
       );
     } else if (status === 'merged') {
-      console.log(`Sending Slack notification for merged PR #${savedPr.github_pr_number}`);
+      console.log(
+        `Sending Slack notification for merged PR #${savedPr.github_pr_number}`
+      );
       await sendPrMergedNotification(
         supabase,
         repo.organization_id,
@@ -501,7 +532,10 @@ async function handlePullRequestReviewEvent(
  */
 async function handleInstallationEvent(
   supabase: Awaited<ReturnType<typeof createDynamicAdminClient>>,
-  payload: { action: string; installation: { id: number; account: { login: string; type: string } } }
+  payload: {
+    action: string;
+    installation: { id: number; account: { login: string; type: string } };
+  }
 ) {
   const { action, installation } = payload;
 
@@ -542,4 +576,3 @@ function extractJiraTicketId(
 
   return null;
 }
-
