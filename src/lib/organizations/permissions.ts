@@ -153,4 +153,3 @@ export async function requireOrgPermission(
 
   return { success: true, userId: auth.userId, role: permission.role! };
 }
-
