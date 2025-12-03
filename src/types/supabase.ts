@@ -7,11 +7,6 @@ export type Json =
   | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '13.0.5';
-  };
   public: {
     Tables: {
       escalations: {
@@ -140,51 +135,6 @@ export type Database = {
           },
         ];
       };
-      notifications: {
-        Row: {
-          channel: string;
-          created_at: string;
-          error_message: string | null;
-          external_message_id: string | null;
-          id: string;
-          message_type: string;
-          organization_id: string;
-          payload: Json;
-          recipient: string;
-          review_assignment_id: string | null;
-          sent_at: string | null;
-          status: string;
-        };
-        Insert: {
-          channel: string;
-          created_at?: string;
-          error_message?: string | null;
-          external_message_id?: string | null;
-          id?: string;
-          message_type: string;
-          organization_id: string;
-          payload?: Json;
-          recipient: string;
-          review_assignment_id?: string | null;
-          sent_at?: string | null;
-          status?: string;
-        };
-        Update: {
-          channel?: string;
-          created_at?: string;
-          error_message?: string | null;
-          external_message_id?: string | null;
-          id?: string;
-          message_type?: string;
-          organization_id?: string;
-          payload?: Json;
-          recipient?: string;
-          review_assignment_id?: string | null;
-          sent_at?: string | null;
-          status?: string;
-        };
-        Relationships: [];
-      };
       organization_members: {
         Row: {
           created_at: string;
@@ -277,27 +227,6 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
-      };
-      processed_events: {
-        Row: {
-          event_id: string;
-          event_type: string;
-          id: string;
-          processed_at: string;
-        };
-        Insert: {
-          event_id: string;
-          event_type: string;
-          id?: string;
-          processed_at?: string;
-        };
-        Update: {
-          event_id?: string;
-          event_type?: string;
-          id?: string;
-          processed_at?: string;
-        };
-        Relationships: [];
       };
       pull_requests: {
         Row: {
@@ -745,23 +674,16 @@ export type Database = {
     };
     Functions: {
       generate_slug: { Args: { input_text: string }; Returns: string };
-      get_user_org_ids: { Args: never; Returns: string[] };
-      is_org_admin:
-        | { Args: { org_id: string; user_id: string }; Returns: boolean }
-        | { Args: { org_id: string }; Returns: boolean };
-      is_org_member:
-        | { Args: { org_id: string; user_id: string }; Returns: boolean }
-        | { Args: { org_id: string }; Returns: boolean };
-      user_has_org_access: { Args: { org_id: string }; Returns: boolean };
-      user_is_org_admin: { Args: { org_id: string }; Returns: boolean };
+      is_org_admin: {
+        Args: { org_id: string; user_id: string };
+        Returns: boolean;
+      };
+      is_org_member: {
+        Args: { org_id: string; user_id: string };
+        Returns: boolean;
+      };
     };
     Enums: {
-      assignment_status:
-        | 'pending'
-        | 'approved'
-        | 'changes_requested'
-        | 'commented'
-        | 'dismissed';
       escalation_level: 'reminder_24h' | 'alert_48h';
       organization_role: 'owner' | 'admin' | 'member';
       pr_status: 'open' | 'merged' | 'closed';
@@ -901,13 +823,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      assignment_status: [
-        'pending',
-        'approved',
-        'changes_requested',
-        'commented',
-        'dismissed',
-      ],
       escalation_level: ['reminder_24h', 'alert_48h'],
       organization_role: ['owner', 'admin', 'member'],
       pr_status: ['open', 'merged', 'closed'],
