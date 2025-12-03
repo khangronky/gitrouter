@@ -102,9 +102,14 @@ export async function GET(request: Request) {
         installation_id: installationId,
       });
 
-      accountLogin = installation.account?.login || 'unknown';
-      accountType = installation.account?.type || 'User';
-      accountId = installation.account?.id || null;
+      // Handle both User (has login) and Organization (has name) account types
+      const account = installation.account as any;
+      if (account) {
+        accountLogin =
+          account.login || account.name || 'unknown';
+        accountType = account.type || 'User';
+        accountId = account.id || null;
+      }
     } catch (error) {
       console.error('Failed to get installation details:', error);
     }

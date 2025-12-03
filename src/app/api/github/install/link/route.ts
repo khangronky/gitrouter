@@ -53,8 +53,9 @@ export async function POST(request: Request) {
         installation_id: installationId,
       });
 
-      accountLogin = installation.account?.login || 'unknown';
-      accountType = installation.account?.type || 'User';
+      const account = installation.account as any;
+      accountLogin = account?.login || 'unknown';
+      accountType = account?.type || 'User';
     } catch (error: unknown) {
       console.error('Failed to verify installation:', error);
 
