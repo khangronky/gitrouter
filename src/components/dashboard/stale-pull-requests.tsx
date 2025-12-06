@@ -93,7 +93,7 @@ export function StalePullRequests({
                       </span>
                       <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
-                    <p className="mt-1 truncate text-sm text-foreground">
+                    <p className="mt-1 truncate w-[300px] text-sm text-foreground">
                       {pr.title}
                     </p>
                   </div>

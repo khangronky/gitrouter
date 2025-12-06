@@ -44,7 +44,7 @@ export function RecentActivity({
   className?: string;
 }) {
   return (
-    <Card className={cn('flex flex-col p-4', className)}>
+    <Card className={cn('flex flex-col p-4 gap-1', className)}>
       <div className="mb-4 flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export function RecentActivity({
                           #{a.id}
                         </Badge>
                       </div>
-                      <p className="mt-1.5 truncate text-sm text-muted-foreground">
+                      <p className="mt-1.5 truncate text-sm w-[250px] text-muted-foreground">
                         "{a.snippet}"
                       </p>
                     </div>
