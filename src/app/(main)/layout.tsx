@@ -28,9 +28,7 @@ export default async function MainLayout({
         <AppSidebar />
         <SidebarInset className="bg-muted max-h-svh overflow-hidden">
           <NavHeader />
-          <div className="flex-1 overflow-auto">
-            {children}
-          </div>
+          <div className="flex-1 overflow-auto">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </UserProvider>

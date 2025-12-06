@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { dashboardQuerySchema, type TimeRange } from '@/lib/schema/dashboard';
-import { getAuthenticatedUser, requireOrgPermission } from '@/lib/organizations/permissions';
+import {
+  getAuthenticatedUser,
+  requireOrgPermission,
+} from '@/lib/organizations/permissions';
 import { fetchDashboardData } from '@/lib/dashboard';
 
 /**
@@ -79,7 +82,11 @@ export async function GET(request: Request) {
     }
 
     // Check permissions for the organization
-    const permission = await requireOrgPermission(supabase, resolvedOrgId, 'org:view');
+    const permission = await requireOrgPermission(
+      supabase,
+      resolvedOrgId,
+      'org:view'
+    );
     if (!permission.success) {
       return NextResponse.json(
         {
@@ -105,7 +112,8 @@ export async function GET(request: Request) {
           {
             success: false,
             error: 'Repository not found',
-            message: 'The specified repository does not exist or does not belong to your organization',
+            message:
+              'The specified repository does not exist or does not belong to your organization',
             timestamp,
           },
           { status: 404 }
@@ -140,4 +148,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

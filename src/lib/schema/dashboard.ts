@@ -68,7 +68,9 @@ export type ReviewerWorkload = z.infer<typeof reviewerWorkloadSchema>;
  */
 export const reviewerWorkloadSeriesSchema = z.array(reviewerWorkloadSchema);
 
-export type ReviewerWorkloadSeries = z.infer<typeof reviewerWorkloadSeriesSchema>;
+export type ReviewerWorkloadSeries = z.infer<
+  typeof reviewerWorkloadSeriesSchema
+>;
 
 // =============================================
 // Bottlenecks Table Schemas
@@ -206,7 +208,9 @@ export const dashboardErrorResponseSchema = z.object({
   timestamp: z.string().datetime(),
 });
 
-export type DashboardErrorResponse = z.infer<typeof dashboardErrorResponseSchema>;
+export type DashboardErrorResponse = z.infer<
+  typeof dashboardErrorResponseSchema
+>;
 
 // =============================================
 // Individual Component Response Schemas
@@ -265,7 +269,9 @@ export const stalePullRequestsResponseSchema = z.object({
   timestamp: z.string().datetime(),
 });
 
-export type StalePullRequestsResponse = z.infer<typeof stalePullRequestsResponseSchema>;
+export type StalePullRequestsResponse = z.infer<
+  typeof stalePullRequestsResponseSchema
+>;
 
 /**
  * Recent Activity Response
@@ -276,5 +282,6 @@ export const recentActivityResponseSchema = z.object({
   timestamp: z.string().datetime(),
 });
 
-export type RecentActivityResponse = z.infer<typeof recentActivityResponseSchema>;
-
+export type RecentActivityResponse = z.infer<
+  typeof recentActivityResponseSchema
+>;

@@ -145,7 +145,7 @@ export function BottlenecksTable({
   });
 
   return (
-    <Card className={cn("p-4", className)}>
+    <Card className={cn('p-4', className)}>
       <div className="flex flex-col gap-1">
         <CardTitle>Bottlenecks</CardTitle>
         <CardDescription>Bottlenecks in the review process</CardDescription>
