@@ -16,7 +16,7 @@ import type {
   ReviewerWorkloadSeries,
   BottlenecksList,
   StalePullRequestsList,
-  RecentActivityList,
+  RecentActivityList, 
 } from '@/lib/schema/dashboard';
 
 // Fallback data for when API returns empty or during initial load
@@ -96,7 +96,7 @@ export default function Page() {
     if (value) {
       setTimeRange(value as TimeRange);
     }
-  };
+  };  
 
   if (isLoading && !dashboardData) {
     return <DashboardSkeleton />;
