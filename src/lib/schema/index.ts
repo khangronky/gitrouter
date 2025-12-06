@@ -24,3 +24,6 @@ export * from './slack';
 
 // Jira integration schemas
 export * from './jira';
+
+// Dashboard schemas
+export * from './dashboard';

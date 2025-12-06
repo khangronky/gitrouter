@@ -80,8 +80,8 @@ export const navLinks: NavLinks = {
       header: 'Help and Support',
       items: [
         {
-          title: 'Setting',
-          url: '/setting',
+          title: 'Settings',
+          url: '/settings',
           icon: Settings,
         },
         {
