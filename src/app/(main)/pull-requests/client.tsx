@@ -81,7 +81,9 @@ export function PullRequestsClient({
   ).sort();
   const reviewers = Array.from(
     new Set(
-      pullRequests.map((pr) => pr.reviewer).filter((r): r is string => r !== null)
+      pullRequests
+        .map((pr) => pr.reviewer)
+        .filter((r): r is string => r !== null)
     )
   ).sort();
 
@@ -94,7 +96,9 @@ export function PullRequestsClient({
       repositoryFilter === 'all' || pr.repository === repositoryFilter;
     const matchesReviewer =
       reviewerFilter === 'all' || pr.reviewer === reviewerFilter;
-    return matchesSearch && matchesStatus && matchesRepository && matchesReviewer;
+    return (
+      matchesSearch && matchesStatus && matchesRepository && matchesReviewer
+    );
   });
 
   const totalPages = Math.ceil(filteredPRs.length / rowsPerPage);
