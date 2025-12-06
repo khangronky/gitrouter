@@ -51,7 +51,18 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, MoreVertical, Pencil, Copy, Trash2, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import {
+  Plus,
+  MoreVertical,
+  Pencil,
+  Copy,
+  Trash2,
+  Wand2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type {
   RoutingRuleType,
@@ -334,32 +345,35 @@ export default function RulesBuilderPage() {
   );
 
   // Use API data for display (can switch to hardcoded for demo)
-  const allRules = useHardcodedData ? [] : (rulesData?.rules || []); // hardcodedRules disabled
-  const reviewers = useHardcodedData ? [] : (reviewersData?.reviewers || []);
-  
+  const allRules = useHardcodedData ? [] : rulesData?.rules || []; // hardcodedRules disabled
+  const reviewers = useHardcodedData ? [] : reviewersData?.reviewers || [];
+
   // Pagination logic
   const totalRules = allRules.length; // Use actual count of rules
   const totalPages = Math.ceil(totalRules / itemsPerPage);
-  
+
   // Reset to page 1 if current page exceeds total pages after changing items per page
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(1);
     }
   }, [itemsPerPage, currentPage, totalPages]);
-  
+
   // Get current page rules
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const rules = allRules.slice(startIndex, endIndex).map(rule => ({
+  const rules = allRules.slice(startIndex, endIndex).map((rule) => ({
     ...rule,
-    is_active: ruleStatuses[rule.id] !== undefined ? ruleStatuses[rule.id] : rule.is_active
+    is_active:
+      ruleStatuses[rule.id] !== undefined
+        ? ruleStatuses[rule.id]
+        : rule.is_active,
   }));
 
   const handleToggleStatus = (ruleId: string, currentStatus: boolean) => {
-    setRuleStatuses(prev => ({
+    setRuleStatuses((prev) => ({
       ...prev,
-      [ruleId]: !currentStatus
+      [ruleId]: !currentStatus,
     }));
   };
 
@@ -719,7 +733,9 @@ export default function RulesBuilderPage() {
                               ? 'cursor-pointer bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                               : 'cursor-pointer bg-red-100 text-red-800 hover:bg-red-200'
                           }
-                          onClick={() => handleToggleStatus(rule.id, rule.is_active)}
+                          onClick={() =>
+                            handleToggleStatus(rule.id, rule.is_active)
+                          }
                         >
                           {rule.is_active ? 'Enabled' : 'Disabled'}
                         </Badge>
@@ -727,7 +743,11 @@ export default function RulesBuilderPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="cursor-pointer">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="cursor-pointer"
+                            >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -767,25 +787,38 @@ export default function RulesBuilderPage() {
         {allRules.length > 0 && (
           <div className="mt-4 flex items-center justify-between text-sm">
             <div className="text-muted-foreground">
-              Showing {Math.min(itemsPerPage, totalRules - startIndex)} of {totalRules} results
+              Showing {Math.min(itemsPerPage, totalRules - startIndex)} of{' '}
+              {totalRules} results
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Row per page</span>
-                <Select 
-                  value={itemsPerPage.toString()} 
+                <Select
+                  value={itemsPerPage.toString()}
                   onValueChange={(value) => setItemsPerPage(Number(value))}
                 >
                   <SelectTrigger className="h-8 w-16 cursor-pointer">
                     <SelectValue>{itemsPerPage}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5" className="cursor-pointer">5</SelectItem>
-                    <SelectItem value="10" className="cursor-pointer">10</SelectItem>
-                    <SelectItem value="15" className="cursor-pointer">15</SelectItem>
-                    <SelectItem value="20" className="cursor-pointer">20</SelectItem>
-                    <SelectItem value="25" className="cursor-pointer">25</SelectItem>
-                    <SelectItem value="30" className="cursor-pointer">30</SelectItem>
+                    <SelectItem value="5" className="cursor-pointer">
+                      5
+                    </SelectItem>
+                    <SelectItem value="10" className="cursor-pointer">
+                      10
+                    </SelectItem>
+                    <SelectItem value="15" className="cursor-pointer">
+                      15
+                    </SelectItem>
+                    <SelectItem value="20" className="cursor-pointer">
+                      20
+                    </SelectItem>
+                    <SelectItem value="25" className="cursor-pointer">
+                      25
+                    </SelectItem>
+                    <SelectItem value="30" className="cursor-pointer">
+                      30
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -928,7 +961,10 @@ export default function RulesBuilderPage() {
                   value=""
                   onValueChange={(value) => {
                     if (value && !formData.reviewer_ids.includes(value)) {
-                      setFormData({ ...formData, reviewer_ids: [...formData.reviewer_ids, value] });
+                      setFormData({
+                        ...formData,
+                        reviewer_ids: [...formData.reviewer_ids, value],
+                      });
                     }
                   }}
                 >
@@ -937,9 +973,16 @@ export default function RulesBuilderPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {reviewers
-                      .filter(reviewer => !formData.reviewer_ids.includes(reviewer.id))
+                      .filter(
+                        (reviewer) =>
+                          !formData.reviewer_ids.includes(reviewer.id)
+                      )
                       .map((reviewer) => (
-                        <SelectItem key={reviewer.id} value={reviewer.id} className="cursor-pointer">
+                        <SelectItem
+                          key={reviewer.id}
+                          value={reviewer.id}
+                          className="cursor-pointer"
+                        >
                           @{reviewer.github_username || reviewer.name}
                         </SelectItem>
                       ))}
@@ -949,7 +992,9 @@ export default function RulesBuilderPage() {
                 {formData.reviewer_ids.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.reviewer_ids.map((reviewerId) => {
-                      const reviewer = reviewers.find(r => r.id === reviewerId);
+                      const reviewer = reviewers.find(
+                        (r) => r.id === reviewerId
+                      );
                       if (!reviewer) return null;
                       return (
                         <Badge
@@ -963,7 +1008,9 @@ export default function RulesBuilderPage() {
                             onClick={() => {
                               setFormData({
                                 ...formData,
-                                reviewer_ids: formData.reviewer_ids.filter(id => id !== reviewerId)
+                                reviewer_ids: formData.reviewer_ids.filter(
+                                  (id) => id !== reviewerId
+                                ),
                               });
                             }}
                             className="ml-1 hover:text-destructive cursor-pointer"
@@ -1108,7 +1155,10 @@ export default function RulesBuilderPage() {
                   value=""
                   onValueChange={(value) => {
                     if (value && !formData.reviewer_ids.includes(value)) {
-                      setFormData({ ...formData, reviewer_ids: [...formData.reviewer_ids, value] });
+                      setFormData({
+                        ...formData,
+                        reviewer_ids: [...formData.reviewer_ids, value],
+                      });
                     }
                   }}
                 >
@@ -1117,9 +1167,16 @@ export default function RulesBuilderPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {reviewers
-                      .filter(reviewer => !formData.reviewer_ids.includes(reviewer.id))
+                      .filter(
+                        (reviewer) =>
+                          !formData.reviewer_ids.includes(reviewer.id)
+                      )
                       .map((reviewer) => (
-                        <SelectItem key={reviewer.id} value={reviewer.id} className="cursor-pointer">
+                        <SelectItem
+                          key={reviewer.id}
+                          value={reviewer.id}
+                          className="cursor-pointer"
+                        >
                           @{reviewer.github_username || reviewer.name}
                         </SelectItem>
                       ))}
@@ -1129,7 +1186,9 @@ export default function RulesBuilderPage() {
                 {formData.reviewer_ids.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {formData.reviewer_ids.map((reviewerId) => {
-                      const reviewer = reviewers.find(r => r.id === reviewerId);
+                      const reviewer = reviewers.find(
+                        (r) => r.id === reviewerId
+                      );
                       if (!reviewer) return null;
                       return (
                         <Badge
@@ -1143,7 +1202,9 @@ export default function RulesBuilderPage() {
                             onClick={() => {
                               setFormData({
                                 ...formData,
-                                reviewer_ids: formData.reviewer_ids.filter(id => id !== reviewerId)
+                                reviewer_ids: formData.reviewer_ids.filter(
+                                  (id) => id !== reviewerId
+                                ),
                               });
                             }}
                             className="ml-1 hover:text-destructive cursor-pointer"
