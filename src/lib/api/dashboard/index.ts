@@ -12,7 +12,7 @@ export async function fetchDashboard(
   params?: DashboardQuery
 ): Promise<DashboardResponse> {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.timeRange) {
     queryParams.set('timeRange', params.timeRange);
   }
@@ -34,4 +34,3 @@ export async function fetchDashboard(
  * Helper type for dashboard data
  */
 export type { DashboardResponse, DashboardQuery, TimeRange };
-

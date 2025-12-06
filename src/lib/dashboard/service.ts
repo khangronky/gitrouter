@@ -28,7 +28,10 @@ interface DashboardServiceParams {
 /**
  * Get the date range based on timeRange parameter
  */
-function getDateRange(timeRange: TimeRange): { startDate: Date; endDate: Date } {
+function getDateRange(timeRange: TimeRange): {
+  startDate: Date;
+  endDate: Date;
+} {
   const endDate = new Date();
   const startDate = new Date();
 
@@ -50,8 +53,12 @@ function getDateRange(timeRange: TimeRange): { startDate: Date; endDate: Date } 
 /**
  * Get the previous period date range for delta calculations
  */
-function getPreviousPeriodRange(timeRange: TimeRange): { startDate: Date; endDate: Date } {
-  const { startDate: currentStart, endDate: currentEnd } = getDateRange(timeRange);
+function getPreviousPeriodRange(timeRange: TimeRange): {
+  startDate: Date;
+  endDate: Date;
+} {
+  const { startDate: currentStart, endDate: currentEnd } =
+    getDateRange(timeRange);
   const periodLength = currentEnd.getTime() - currentStart.getTime();
 
   const endDate = new Date(currentStart);
@@ -213,18 +220,26 @@ export async function fetchDashboardKpis({
     }
   }
 
-  const previousSlaRate = prevTotalReviewed > 0 ? prevSlaMetCount / prevTotalReviewed : 0;
+  const previousSlaRate =
+    prevTotalReviewed > 0 ? prevSlaMetCount / prevTotalReviewed : 0;
 
   // Count approved/merged PRs in current period
-  const approvedCount = currentPRs?.filter((pr) => pr.status === 'merged').length || 0;
-  const previousApprovedCount = previousPRs?.filter((pr) => pr.status === 'merged').length || 0;
+  const approvedCount =
+    currentPRs?.filter((pr) => pr.status === 'merged').length || 0;
+  const previousApprovedCount =
+    previousPRs?.filter((pr) => pr.status === 'merged').length || 0;
 
   const totalCurrent = currentPRs?.length || 0;
   const totalPrevious = previousPRs?.length || 0;
   const pendingCurrent = pendingAssignments?.length || 0;
   const pendingPrevious = previousPendingAssignments?.length || 0;
 
-  const noteText = timeRange === '7d' ? 'from last week' : timeRange === '30d' ? 'from last month' : 'from last period';
+  const noteText =
+    timeRange === '7d'
+      ? 'from last week'
+      : timeRange === '30d'
+        ? 'from last month'
+        : 'from last period';
 
   return {
     totalPRs: {
@@ -296,13 +311,16 @@ export async function fetchLatencySeries({
     .not('reviewed_at', 'is', null);
 
   // Group by day and calculate average latency
-  const dailyLatency: Record<string, { totalHours: number; count: number }> = {};
+  const dailyLatency: Record<string, { totalHours: number; count: number }> =
+    {};
 
   if (assignments) {
     for (const assignment of assignments) {
       if (assignment.reviewed_at && assignment.assigned_at) {
         const assignedDate = new Date(assignment.assigned_at);
-        const dayKey = assignedDate.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayKey = assignedDate.toLocaleDateString('en-US', {
+          weekday: 'short',
+        });
         const dateKey = assignedDate.toISOString().split('T')[0];
         const key = `${dateKey}-${dayKey}`;
 
@@ -360,18 +378,24 @@ export async function fetchReviewerWorkload({
     .from('review_assignments')
     .select('reviewer_id')
     .eq('status', 'pending')
-    .in('reviewer_id', reviewers.map((r) => r.id));
+    .in(
+      'reviewer_id',
+      reviewers.map((r) => r.id)
+    );
 
   // Count assignments per reviewer
   const assignmentCounts: Record<string, number> = {};
   if (assignments) {
     for (const assignment of assignments) {
-      assignmentCounts[assignment.reviewer_id] = (assignmentCounts[assignment.reviewer_id] || 0) + 1;
+      assignmentCounts[assignment.reviewer_id] =
+        (assignmentCounts[assignment.reviewer_id] || 0) + 1;
     }
   }
 
   return reviewers.map((reviewer) => ({
-    name: reviewer.github_username ? `@${reviewer.github_username}` : reviewer.name,
+    name: reviewer.github_username
+      ? `@${reviewer.github_username}`
+      : reviewer.name,
     assigned: assignmentCounts[reviewer.id] || 0,
     capacity: DEFAULT_REVIEWER_CAPACITY,
   }));
@@ -436,7 +460,8 @@ export async function fetchBottlenecks({
         } else if (assignment.reviewed_at) {
           const assignedTime = new Date(assignment.assigned_at).getTime();
           const reviewedTime = new Date(assignment.reviewed_at).getTime();
-          const hoursToReview = (reviewedTime - assignedTime) / (1000 * 60 * 60);
+          const hoursToReview =
+            (reviewedTime - assignedTime) / (1000 * 60 * 60);
           if (hoursToReview <= SLA_THRESHOLD_HOURS) {
             slaMetCount++;
           }
@@ -448,7 +473,8 @@ export async function fetchBottlenecks({
 
     const avgHours = waitCount > 0 ? totalWaitHours / waitCount : 0;
     const totalAssignments = pendingCount + slaMetCount;
-    const slaRate = totalAssignments > 0 ? (slaMetCount / totalAssignments) * 100 : 100;
+    const slaRate =
+      totalAssignments > 0 ? (slaMetCount / totalAssignments) * 100 : 100;
 
     // Extract repo name (last part of full_name)
     const repoName = repo.full_name.split('/').pop() || repo.full_name;
@@ -591,11 +617,13 @@ export async function fetchRecentActivity({
 
   return recentPRs.map((pr) => {
     const createdDate = new Date(pr.created_at);
-    const timeStr = createdDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    }).toUpperCase();
+    const timeStr = createdDate
+      .toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+      .toUpperCase();
 
     // Get assigned reviewer names
     const assigned = (pr.review_assignments || [])
@@ -612,7 +640,8 @@ export async function fetchRecentActivity({
       time: timeStr,
       id: pr.github_pr_number,
       author: `@${pr.author_login}`,
-      snippet: pr.title.length > 50 ? `${pr.title.substring(0, 47)}...` : pr.title,
+      snippet:
+        pr.title.length > 50 ? `${pr.title.substring(0, 47)}...` : pr.title,
       assigned,
     };
   });
@@ -622,7 +651,14 @@ export async function fetchRecentActivity({
  * Fetch all dashboard data in parallel
  */
 export async function fetchDashboardData(params: DashboardServiceParams) {
-  const [kpis, latencySeries, reviewerWorkload, bottlenecks, stalePRs, recentActivity] = await Promise.all([
+  const [
+    kpis,
+    latencySeries,
+    reviewerWorkload,
+    bottlenecks,
+    stalePRs,
+    recentActivity,
+  ] = await Promise.all([
     fetchDashboardKpis(params),
     fetchLatencySeries(params),
     fetchReviewerWorkload(params),
@@ -641,4 +677,3 @@ export async function fetchDashboardData(params: DashboardServiceParams) {
     timeRange: params.timeRange,
   };
 }
-

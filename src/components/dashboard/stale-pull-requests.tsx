@@ -73,8 +73,7 @@ export function StalePullRequests({
                   'group relative rounded-lg border p-3 transition-all hover:bg-accent/50',
                   urgency === 'critical' &&
                     'border-destructive/30 bg-destructive/5',
-                  urgency === 'warning' &&
-                    'border-amber-500/30 bg-amber-500/5',
+                  urgency === 'warning' && 'border-amber-500/30 bg-amber-500/5',
                   urgency === 'normal' && 'border-border'
                 )}
               >
@@ -103,8 +102,7 @@ export function StalePullRequests({
                       urgency === 'critical' &&
                         'bg-destructive/10 text-destructive',
                       urgency === 'warning' && 'bg-amber-500/10 text-amber-500',
-                      urgency === 'normal' &&
-                        'bg-muted text-muted-foreground'
+                      urgency === 'normal' && 'bg-muted text-muted-foreground'
                     )}
                   >
                     <Clock className="h-3 w-3" />

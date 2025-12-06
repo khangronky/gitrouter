@@ -75,7 +75,11 @@ export function WorkloadChartSkeleton() {
   );
 }
 
-export function BottlenecksTableSkeleton({ className }: { className?: string }) {
+export function BottlenecksTableSkeleton({
+  className,
+}: {
+  className?: string;
+}) {
   return (
     <Card className={`p-4 ${className}`}>
       <div className="flex flex-col gap-1 mb-4">
@@ -215,4 +219,3 @@ export function DashboardSkeleton() {
     </section>
   );
 }
-
