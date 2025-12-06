@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         {
           success: false,
           error: 'Validation failed',
-          message: validation.error.errors.map((e) => e.message).join(', '),
+          message: validation.error.issues.map((e) => e.message).join(', '),
           timestamp,
         },
         { status: 400 }
