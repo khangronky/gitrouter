@@ -5,7 +5,6 @@
   "scripts": {
     "clean": "rm bun.lock && bunx npkill --delete-all -y",
     "dev": "bun --bun next dev",
-    "dev:http": "bun --bun next dev --experimental-https",
     "devx": "bun sb:start && bun dev",
     "build": "bun --bun next build",
     "start": "bun --bun next start",
