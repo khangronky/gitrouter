@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useOrganizations } from '@/lib/api/organizations';
 import {
   useRoutingRules,
@@ -15,60 +15,20 @@ import {
 import { useUserStore } from '@/stores/user-store';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, MoreVertical, Pencil, Copy, Trash2, Wand2 } from 'lucide-react';
+import { Plus, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type {
   RoutingRuleType,
   RoutingCondition,
 } from '@/lib/schema/routing-rule';
-import type { ReviewerType } from '@/lib/schema/reviewer';
-
-type MatchType = 'file_pattern' | 'author' | 'time_window' | 'branch';
-
-interface RuleFormData {
-  name: string;
-  match_type: MatchType;
-  match_value: string;
-  reviewer_ids: string[];
-  priority: number;
-  is_active: boolean;
-}
+import { DataTable } from '@/components/ui/data-table';
+import { createRulesColumns, type RuleWithStatus } from './columns';
+import {
+  CreateRuleDialog,
+  type RuleFormData,
+  type MatchType,
+} from './create-rule-dialog';
+import { EditRuleDialog } from './edit-rule-dialog';
 
 const DEFAULT_FORM_DATA: RuleFormData = {
   name: '',
@@ -87,7 +47,7 @@ export default function RulesBuilderPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<RoutingRuleType | null>(null);
   const [formData, setFormData] = useState<RuleFormData>(DEFAULT_FORM_DATA);
-  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [useHardcodedData, setUseHardcodedData] = useState(false);
 
   // Auto-select first org
   useEffect(() => {
@@ -114,8 +74,16 @@ export default function RulesBuilderPage() {
     editingRule?.id || ''
   );
 
-  const rules = rulesData?.rules || [];
-  const reviewers = reviewersData?.reviewers || [];
+  // Use API data for display (can switch to hardcoded for demo)
+  const allRules = useHardcodedData ? [] : rulesData?.rules || [];
+  const reviewers = useHardcodedData ? [] : reviewersData?.reviewers || [];
+
+  // Transform rules to RuleWithStatus type
+  const rulesWithStatus: RuleWithStatus[] = useMemo(() => {
+    return allRules.map((rule) => ({
+      ...rule,
+    }));
+  }, [allRules]);
 
   const buildConditions = (
     matchType: MatchType,
@@ -235,7 +203,7 @@ export default function RulesBuilderPage() {
     }
   };
 
-  const handleDuplicateRule = (rule: RoutingRuleType) => {
+  const handleDuplicateRule = (rule: RuleWithStatus) => {
     const { matchType, matchValue } = parseConditions(rule.conditions);
     setFormData({
       name: `${rule.name} (Copy)`,
@@ -248,7 +216,7 @@ export default function RulesBuilderPage() {
     setCreateDialogOpen(true);
   };
 
-  const openEditDialog = (rule: RoutingRuleType) => {
+  const openEditDialog = (rule: RuleWithStatus) => {
     const { matchType, matchValue } = parseConditions(rule.conditions);
     setEditingRule(rule);
     setFormData({
@@ -296,40 +264,22 @@ export default function RulesBuilderPage() {
     }
   };
 
-  const getMatchTypeLabel = (type: string) => {
-    switch (type) {
-      case 'file_pattern':
-        return 'Files';
-      case 'author':
-        return 'Author';
-      case 'time_window':
-        return 'Time';
-      case 'branch':
-        return 'Branch';
-      default:
-        return type;
-    }
-  };
-
-  const getReviewerNames = (
-    reviewerIds: string[],
-    allReviewers: ReviewerType[]
-  ) => {
-    return reviewerIds
-      .map((id) => {
-        const reviewer = allReviewers.find((r) => r.id === id);
-        return reviewer
-          ? `@${reviewer.github_username || reviewer.name}`
-          : null;
-      })
-      .filter(Boolean)
-      .join(', ');
-  };
+  // Memoize columns to prevent unnecessary re-renders
+  const columns = useMemo(
+    () =>
+      createRulesColumns({
+        reviewers,
+        onEdit: openEditDialog,
+        onDuplicate: handleDuplicateRule,
+        onDelete: handleDeleteRule,
+      }),
+    [reviewers]
+  );
 
   if (orgsLoading) {
     return (
       <div className="flex-1 p-6">
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="w-full space-y-6">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-96 w-full" />
         </div>
@@ -352,12 +302,12 @@ export default function RulesBuilderPage() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="w-full p-6">
         {/* Header */}
         <div className="mb-2">
           <h1 className="text-2xl font-bold">Rule Builder</h1>
           <p className="text-sm text-muted-foreground">
-            {rules.length} rules in the system
+            Routing rules in the system
           </p>
         </div>
 
@@ -368,7 +318,8 @@ export default function RulesBuilderPage() {
               setFormData(DEFAULT_FORM_DATA);
               setCreateDialogOpen(true);
             }}
-            className=""
+            variant="destructive"
+            className="cursor-pointer bg-primary-500 "
           >
             <Plus className="mr-2 h-4 w-4" />
             Create New Rule
@@ -379,6 +330,7 @@ export default function RulesBuilderPage() {
             disabled={
               ensureReviewerMutation.isPending || createRuleMutation.isPending
             }
+            className="cursor-pointer"
           >
             <Wand2 className="mr-2 h-4 w-4" />
             Create Default Rule (Assign to Me)
@@ -388,7 +340,7 @@ export default function RulesBuilderPage() {
         {/* Rules Table */}
         {rulesLoading ? (
           <Skeleton className="h-96 w-full" />
-        ) : rules.length === 0 ? (
+        ) : rulesWithStatus.length === 0 ? (
           <div className="rounded-lg border bg-card p-12 text-center">
             <h3 className="text-lg font-medium">No rules yet</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -396,7 +348,7 @@ export default function RulesBuilderPage() {
               to PRs.
             </p>
             <Button
-              className="mt-4"
+              className="mt-4 cursor-pointer"
               onClick={handleCreateDefaultRule}
               disabled={
                 ensureReviewerMutation.isPending || createRuleMutation.isPending
@@ -407,410 +359,35 @@ export default function RulesBuilderPage() {
             </Button>
           </div>
         ) : (
-          <div className="rounded-lg border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={
-                        selectedRows.size === rules.length && rules.length > 0
-                      }
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedRows(new Set(rules.map((r) => r.id)));
-                        } else {
-                          setSelectedRows(new Set());
-                        }
-                      }}
-                    />
-                  </TableHead>
-                  <TableHead>Rule Name</TableHead>
-                  <TableHead>Match Rule</TableHead>
-                  <TableHead>Match Type</TableHead>
-                  <TableHead>Assignees</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-12" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rules.map((rule) => {
-                  const { matchType, matchValue } = parseConditions(
-                    rule.conditions
-                  );
-                  return (
-                    <TableRow key={rule.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedRows.has(rule.id)}
-                          onCheckedChange={(checked) => {
-                            const newSet = new Set(selectedRows);
-                            if (checked) {
-                              newSet.add(rule.id);
-                            } else {
-                              newSet.delete(rule.id);
-                            }
-                            setSelectedRows(newSet);
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">{rule.name}</TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {matchValue}
-                      </TableCell>
-                      <TableCell>{getMatchTypeLabel(matchType)}</TableCell>
-                      <TableCell>
-                        {getReviewerNames(rule.reviewer_ids, reviewers) ||
-                          'No reviewers'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={rule.is_active ? 'default' : 'destructive'}
-                          className={
-                            rule.is_active
-                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100'
-                              : 'bg-red-100 text-red-800 hover:bg-red-100'
-                          }
-                        >
-                          {rule.is_active ? 'Enabled' : 'Disabled'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => openEditDialog(rule)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDuplicateRule(rule)}
-                            >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() => handleDeleteRule(rule.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
-        {/* Pagination info */}
-        {rules.length > 0 && (
-          <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-            <span>Showing {rules.length} rules</span>
-          </div>
+          <DataTable
+            columns={columns}
+            data={rulesWithStatus}
+            pageSize={10}
+            pageSizeOptions={[5, 10, 15, 20, 25, 30]}
+          />
         )}
 
         {/* Create Rule Dialog */}
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Create New Rule</DialogTitle>
-              <DialogDescription>
-                Define a routing rule to automatically assign reviewers to PRs.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="rule-name">
-                  Rule Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="rule-name"
-                  placeholder="Provide a rule name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  Match Type <span className="text-red-500">*</span>
-                </Label>
-                <RadioGroup
-                  value={formData.match_type}
-                  onValueChange={(value: MatchType) =>
-                    setFormData({ ...formData, match_type: value })
-                  }
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="file_pattern" id="file_pattern" />
-                    <Label htmlFor="file_pattern" className="font-normal">
-                      Files (regex)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="author" id="author" />
-                    <Label htmlFor="author" className="font-normal">
-                      Author (GitHub username)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="time_window" id="time_window" />
-                    <Label htmlFor="time_window" className="font-normal">
-                      Time of Day (schedule)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="branch" id="branch" />
-                    <Label htmlFor="branch" className="font-normal">
-                      Branch (regex pattern)
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {formData.match_type !== 'time_window' && (
-                <div className="space-y-2">
-                  <Label htmlFor="match-value">
-                    Match Value <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="match-value"
-                    placeholder={
-                      formData.match_type === 'file_pattern'
-                        ? 'src/api/* OR src/backend/*'
-                        : formData.match_type === 'author'
-                          ? 'GitHub username'
-                          : 'Branch pattern (e.g., feature/*)'
-                    }
-                    value={formData.match_value}
-                    onChange={(e) =>
-                      setFormData({ ...formData, match_value: e.target.value })
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>
-                  Assign Reviewers <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.reviewer_ids[0] || ''}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, reviewer_ids: [value] })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pick a Reviewer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {reviewers.map((reviewer) => (
-                      <SelectItem key={reviewer.id} value={reviewer.id}>
-                        @{reviewer.github_username || reviewer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  Priority (1-100) <span className="text-red-500">*</span>
-                </Label>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    value={[formData.priority]}
-                    onValueChange={([value]) =>
-                      setFormData({ ...formData, priority: value })
-                    }
-                    max={100}
-                    min={1}
-                    step={1}
-                    className="flex-1"
-                  />
-                  <span className="w-10 text-center font-mono text-sm">
-                    {formData.priority}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Lower numbers = higher priority (evaluated first)
-                </p>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setCreateDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateRule}
-                disabled={createRuleMutation.isPending}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                Save Rule
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <CreateRuleDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          formData={formData}
+          onFormDataChange={setFormData}
+          reviewers={reviewers}
+          onSubmit={handleCreateRule}
+          isPending={createRuleMutation.isPending}
+        />
 
         {/* Edit Rule Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Rule</DialogTitle>
-              <DialogDescription>
-                Update the routing rule configuration.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-rule-name">
-                  Rule Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="edit-rule-name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  Match Type <span className="text-red-500">*</span>
-                </Label>
-                <RadioGroup
-                  value={formData.match_type}
-                  onValueChange={(value: MatchType) =>
-                    setFormData({ ...formData, match_type: value })
-                  }
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value="file_pattern"
-                      id="edit-file_pattern"
-                    />
-                    <Label htmlFor="edit-file_pattern" className="font-normal">
-                      Files (regex)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="author" id="edit-author" />
-                    <Label htmlFor="edit-author" className="font-normal">
-                      Author (GitHub username)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="time_window" id="edit-time_window" />
-                    <Label htmlFor="edit-time_window" className="font-normal">
-                      Time of Day (schedule)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="branch" id="edit-branch" />
-                    <Label htmlFor="edit-branch" className="font-normal">
-                      Branch (regex pattern)
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              {formData.match_type !== 'time_window' && (
-                <div className="space-y-2">
-                  <Label htmlFor="edit-match-value">
-                    Match Value <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="edit-match-value"
-                    value={formData.match_value}
-                    onChange={(e) =>
-                      setFormData({ ...formData, match_value: e.target.value })
-                    }
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>
-                  Assign Reviewers <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.reviewer_ids[0] || ''}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, reviewer_ids: [value] })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pick a Reviewer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {reviewers.map((reviewer) => (
-                      <SelectItem key={reviewer.id} value={reviewer.id}>
-                        @{reviewer.github_username || reviewer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  Priority (1-100) <span className="text-red-500">*</span>
-                </Label>
-                <div className="flex items-center gap-4">
-                  <Slider
-                    value={[formData.priority]}
-                    onValueChange={([value]) =>
-                      setFormData({ ...formData, priority: value })
-                    }
-                    max={100}
-                    min={1}
-                    step={1}
-                    className="flex-1"
-                  />
-                  <span className="w-10 text-center font-mono text-sm">
-                    {formData.priority}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setEditDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleEditRule}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                Update Rule
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <EditRuleDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          formData={formData}
+          onFormDataChange={setFormData}
+          reviewers={reviewers}
+          onSubmit={handleEditRule}
+          isPending={updateRuleMutation.isPending}
+        />
       </div>
     </div>
   );
