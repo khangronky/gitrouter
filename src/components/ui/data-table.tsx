@@ -99,7 +99,9 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const align = (header.column.columnDef.meta as { align?: string })?.align;
+                  const align = (
+                    header.column.columnDef.meta as { align?: string }
+                  )?.align;
                   return (
                     <TableHead
                       key={header.id}
@@ -125,7 +127,9 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => {
-                    const align = (cell.column.columnDef.meta as { align?: string })?.align;
+                    const align = (
+                      cell.column.columnDef.meta as { align?: string }
+                    )?.align;
                     return (
                       <TableCell
                         key={cell.id}
@@ -231,4 +235,3 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-
