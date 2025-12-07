@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetcher } from '@/lib/api';
 import type {
+  CurrentUserType,
   LoginResponseType,
   LoginSchema,
   RegisterResponseType,
   RegisterSchema,
-  CurrentUserType,
+  ResendOtpResponseType,
+  ResendOtpSchema,
   UpdateUserSchema,
+  VerifyOtpResponseType,
+  VerifyOtpSchema,
 } from '@/lib/schema/auth';
 
 /**
@@ -67,6 +71,38 @@ export const registerMutation = () => {
       payload: RegisterSchema
     ): Promise<RegisterResponseType> => {
       return fetcher<RegisterResponseType>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+  });
+};
+
+/**
+ * Resend OTP Mutation
+ */
+export const resendOtpMutation = () => {
+  return useMutation({
+    mutationFn: async (
+      payload: ResendOtpSchema
+    ): Promise<ResendOtpResponseType> => {
+      return fetcher<ResendOtpResponseType>('/auth/otp/resend', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+  });
+};
+
+/**
+ * Verify OTP Mutation
+ */
+export const verifyOtpMutation = () => {
+  return useMutation({
+    mutationFn: async (
+      payload: VerifyOtpSchema
+    ): Promise<VerifyOtpResponseType> => {
+      return fetcher<VerifyOtpResponseType>('/auth/otp/verify', {
         method: 'POST',
         body: JSON.stringify(payload),
       });

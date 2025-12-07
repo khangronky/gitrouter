@@ -37,6 +37,13 @@ export const registerSchema = z
   });
 
 /**
+ * Resend OTP Schema
+ */
+export const resendOtpSchema = z.object({
+  email: z.email({ message: 'Invalid email address' }),
+});
+
+/**
  * Verify OTP Schema
  */
 export const verifyOtpSchema = z.object({
@@ -56,6 +63,7 @@ export const loginSchema = z.object({
  * Infer Types
  */
 export type RegisterSchema = z.infer<typeof registerSchema>;
+export type ResendOtpSchema = z.infer<typeof resendOtpSchema>;
 export type VerifyOtpSchema = z.infer<typeof verifyOtpSchema>;
 export type LoginSchema = z.infer<typeof loginSchema>;
 
@@ -63,6 +71,11 @@ export type LoginSchema = z.infer<typeof loginSchema>;
  * Response Types
  */
 export interface RegisterResponseType {
+  status: number;
+  message?: string;
+}
+
+export interface ResendOtpResponseType {
   status: number;
   message?: string;
 }
