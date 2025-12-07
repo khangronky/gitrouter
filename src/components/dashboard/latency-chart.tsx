@@ -1,71 +1,111 @@
 'use client';
 
-import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
+  ReferenceLine,
   XAxis,
   YAxis,
 } from 'recharts';
-import { Card } from '@/components/ui/card';
-import { SectionTitle } from './section-title';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
 
 interface LatencySeries {
   day: string;
   hours: number;
 }
 
+const chartConfig = {
+  hours: {
+    label: 'Hours',
+    color: 'var(--primary-500)',
+  },
+} satisfies ChartConfig;
+
 export function LatencyChart({
   latencySeries,
+  className,
 }: {
   latencySeries: LatencySeries[];
+  className?: string;
 }) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   return (
-    <Card className="h-full p-4">
-      <SectionTitle>First Review Latency (Target: 4 hours)</SectionTitle>
-      <div className="mt-4 h-48">
-        <ResponsiveContainer>
-          <LineChart
-            data={latencySeries}
-            margin={{ top: 5, right: 10, bottom: 5, left: -20 }}
-          >
-            <CartesianGrid
-              stroke={isDark ? '#333' : '#E5E5E5'}
-              strokeDasharray="0"
-            />
-            <XAxis
-              dataKey="day"
-              tick={{ fill: isDark ? '#999' : '#5E5E5E', fontSize: 11 }}
-              axisLine={{ stroke: isDark ? '#333' : '#E5E5E5' }}
-            />
-            <YAxis
-              tick={{ fill: isDark ? '#999' : '#5E5E5E', fontSize: 11 }}
-              axisLine={{ stroke: isDark ? '#333' : '#E5E5E5' }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: isDark ? '#1f1f1f' : 'white',
-                border: `1px solid ${isDark ? '#333' : '#E5E5E5'}`,
-                fontSize: '11px',
-                color: isDark ? '#fff' : '#000',
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="hours"
-              stroke="#7A1F1C"
-              strokeWidth={2}
-              dot={{ r: 3, fill: '#7A1F1C' }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+    <Card
+      className={cn('h-full p-4 flex flex-col justify-between ', className)}
+    >
+      <div className="flex flex-col gap-1">
+        <CardTitle>First Review Latency (Target: 4 hours)</CardTitle>
+        <CardDescription>Latency for the selected time range</CardDescription>
       </div>
+      <ChartContainer config={chartConfig} className="h-[225px] w-full">
+        <AreaChart
+          data={latencySeries}
+          margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+        >
+          <defs>
+            <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="0%"
+                stopColor="var(--color-hours)"
+                stopOpacity={0.4}
+              />
+              <stop
+                offset="100%"
+                stopColor="var(--color-hours)"
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke="var(--border)"
+          />
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value) => value.slice(0, 3)}
+            className="text-xs text-muted-foreground"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value) => `${value}h`}
+            className="text-xs text-muted-foreground"
+          />
+          <ReferenceLine
+            y={4}
+            stroke="var(--destructive)"
+            strokeDasharray="5 5"
+            strokeWidth={1.5}
+            label={{
+              value: 'Target',
+              position: 'right',
+              fill: 'var(--destructive)',
+              fontSize: 11,
+            }}
+          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+          <Area
+            type="monotone"
+            dataKey="hours"
+            stroke="var(--color-hours)"
+            strokeWidth={2}
+            fill="url(#latencyGradient)"
+          />
+        </AreaChart>
+      </ChartContainer>
+
       <p className="text-muted-foreground text-sm">
         Current avg:{' '}
         <span className="font-semibold text-foreground">3.2 hours</span> (within

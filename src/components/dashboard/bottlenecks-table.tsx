@@ -1,60 +1,204 @@
 'use client';
 
-import { Card } from '@/components/ui/card';
-import { SectionTitle } from './section-title';
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type SortingState,
+  useReactTable,
+} from '@tanstack/react-table';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import * as React from 'react';
 
-interface Bottleneck {
+import { Button } from '@/components/ui/button';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { cn } from '@/lib/utils';
+
+export interface Bottleneck {
   repo: string;
   avg: string;
   pending: number;
   sla: string;
 }
 
+const columns: ColumnDef<Bottleneck>[] = [
+  {
+    accessorKey: 'repo',
+    header: 'Repo',
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue('repo')}</div>
+    ),
+  },
+  {
+    accessorKey: 'avg',
+    header: ({ column }) => {
+      const sorted = column.getIsSorted();
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(sorted === 'asc')}
+          >
+            Avg Review Time
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="text-center text-muted-foreground">
+        {row.getValue('avg')}
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'pending',
+    header: ({ column }) => {
+      const sorted = column.getIsSorted();
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(sorted === 'asc')}
+          >
+            PRs Pending
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="text-center text-muted-foreground">
+        {row.getValue('pending')}
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'sla',
+    header: ({ column }) => {
+      const sorted = column.getIsSorted();
+      return (
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(sorted === 'asc')}
+          >
+            SLA%
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="text-center text-muted-foreground">
+        {row.getValue('sla')}
+      </div>
+    ),
+  },
+];
+
 export function BottlenecksTable({
   bottlenecks,
+  className,
 }: {
   bottlenecks: Bottleneck[];
+  className?: string;
 }) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const table = useReactTable({
+    data: bottlenecks,
+    columns,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+  });
+
   return (
-    <Card className="p-4">
-      <SectionTitle>Bottlenecks</SectionTitle>
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="text-muted-foreground">
-              <th className="border-border border-b px-3 py-3 text-left font-medium">
-                Repo
-              </th>
-              <th className="border-border border-b px-3 py-3 text-center font-medium">
-                Avg Review Time
-              </th>
-              <th className="border-border border-b px-3 py-3 text-center font-medium">
-                PRs Pending
-              </th>
-              <th className="border-border border-b px-3 py-3 text-center font-medium">
-                SLA%
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {bottlenecks.map((b, i) => (
-              <tr key={i} className="border-border/50 border-b last:border-0">
-                <td className="px-3 py-3 font-medium text-foreground">
-                  {b.repo}
-                </td>
-                <td className="px-3 py-3 text-center text-muted-foreground">
-                  {b.avg}
-                </td>
-                <td className="px-3 py-3 text-center text-muted-foreground">
-                  {b.pending}
-                </td>
-                <td className="px-3 py-3 text-center text-muted-foreground">
-                  {b.sla}
-                </td>
-              </tr>
+    <Card className={cn('p-4', className)}>
+      <div className="flex flex-col gap-1">
+        <CardTitle>Bottlenecks</CardTitle>
+        <CardDescription>Bottlenecks in the review process</CardDescription>
+      </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No bottlenecks found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </Card>
   );
