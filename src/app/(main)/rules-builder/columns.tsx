@@ -12,7 +12,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreVertical, Pencil, Copy, Trash2 } from 'lucide-react';
-import type { RoutingRuleType, RoutingCondition } from '@/lib/schema/routing-rule';
+import type {
+  RoutingRuleType,
+  RoutingCondition,
+} from '@/lib/schema/routing-rule';
 import type { ReviewerType } from '@/lib/schema/reviewer';
 
 type MatchType = 'file_pattern' | 'author' | 'time_window' | 'branch';
@@ -81,9 +84,7 @@ const getReviewerNames = (
   return reviewerIds
     .map((id) => {
       const reviewer = allReviewers.find((r) => r.id === id);
-      return reviewer
-        ? `@${reviewer.github_username || reviewer.name}`
-        : null;
+      return reviewer ? `@${reviewer.github_username || reviewer.name}` : null;
     })
     .filter(Boolean)
     .join(', ');
@@ -207,4 +208,3 @@ export const createRulesColumns = ({
     },
   },
 ];
-
