@@ -361,10 +361,18 @@ export async function fetchReviewerWorkload({
   supabase,
   organizationId,
 }: DashboardServiceParams): Promise<ReviewerWorkloadSeries> {
-  // Get active reviewers for the organization
+  // Get active reviewers for the organization, joining with users for github_username
   const { data: reviewers } = await supabase
     .from('reviewers')
-    .select('id, name, github_username')
+    .select(
+      `
+      id,
+      name,
+      user:users (
+        github_username
+      )
+    `
+    )
     .eq('organization_id', organizationId)
     .eq('is_active', true)
     .limit(10);
@@ -392,13 +400,16 @@ export async function fetchReviewerWorkload({
     }
   }
 
-  return reviewers.map((reviewer) => ({
-    name: reviewer.github_username
-      ? `@${reviewer.github_username}`
-      : reviewer.name,
-    assigned: assignmentCounts[reviewer.id] || 0,
-    capacity: DEFAULT_REVIEWER_CAPACITY,
-  }));
+  return reviewers.map((reviewer) => {
+    const githubUsername = (
+      reviewer.user as { github_username: string | null } | null
+    )?.github_username;
+    return {
+      name: githubUsername ? `@${githubUsername}` : reviewer.name,
+      assigned: assignmentCounts[reviewer.id] || 0,
+      capacity: DEFAULT_REVIEWER_CAPACITY,
+    };
+  });
 }
 
 /**
@@ -589,7 +600,7 @@ export async function fetchRecentActivity({
     return [];
   }
 
-  // Get recently created PRs with their assignments
+  // Get recently created PRs with their assignments, joining with users for github_username
   const { data: recentPRs } = await supabase
     .from('pull_requests')
     .select(`
@@ -603,7 +614,9 @@ export async function fetchRecentActivity({
         reviewer:reviewers (
           id,
           name,
-          github_username
+          user:users (
+            github_username
+          )
         )
       )
     `)
@@ -628,9 +641,13 @@ export async function fetchRecentActivity({
     // Get assigned reviewer names
     const assigned = (pr.review_assignments || [])
       .map((a) => {
-        const reviewer = a.reviewer;
-        if (reviewer?.github_username) {
-          return `@${reviewer.github_username}`;
+        const reviewer = a.reviewer as {
+          name: string;
+          user: { github_username: string | null } | null;
+        } | null;
+        const githubUsername = reviewer?.user?.github_username;
+        if (githubUsername) {
+          return `@${githubUsername}`;
         }
         return reviewer?.name || 'Unknown';
       })

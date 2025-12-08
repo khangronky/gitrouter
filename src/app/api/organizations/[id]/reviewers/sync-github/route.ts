@@ -10,6 +10,7 @@ interface RouteParams {
 /**
  * POST /api/organizations/[id]/reviewers/sync-github
  * Sync reviewers from GitHub repository collaborators
+ * Creates/updates users with GitHub info and links them as reviewers
  */
 export async function POST(_request: Request, { params }: RouteParams) {
   try {
@@ -56,10 +57,22 @@ export async function POST(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // Get existing reviewers
+    // Get existing reviewers with their linked users
     const { data: existingReviewers } = await supabase
       .from('reviewers')
-      .select('id, name, email, github_username')
+      .select(
+        `
+        id,
+        name,
+        user_id,
+        user:users (
+          id,
+          email,
+          github_user_id,
+          github_username
+        )
+      `
+      )
       .eq('organization_id', id);
 
     const results = {
@@ -113,70 +126,149 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
     // Process each collaborator
     for (const collab of allCollaborators.values()) {
-      // Check if reviewer already exists by GitHub username
-      const existingByUsername = existingReviewers?.find(
-        (r) =>
-          r.github_username?.toLowerCase() ===
-          collab.github_username.toLowerCase()
-      );
+      // Check if reviewer already exists by checking linked user's github_username
+      const existingByUsername = existingReviewers?.find((r) => {
+        const user = r.user as {
+          github_username: string | null;
+          github_user_id: number | null;
+        } | null;
+        return (
+          user?.github_username?.toLowerCase() ===
+            collab.github_username.toLowerCase() ||
+          user?.github_user_id === collab.github_id
+        );
+      });
 
       if (existingByUsername) {
         results.skipped++;
         continue;
       }
 
-      // Check if reviewer exists by email
+      // Check if reviewer exists by linked user's email
       const existingByEmail = collab.email
-        ? existingReviewers?.find(
-            (r) => r.email?.toLowerCase() === collab.email?.toLowerCase()
-          )
+        ? existingReviewers?.find((r) => {
+            const user = r.user as { email: string | null } | null;
+            return (
+              user?.email?.toLowerCase() === collab.email?.toLowerCase()
+            );
+          })
         : null;
 
       if (existingByEmail) {
-        // Update existing reviewer with GitHub username
-        const { error: updateError } = await supabase
-          .from('reviewers')
-          .update({
-            github_username: collab.github_username,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingByEmail.id);
+        // Update the linked user with GitHub info
+        const user = existingByEmail.user as { id: string } | null;
+        if (user?.id) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              github_username: collab.github_username,
+              github_user_id: collab.github_id,
+            })
+            .eq('id', user.id);
 
-        if (!updateError) {
-          results.updated++;
+          if (!updateError) {
+            results.updated++;
+          }
         }
         continue;
       }
 
-      // Check if reviewer exists by name (fuzzy match)
+      // Check if reviewer exists by name (fuzzy match) without GitHub info
       const existingByName = collab.name
-        ? existingReviewers?.find(
-            (r) => r.name.toLowerCase() === collab.name?.toLowerCase()
-          )
+        ? existingReviewers?.find((r) => {
+            const user = r.user as { github_username: string | null } | null;
+            return (
+              r.name.toLowerCase() === collab.name?.toLowerCase() &&
+              !user?.github_username
+            );
+          })
         : null;
 
-      if (existingByName && !existingByName.github_username) {
-        // Update existing reviewer with GitHub username
-        const { error: updateError } = await supabase
-          .from('reviewers')
-          .update({
-            github_username: collab.github_username,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingByName.id);
+      if (existingByName) {
+        // Update the linked user with GitHub info if they have one
+        const user = existingByName.user as { id: string } | null;
+        if (user?.id) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              github_username: collab.github_username,
+              github_user_id: collab.github_id,
+            })
+            .eq('id', user.id);
 
-        if (!updateError) {
-          results.updated++;
+          if (!updateError) {
+            results.updated++;
+          }
         }
         continue;
       }
 
-      // Create new reviewer
+      // Check if a user already exists with this GitHub ID or username
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .or(
+          `github_user_id.eq.${collab.github_id},github_username.eq.${collab.github_username}`
+        )
+        .limit(1)
+        .single();
+
+      let userId: string;
+
+      if (existingUser) {
+        // User exists, use their ID
+        userId = existingUser.id;
+
+        // Update their GitHub info just in case
+        await supabase
+          .from('users')
+          .update({
+            github_username: collab.github_username,
+            github_user_id: collab.github_id,
+          })
+          .eq('id', userId);
+      } else {
+        // Create new user with GitHub info
+        const { data: newUser, error: userError } = await supabase
+          .from('users')
+          .insert({
+            email: collab.email || `${collab.github_username}@github.placeholder`,
+            full_name: collab.name,
+            github_username: collab.github_username,
+            github_user_id: collab.github_id,
+          })
+          .select('id')
+          .single();
+
+        if (userError || !newUser) {
+          console.error(
+            `Failed to create user for ${collab.github_username}:`,
+            userError
+          );
+          continue;
+        }
+
+        userId = newUser.id;
+      }
+
+      // Check if reviewer already exists for this user in this org
+      const { data: existingReviewer } = await supabase
+        .from('reviewers')
+        .select('id')
+        .eq('organization_id', id)
+        .eq('user_id', userId)
+        .single();
+
+      if (existingReviewer) {
+        results.skipped++;
+        continue;
+      }
+
+      // Create new reviewer linked to the user
       const { error: createError } = await supabase.from('reviewers').insert({
         organization_id: id,
         name: collab.name || collab.github_username,
-        github_username: collab.github_username,
-        email: collab.email,
+        user_id: userId,
         is_active: true,
       });
 

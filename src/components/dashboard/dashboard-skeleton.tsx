@@ -211,8 +211,8 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <BottlenecksTableSkeleton className="lg:col-span-3" />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <BottlenecksTableSkeleton className="lg:col-span-2" />
         <StalePRsSkeleton className="lg:col-span-1" />
         <RecentActivitySkeleton className="lg:col-span-1" />
       </div>

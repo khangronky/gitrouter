@@ -68,15 +68,33 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Fetch reviewer details for each rule
+    // Fetch reviewer details for each rule, joining with users for github_username
     const allReviewerIds = [...new Set(rules.flatMap((r) => r.reviewer_ids))];
 
-    const { data: reviewers } = await supabase
+    const { data: reviewersData } = await supabase
       .from('reviewers')
-      .select('id, name, github_username')
+      .select(
+        `
+        id,
+        name,
+        user:users (
+          github_username
+        )
+      `
+      )
       .in('id', allReviewerIds);
 
-    const reviewerMap = new Map(reviewers?.map((r) => [r.id, r]) || []);
+    // Transform to include github_username at top level
+    const reviewers =
+      reviewersData?.map((r) => ({
+        id: r.id,
+        name: r.name,
+        github_username:
+          (r.user as { github_username: string | null } | null)
+            ?.github_username || null,
+      })) || [];
+
+    const reviewerMap = new Map(reviewers.map((r) => [r.id, r]));
 
     // Attach reviewer details to rules
     const rulesWithReviewers = rules.map((rule) => ({

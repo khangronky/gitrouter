@@ -14,7 +14,7 @@ interface RouteParams {
 
 /**
  * POST /api/organizations/[id]/reviewers/sync-slack
- * Auto-lookup Slack users by email/name and link them to reviewers
+ * Auto-lookup Slack users by email/name and update linked users with Slack/GitHub info
  */
 export async function POST(_request: Request, { params }: RouteParams) {
   try {
@@ -52,10 +52,22 @@ export async function POST(_request: Request, { params }: RouteParams) {
     // Get all Slack workspace members for name matching
     const slackMembers = await listWorkspaceMembers(slackClient);
 
-    // Fetch all reviewers that need syncing
+    // Fetch all reviewers with their linked users
     const { data: reviewers, error: fetchError } = await supabase
       .from('reviewers')
-      .select('id, name, email, slack_user_id, github_username')
+      .select(
+        `
+        id,
+        name,
+        user_id,
+        user:users (
+          id,
+          email,
+          slack_user_id,
+          github_username
+        )
+      `
+      )
       .eq('organization_id', id)
       .eq('is_active', true);
 
@@ -77,33 +89,37 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
     // Process each reviewer
     for (const reviewer of reviewers || []) {
-      if (!reviewer.email) {
+      // Skip reviewers without linked users
+      const user = reviewer.user as {
+        id: string;
+        email: string | null;
+        slack_user_id: string | null;
+        github_username: string | null;
+      } | null;
+
+      if (!user?.id || !user.email) {
+        results.not_found.push(reviewer.name);
         continue;
       }
 
-      const updates: {
+      const userUpdates: {
         slack_user_id?: string;
         github_username?: string;
-        updated_at: string;
-      } = {
-        updated_at: new Date().toISOString(),
-      };
+      } = {};
       let hasUpdates = false;
 
       // Lookup Slack user if not already linked
-      if (!reviewer.slack_user_id) {
+      if (!user.slack_user_id) {
         let slackUserId: string | null = null;
 
         // Try email lookup first (most accurate)
-        if (reviewer.email) {
-          try {
-            slackUserId = await lookupUserByEmail(slackClient, reviewer.email);
-          } catch (error) {
-            console.error(
-              `Error looking up Slack user by email for ${reviewer.name}:`,
-              error
-            );
-          }
+        try {
+          slackUserId = await lookupUserByEmail(slackClient, user.email);
+        } catch (error) {
+          console.error(
+            `Error looking up Slack user by email for ${reviewer.name}:`,
+            error
+          );
         }
 
         // If no email match, try matching by name/display_name
@@ -124,7 +140,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
         }
 
         if (slackUserId) {
-          updates.slack_user_id = slackUserId;
+          userUpdates.slack_user_id = slackUserId;
           hasUpdates = true;
           results.slack_synced++;
         }
@@ -133,14 +149,14 @@ export async function POST(_request: Request, { params }: RouteParams) {
       }
 
       // Lookup GitHub username if not already set and GitHub is connected
-      if (!reviewer.github_username && installation?.installation_id) {
+      if (!user.github_username && installation?.installation_id) {
         try {
           const githubUsername = await searchGitHubUserByEmail(
             installation.installation_id,
-            reviewer.email
+            user.email
           );
           if (githubUsername) {
-            updates.github_username = githubUsername;
+            userUpdates.github_username = githubUsername;
             hasUpdates = true;
             results.github_synced++;
           }
@@ -152,21 +168,21 @@ export async function POST(_request: Request, { params }: RouteParams) {
         }
       }
 
-      // Apply updates if any
+      // Apply updates to the user if any
       if (hasUpdates) {
         const { error: updateError } = await supabase
-          .from('reviewers')
-          .update(updates)
-          .eq('id', reviewer.id);
+          .from('users')
+          .update(userUpdates)
+          .eq('id', user.id);
 
         if (updateError) {
           console.error(
-            `Error updating reviewer ${reviewer.name}:`,
+            `Error updating user for reviewer ${reviewer.name}:`,
             updateError
           );
           results.errors.push(reviewer.name);
         }
-      } else if (!reviewer.slack_user_id) {
+      } else if (!user.slack_user_id) {
         results.not_found.push(reviewer.name);
       }
     }

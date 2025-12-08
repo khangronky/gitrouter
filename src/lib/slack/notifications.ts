@@ -257,14 +257,25 @@ export async function sendReviewReminder(
     return false;
   }
 
-  // Get reviewer's Slack ID
+  // Get reviewer's Slack ID from linked user
   const { data: reviewer } = await supabase
     .from('reviewers')
-    .select('slack_user_id, name')
+    .select(
+      `
+      name,
+      user:users (
+        slack_user_id
+      )
+    `
+    )
     .eq('id', assignment.reviewer_id)
     .single();
 
-  if (!reviewer?.slack_user_id) {
+  const slackUserId = (
+    reviewer?.user as { slack_user_id: string | null } | null
+  )?.slack_user_id;
+
+  if (!slackUserId) {
     return false;
   }
 
@@ -278,7 +289,7 @@ export async function sendReviewReminder(
 
   const result = await sendDirectMessage(
     client,
-    reviewer.slack_user_id,
+    slackUserId,
     `Reminder: PR #${assignment.pull_request.github_pr_number} has been waiting for your review for ${Math.round(hoursPending)} hours.`,
     blocks
   );
@@ -355,13 +366,18 @@ export async function sendEscalationAlert(
     .eq('organization_id', organizationId)
     .in('role', ['owner', 'admin']);
 
-  // Get their Slack IDs from reviewers table
+  // Get their Slack IDs from users table via reviewers
   const { data: adminReviewers } = await supabase
     .from('reviewers')
-    .select('slack_user_id')
+    .select(
+      `
+      user:users (
+        slack_user_id
+      )
+    `
+    )
     .eq('organization_id', organizationId)
-    .in('user_id', admins?.map((a) => a.user_id) || [])
-    .not('slack_user_id', 'is', null);
+    .in('user_id', admins?.map((a) => a.user_id) || []);
 
   const blocks = buildEscalationBlocks({
     title: assignment.pull_request.title,
@@ -391,10 +407,13 @@ export async function sendEscalationAlert(
   } else {
     // Send DM to admins only (private)
     for (const admin of adminReviewers || []) {
-      if (admin.slack_user_id) {
+      const adminSlackId = (
+        admin.user as { slack_user_id: string | null } | null
+      )?.slack_user_id;
+      if (adminSlackId) {
         const result = await sendDirectMessage(
           client,
-          admin.slack_user_id,
+          adminSlackId,
           text,
           blocks
         );
@@ -405,10 +424,17 @@ export async function sendEscalationAlert(
 
   // Record escalation
   if (sent) {
+    const notifiedIds =
+      adminReviewers
+        ?.map(
+          (a) =>
+            (a.user as { slack_user_id: string | null } | null)?.slack_user_id
+        )
+        .filter((id): id is string => !!id) || [];
     await supabase.from('escalations').insert({
       review_assignment_id: assignment.id,
       level: 'alert_48h',
-      notified_user_ids: adminReviewers?.map((a) => a.slack_user_id || ''),
+      notified_user_ids: notifiedIds,
     });
 
     return true;
