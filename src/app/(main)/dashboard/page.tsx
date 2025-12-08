@@ -160,10 +160,10 @@ export default function Page() {
             <WorkloadChart reviewerWorkload={reviewerWorkload} />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             <BottlenecksTable
               bottlenecks={bottlenecks}
-              className="lg:col-span-3"
+              className="lg:col-span-2"
             />
             <StalePullRequests stalePRs={stalePRs} className="lg:col-span-1" />
             <RecentActivity

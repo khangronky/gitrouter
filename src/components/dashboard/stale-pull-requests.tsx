@@ -14,8 +14,19 @@ interface StalePullRequest {
 }
 
 function parseAge(age: string): number {
-  const match = age.match(/(\d+)h/);
-  return match ? Number.parseInt(match[1], 10) : 0;
+  let totalHours = 0;
+  
+  const daysMatch = age.match(/(\d+)d/);
+  if (daysMatch) {
+    totalHours += Number.parseInt(daysMatch[1], 10) * 24;
+  }
+  
+  const hoursMatch = age.match(/(\d+)h/);
+  if (hoursMatch) {
+    totalHours += Number.parseInt(hoursMatch[1], 10);
+  }
+  
+  return totalHours;
 }
 
 function getUrgencyLevel(age: string): 'critical' | 'warning' | 'normal' {
@@ -70,7 +81,7 @@ export function StalePullRequests({
               <li
                 key={pr.id}
                 className={cn(
-                  'group relative rounded-lg border p-3 transition-all hover:bg-accent/50',
+                  'group relative rounded-lg border p-3 transition-all hover:bg-accent/50 min-h-20',
                   urgency === 'critical' &&
                     'border-destructive/30 bg-destructive/5',
                   urgency === 'warning' && 'border-amber-500/30 bg-amber-500/5',
@@ -92,7 +103,7 @@ export function StalePullRequests({
                       </span>
                       <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                     </div>
-                    <p className="mt-1 truncate w-[300px] text-sm text-foreground">
+                    <p className="mt-1 truncate w-full text-wrap text-sm text-foreground ">
                       {pr.title}
                     </p>
                   </div>

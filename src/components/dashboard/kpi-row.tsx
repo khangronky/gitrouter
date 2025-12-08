@@ -1,9 +1,12 @@
 'use client';
 
 import { Card, CardAction, CardFooter } from '@/components/ui/card';
-import { DeltaBadge } from './delta-badge';
 import { Badge } from '../ui/badge';
-import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
+import {
+  IconTrendingDown,
+  IconTrendingUp,
+  IconMinus,
+} from '@tabler/icons-react';
 
 interface KpiData {
   totalPRs: { value: number; delta: number; note: string };
@@ -12,7 +15,38 @@ interface KpiData {
   approved: { value: number; delta: number; note: string };
 }
 
+// Helper to get trend info based on delta and whether lower is better
+function getTrendInfo(delta: number, lowerIsBetter = false) {
+  const isPositive = lowerIsBetter ? delta < 0 : delta > 0;
+  const isNegative = lowerIsBetter ? delta > 0 : delta < 0;
+
+  if (isPositive) {
+    return {
+      text: 'Trending up',
+      Icon: IconTrendingUp,
+
+    };
+  }
+  if (isNegative) {
+    return {
+      text: 'Trending down',
+      Icon: IconTrendingDown,
+     
+    };
+  }
+  return {
+    text: 'No change',
+    Icon: IconMinus,
+  
+  };
+}
+
 export function KpiRow({ kpis }: { kpis: KpiData }) {
+  const totalPRsTrend = getTrendInfo(kpis.totalPRs.delta);
+  const pendingTrend = getTrendInfo(kpis.pending.delta, true); // lower pending is better
+  const slaTrend = getTrendInfo(kpis.sla.delta);
+  const approvedTrend = getTrendInfo(kpis.approved.delta);
+
   return (
     <div className="mb-4 h-full max-h-[200px] grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <Card className="p-4 flex flex-column justify-between gap-4">
@@ -23,7 +57,13 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
             </div>
             <CardAction>
               <Badge variant="outline">
-                <IconTrendingUp />+{kpis.totalPRs.delta}%
+                {kpis.totalPRs.delta >= 0 ? (
+                  <IconTrendingUp />
+                ) : (
+                  <IconTrendingDown />
+                )}
+                {kpis.totalPRs.delta >= 0 ? '+' : ''}
+                {kpis.totalPRs.delta}%
               </Badge>
             </CardAction>
           </div>
@@ -33,10 +73,12 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
         </div>
         <div className="flex flex-col gap-2">
           <CardFooter className="flex-col items-start gap-1.5 text-sm p-0">
-            <div className="line-clamp-1 flex gap-2 font-medium">
-              Trending up this month <IconTrendingUp className="size-4" />
+            <div
+              className="line-clamp-1 flex gap-2 font-medium items-center"
+            >
+              {totalPRsTrend.text} <totalPRsTrend.Icon className="size-4" />
             </div>
-            <div className="text-muted-foreground">PRs for the last 7 days</div>
+            <div className="text-muted-foreground">{kpis.totalPRs.note}</div>
           </CardFooter>
         </div>
       </Card>
@@ -49,7 +91,12 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
             </div>
             <CardAction>
               <Badge variant="outline">
-                <IconTrendingDown />
+                {kpis.pending.delta <= 0 ? (
+                  <IconTrendingDown />
+                ) : (
+                  <IconTrendingUp />
+                )}
+                {kpis.pending.delta >= 0 ? '+' : ''}
                 {kpis.pending.delta}%
               </Badge>
             </CardAction>
@@ -58,14 +105,14 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
             {kpis.pending.value}
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <CardFooter className="flex-col items-start gap-1.5 text-sm p-0">
-            <div className="line-clamp-1 flex gap-2 font-medium">
-              Trending down this week <IconTrendingDown className="size-4" />
+        <div className="flex flex-col gap-2 ">
+          <CardFooter className="flex-col items-start justify-center gap-1.5 text-sm p-0">
+            <div
+              className="line-clamp-1 flex gap-2 font-medium items-center"
+            >
+              {pendingTrend.text} <pendingTrend.Icon className="size-4" />
             </div>
-            <div className="text-muted-foreground">
-              Pending reviews in the last 7 days
-            </div>
+            <div className="text-muted-foreground">{kpis.pending.note}</div>
           </CardFooter>
         </div>
       </Card>
@@ -78,7 +125,12 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
             </div>
             <CardAction>
               <Badge variant="outline">
-                <IconTrendingUp />
+                {kpis.sla.delta >= 0 ? (
+                  <IconTrendingUp />
+                ) : (
+                  <IconTrendingDown />
+                )}
+                {kpis.sla.delta >= 0 ? '+' : ''}
                 {kpis.sla.delta}%
               </Badge>
             </CardAction>
@@ -88,13 +140,13 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <CardFooter className="flex-col items-start gap-1.5 text-sm p-0">
-            <div className="line-clamp-1 flex gap-2 font-medium">
-              Trending up this week <IconTrendingUp className="size-4" />
+          <CardFooter className="flex-col items-start gap-1.5 text-sm p-0 ">
+            <div
+              className="line-clamp-1 flex gap-2 font-medium items-center"
+            >
+              {slaTrend.text} <slaTrend.Icon className="size-4" />
             </div>
-            <div className="text-muted-foreground">
-              SLA compliance in the last 7 days
-            </div>
+            <div className="text-muted-foreground">{kpis.sla.note}</div>
           </CardFooter>
         </div>
       </Card>
@@ -107,7 +159,12 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
             </div>
             <CardAction>
               <Badge variant="outline">
-                <IconTrendingUp />
+                {kpis.approved.delta >= 0 ? (
+                  <IconTrendingUp />
+                ) : (
+                  <IconTrendingDown />
+                )}
+                {kpis.approved.delta >= 0 ? '+' : ''}
                 {kpis.approved.delta}%
               </Badge>
             </CardAction>
@@ -118,12 +175,12 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
         </div>
         <div className="flex flex-col gap-2">
           <CardFooter className="flex-col items-start gap-1.5 text-sm p-0">
-            <div className="line-clamp-1 flex gap-2 font-medium">
-              Trending up this week <IconTrendingUp className="size-4" />
+            <div
+              className="line-clamp-1 flex gap-2 font-medium items-center"
+            >
+              {approvedTrend.text} <approvedTrend.Icon className="size-4" />
             </div>
-            <div className="text-muted-foreground">
-              Approved in the last 7 days
-            </div>
+            <div className="text-muted-foreground">{kpis.approved.note}</div>
           </CardFooter>
         </div>
       </Card>

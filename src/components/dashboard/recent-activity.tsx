@@ -98,7 +98,7 @@ export function RecentActivity({
                           <GitPullRequest className="mr-1 h-3 w-3" />#{a.id}
                         </Badge>
                       </div>
-                      <p className="mt-1.5 truncate text-sm w-[250px] text-muted-foreground">
+                      <p className="mt-1.5 truncate text-sm w-full text-wrap text-muted-foreground ">
                         "{a.snippet}"
                       </p>
                     </div>
