@@ -74,133 +74,24 @@ const prVolumeConfig = {
 export default function TrendPage() {
   return (
     <section className="p-4 space-y-4">
-        {/* Top Row: PR Review Speed Trend & SLA Compliance Trend */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {/* PR Review Speed Trend */}
-          <Card className="p-4 flex flex-col">
-            <div className="flex flex-col gap-1">
-              <CardTitle>PR Review Speed Trend</CardTitle>
-              <CardDescription>Average review speed over the past 6 weeks</CardDescription>
-            </div>
-            <ChartContainer config={reviewSpeedConfig} className="h-[200px] w-full flex-1">
-              <LineChart
-                data={reviewSpeedData}
-                margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="var(--border)"
-                />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  className="text-xs text-muted-foreground"
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value) => `${value}h`}
-                  className="text-xs text-muted-foreground"
-                />
-                <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-                <Line
-                  type="monotone"
-                  dataKey="hours"
-                  stroke="var(--color-hours)"
-                  strokeWidth={2}
-                  dot={{ fill: 'var(--color-hours)', stroke: 'var(--card)', strokeWidth: 2, r: 4 }}
-                  activeDot={{ fill: 'var(--color-hours)', stroke: 'var(--card)', strokeWidth: 2, r: 6 }}
-                />
-              </LineChart>
-            </ChartContainer>
-            <p className="text-muted-foreground text-sm mt-4 flex items-center gap-1">
-              Current Trend:{' '}
-              <TrendingDown className="h-4 w-4 text-green-600" />
-              <span className="text-green-600 font-medium">Improving</span>
-              <span className="text-foreground">(avg 4.2h → 3.1h)</span>
-            </p>
-          </Card>
-
-          {/* SLA Compliance Trend */}
-          <Card className="p-4 flex flex-col">
-            <div className="flex flex-col gap-1">
-              <CardTitle>SLA Compliance Trend</CardTitle>
-              <CardDescription>Percentage of PRs meeting the 4-hour review target</CardDescription>
-            </div>
-            <ChartContainer config={slaComplianceConfig} className="h-[200px] w-full flex-1">
-              <LineChart
-                data={slaComplianceData}
-                margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="var(--border)"
-                />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  className="text-xs text-muted-foreground"
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value) => `${value}%`}
-                  domain={[0, 100]}
-                  className="text-xs text-muted-foreground"
-                />
-                <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-                <Line
-                  type="monotone"
-                  dataKey="percentage"
-                  stroke="var(--color-percentage)"
-                  strokeWidth={2}
-                  dot={{ fill: 'var(--color-percentage)', stroke: 'var(--card)', strokeWidth: 2, r: 4 }}
-                  activeDot={{ fill: 'var(--color-percentage)', stroke: 'var(--card)', strokeWidth: 2, r: 6 }}
-                />
-              </LineChart>
-            </ChartContainer>
-            <p className="text-muted-foreground text-sm mt-4 flex items-center gap-1">
-              Target: 80% → Current:{' '}
-              <span className="text-foreground font-medium">87%</span>
-              <Check className="h-4 w-4 text-green-600" />
-              <span className="text-green-600">(Above target)</span>
-            </p>
-          </Card>
-        </div>
-
-        {/* Bottom Row: PR Volume Trend */}
+      {/* Top Row: PR Review Speed Trend & SLA Compliance Trend */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* PR Review Speed Trend */}
         <Card className="p-4 flex flex-col">
           <div className="flex flex-col gap-1">
-            <CardTitle>PR Volume Trend</CardTitle>
-            <CardDescription>Total number of pull requests created daily</CardDescription>
+            <CardTitle>PR Review Speed Trend</CardTitle>
+            <CardDescription>
+              Average review speed over the past 6 weeks
+            </CardDescription>
           </div>
-          <ChartContainer config={prVolumeConfig} className="h-[250px] w-full">
-            <AreaChart
-              data={prVolumeData}
+          <ChartContainer
+            config={reviewSpeedConfig}
+            className="h-[200px] w-full flex-1"
+          >
+            <LineChart
+              data={reviewSpeedData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
             >
-              <defs>
-                <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="0%"
-                    stopColor="var(--color-count)"
-                    stopOpacity={0.4}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="var(--color-count)"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
@@ -217,26 +108,170 @@ export default function TrendPage() {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                tickFormatter={(value) => `${value}h`}
                 className="text-xs text-muted-foreground"
               />
-              <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-              <Area
-                type="monotone"
-                dataKey="count"
-                stroke="var(--color-count)"
-                strokeWidth={2}
-                fill="url(#volumeGradient)"
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
               />
-            </AreaChart>
+              <Line
+                type="monotone"
+                dataKey="hours"
+                stroke="var(--color-hours)"
+                strokeWidth={2}
+                dot={{
+                  fill: 'var(--color-hours)',
+                  stroke: 'var(--card)',
+                  strokeWidth: 2,
+                  r: 4,
+                }}
+                activeDot={{
+                  fill: 'var(--color-hours)',
+                  stroke: 'var(--card)',
+                  strokeWidth: 2,
+                  r: 6,
+                }}
+              />
+            </LineChart>
           </ChartContainer>
-          <p className="text-muted-foreground text-sm mt-4">
-            Average PRs/day:{' '}
-            <span className="text-foreground font-medium">12</span>
-            {' | '}
-            Total this month:{' '}
-            <span className="text-foreground font-medium">360</span>
+          <p className="text-muted-foreground text-sm mt-4 flex items-center gap-1">
+            Current Trend: <TrendingDown className="h-4 w-4 text-green-600" />
+            <span className="text-green-600 font-medium">Improving</span>
+            <span className="text-foreground">(avg 4.2h → 3.1h)</span>
           </p>
         </Card>
-      </section>
+
+        {/* SLA Compliance Trend */}
+        <Card className="p-4 flex flex-col">
+          <div className="flex flex-col gap-1">
+            <CardTitle>SLA Compliance Trend</CardTitle>
+            <CardDescription>
+              Percentage of PRs meeting the 4-hour review target
+            </CardDescription>
+          </div>
+          <ChartContainer
+            config={slaComplianceConfig}
+            className="h-[200px] w-full flex-1"
+          >
+            <LineChart
+              data={slaComplianceData}
+              margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs text-muted-foreground"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => `${value}%`}
+                domain={[0, 100]}
+                className="text-xs text-muted-foreground"
+              />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Line
+                type="monotone"
+                dataKey="percentage"
+                stroke="var(--color-percentage)"
+                strokeWidth={2}
+                dot={{
+                  fill: 'var(--color-percentage)',
+                  stroke: 'var(--card)',
+                  strokeWidth: 2,
+                  r: 4,
+                }}
+                activeDot={{
+                  fill: 'var(--color-percentage)',
+                  stroke: 'var(--card)',
+                  strokeWidth: 2,
+                  r: 6,
+                }}
+              />
+            </LineChart>
+          </ChartContainer>
+          <p className="text-muted-foreground text-sm mt-4 flex items-center gap-1">
+            Target: 80% → Current:{' '}
+            <span className="text-foreground font-medium">87%</span>
+            <Check className="h-4 w-4 text-green-600" />
+            <span className="text-green-600">(Above target)</span>
+          </p>
+        </Card>
+      </div>
+
+      {/* Bottom Row: PR Volume Trend */}
+      <Card className="p-4 flex flex-col">
+        <div className="flex flex-col gap-1">
+          <CardTitle>PR Volume Trend</CardTitle>
+          <CardDescription>
+            Total number of pull requests created daily
+          </CardDescription>
+        </div>
+        <ChartContainer config={prVolumeConfig} className="h-[250px] w-full">
+          <AreaChart
+            data={prVolumeData}
+            margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+          >
+            <defs>
+              <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="0%"
+                  stopColor="var(--color-count)"
+                  stopOpacity={0.4}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="var(--color-count)"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="var(--border)"
+            />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs text-muted-foreground"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs text-muted-foreground"
+            />
+            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+            <Area
+              type="monotone"
+              dataKey="count"
+              stroke="var(--color-count)"
+              strokeWidth={2}
+              fill="url(#volumeGradient)"
+            />
+          </AreaChart>
+        </ChartContainer>
+        <p className="text-muted-foreground text-sm mt-4">
+          Average PRs/day:{' '}
+          <span className="text-foreground font-medium">12</span>
+          {' | '}
+          Total this month:{' '}
+          <span className="text-foreground font-medium">360</span>
+        </p>
+      </Card>
+    </section>
   );
 }
