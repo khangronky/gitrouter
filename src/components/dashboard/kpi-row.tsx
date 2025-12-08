@@ -24,20 +24,17 @@ function getTrendInfo(delta: number, lowerIsBetter = false) {
     return {
       text: 'Trending up',
       Icon: IconTrendingUp,
-
     };
   }
   if (isNegative) {
     return {
       text: 'Trending down',
       Icon: IconTrendingDown,
-     
     };
   }
   return {
     text: 'No change',
     Icon: IconMinus,
-  
   };
 }
 
@@ -73,9 +70,7 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
         </div>
         <div className="flex flex-col gap-2">
           <CardFooter className="flex-col items-start gap-1.5 text-sm p-0">
-            <div
-              className="line-clamp-1 flex gap-2 font-medium items-center"
-            >
+            <div className="line-clamp-1 flex gap-2 font-medium items-center">
               {totalPRsTrend.text} <totalPRsTrend.Icon className="size-4" />
             </div>
             <div className="text-muted-foreground">{kpis.totalPRs.note}</div>
@@ -107,9 +102,7 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
         </div>
         <div className="flex flex-col gap-2 ">
           <CardFooter className="flex-col items-start justify-center gap-1.5 text-sm p-0">
-            <div
-              className="line-clamp-1 flex gap-2 font-medium items-center"
-            >
+            <div className="line-clamp-1 flex gap-2 font-medium items-center">
               {pendingTrend.text} <pendingTrend.Icon className="size-4" />
             </div>
             <div className="text-muted-foreground">{kpis.pending.note}</div>
@@ -141,9 +134,7 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
         </div>
         <div className="flex flex-col gap-2">
           <CardFooter className="flex-col items-start gap-1.5 text-sm p-0 ">
-            <div
-              className="line-clamp-1 flex gap-2 font-medium items-center"
-            >
+            <div className="line-clamp-1 flex gap-2 font-medium items-center">
               {slaTrend.text} <slaTrend.Icon className="size-4" />
             </div>
             <div className="text-muted-foreground">{kpis.sla.note}</div>
@@ -175,9 +166,7 @@ export function KpiRow({ kpis }: { kpis: KpiData }) {
         </div>
         <div className="flex flex-col gap-2">
           <CardFooter className="flex-col items-start gap-1.5 text-sm p-0">
-            <div
-              className="line-clamp-1 flex gap-2 font-medium items-center"
-            >
+            <div className="line-clamp-1 flex gap-2 font-medium items-center">
               {approvedTrend.text} <approvedTrend.Icon className="size-4" />
             </div>
             <div className="text-muted-foreground">{kpis.approved.note}</div>

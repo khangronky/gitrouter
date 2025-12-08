@@ -15,17 +15,17 @@ interface StalePullRequest {
 
 function parseAge(age: string): number {
   let totalHours = 0;
-  
+
   const daysMatch = age.match(/(\d+)d/);
   if (daysMatch) {
     totalHours += Number.parseInt(daysMatch[1], 10) * 24;
   }
-  
+
   const hoursMatch = age.match(/(\d+)h/);
   if (hoursMatch) {
     totalHours += Number.parseInt(hoursMatch[1], 10);
   }
-  
+
   return totalHours;
 }
 
