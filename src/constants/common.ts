@@ -1,2 +1,2 @@
 export const PUBLIC_PATHS = ['/home', '/api'];
-export const AUTH_PATHS = ['/login', '/register'];
+export const AUTH_PATHS = ['/login', '/register', '/forgot-password'];
