@@ -646,7 +646,10 @@ export async function fetchRecentActivity({
     const assigned = (pr.review_assignments || [])
       .map((a) => {
         const reviewer = a.reviewer as {
-          user: { github_username: string | null; full_name: string | null } | null;
+          user: {
+            github_username: string | null;
+            full_name: string | null;
+          } | null;
         } | null;
         const githubUsername = reviewer?.user?.github_username;
         if (githubUsername) {

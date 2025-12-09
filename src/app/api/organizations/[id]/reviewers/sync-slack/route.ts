@@ -163,7 +163,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
             results.github_synced++;
           }
         } catch (error) {
-          console.error(`Error looking up GitHub user for ${displayName}:`, error);
+          console.error(
+            `Error looking up GitHub user for ${displayName}:`,
+            error
+          );
         }
       }
 

@@ -166,7 +166,10 @@ export function CreateRuleDialog({
                       value={reviewer.id}
                       className="cursor-pointer"
                     >
-                      @{reviewer.user?.github_username || reviewer.user?.full_name || 'Unknown'}
+                      @
+                      {reviewer.user?.github_username ||
+                        reviewer.user?.full_name ||
+                        'Unknown'}
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -183,7 +186,10 @@ export function CreateRuleDialog({
                       variant="secondary"
                       className="flex items-center gap-1 px-2 py-1"
                     >
-                      @{reviewer.user?.github_username || reviewer.user?.full_name || 'Unknown'}
+                      @
+                      {reviewer.user?.github_username ||
+                        reviewer.user?.full_name ||
+                        'Unknown'}
                       <button
                         type="button"
                         onClick={() => {
