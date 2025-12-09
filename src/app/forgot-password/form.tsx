@@ -147,8 +147,7 @@ export default function ForgotPasswordForm() {
       },
       onError: (error: any) => {
         console.error('Reset password error:', error);
-        const errorMessage =
-          error?.info?.error || 'Failed to update password';
+        const errorMessage = error?.info?.error || 'Failed to update password';
         toast.error(errorMessage);
       },
     });
