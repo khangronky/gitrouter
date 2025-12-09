@@ -148,9 +148,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
       const existingByEmail = collab.email
         ? existingReviewers?.find((r) => {
             const user = r.user as { email: string | null } | null;
-            return (
-              user?.email?.toLowerCase() === collab.email?.toLowerCase()
-            );
+            return user?.email?.toLowerCase() === collab.email?.toLowerCase();
           })
         : null;
 
@@ -232,7 +230,8 @@ export async function POST(_request: Request, { params }: RouteParams) {
         const { data: newUser, error: userError } = await supabase
           .from('users')
           .insert({
-            email: collab.email || `${collab.github_username}@github.placeholder`,
+            email:
+              collab.email || `${collab.github_username}@github.placeholder`,
             full_name: collab.name,
             github_username: collab.github_username,
             github_user_id: collab.github_id,
