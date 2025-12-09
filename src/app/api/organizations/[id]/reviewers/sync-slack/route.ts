@@ -58,11 +58,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
       .select(
         `
         id,
-        name,
-        user_id,
         user:users (
           id,
           email,
+          full_name,
           slack_user_id,
           github_username
         )
@@ -89,16 +88,19 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
     // Process each reviewer
     for (const reviewer of reviewers || []) {
-      // Skip reviewers without linked users
+      // Get user info
       const user = reviewer.user as {
         id: string;
         email: string | null;
+        full_name: string | null;
         slack_user_id: string | null;
         github_username: string | null;
       } | null;
 
+      const displayName = user?.full_name || 'Unknown';
+
       if (!user?.id || !user.email) {
-        results.not_found.push(reviewer.name);
+        results.not_found.push(displayName);
         continue;
       }
 
@@ -117,14 +119,14 @@ export async function POST(_request: Request, { params }: RouteParams) {
           slackUserId = await lookupUserByEmail(slackClient, user.email);
         } catch (error) {
           console.error(
-            `Error looking up Slack user by email for ${reviewer.name}:`,
+            `Error looking up Slack user by email for ${displayName}:`,
             error
           );
         }
 
         // If no email match, try matching by name/display_name
-        if (!slackUserId && reviewer.name) {
-          const nameLower = reviewer.name.toLowerCase();
+        if (!slackUserId && user.full_name) {
+          const nameLower = user.full_name.toLowerCase();
           const matchedMember = slackMembers.find(
             (m) =>
               m.display_name.toLowerCase() === nameLower ||
@@ -134,7 +136,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
           if (matchedMember) {
             slackUserId = matchedMember.id;
             console.log(
-              `Matched reviewer ${reviewer.name} to Slack user ${matchedMember.display_name || matchedMember.name} by name`
+              `Matched reviewer ${displayName} to Slack user ${matchedMember.display_name || matchedMember.name} by name`
             );
           }
         }
@@ -161,10 +163,7 @@ export async function POST(_request: Request, { params }: RouteParams) {
             results.github_synced++;
           }
         } catch (error) {
-          console.error(
-            `Error looking up GitHub user for ${reviewer.name}:`,
-            error
-          );
+          console.error(`Error looking up GitHub user for ${displayName}:`, error);
         }
       }
 
@@ -177,13 +176,13 @@ export async function POST(_request: Request, { params }: RouteParams) {
 
         if (updateError) {
           console.error(
-            `Error updating user for reviewer ${reviewer.name}:`,
+            `Error updating user for reviewer ${displayName}:`,
             updateError
           );
-          results.errors.push(reviewer.name);
+          results.errors.push(displayName);
         }
       } else if (!user.slack_user_id) {
-        results.not_found.push(reviewer.name);
+        results.not_found.push(displayName);
       }
     }
 

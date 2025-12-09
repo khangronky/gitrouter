@@ -176,7 +176,7 @@ async function createFallbackResult(
 /**
  * Get reviewer details by IDs
  * Excludes the PR author from the list
- * Joins with users table to get github_username and slack_user_id
+ * Joins with users table to get user info (name comes from user.full_name)
  */
 async function getReviewers(
   supabase: TypedSupabaseClient,
@@ -192,9 +192,9 @@ async function getReviewers(
     .select(
       `
       id,
-      name,
       is_active,
       user:users (
+        full_name,
         github_username,
         slack_user_id
       )
@@ -211,17 +211,20 @@ async function getReviewers(
   // Transform to ReviewerInfo and filter out the PR author
   const authorLower = authorLogin.toLowerCase();
   return reviewers
-    .map((r) => ({
-      id: r.id,
-      name: r.name,
-      github_username:
-        (r.user as { github_username: string | null } | null)
-          ?.github_username || null,
-      slack_user_id:
-        (r.user as { slack_user_id: string | null } | null)?.slack_user_id ||
-        null,
-      is_active: r.is_active,
-    }))
+    .map((r) => {
+      const user = r.user as {
+        full_name: string | null;
+        github_username: string | null;
+        slack_user_id: string | null;
+      } | null;
+      return {
+        id: r.id,
+        name: user?.full_name || 'Unknown',
+        github_username: user?.github_username || null,
+        slack_user_id: user?.slack_user_id || null,
+        is_active: r.is_active,
+      };
+    })
     .filter((r) => r.github_username?.toLowerCase() !== authorLower);
 }
 

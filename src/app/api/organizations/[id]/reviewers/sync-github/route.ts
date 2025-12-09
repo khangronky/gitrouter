@@ -266,7 +266,6 @@ export async function POST(_request: Request, { params }: RouteParams) {
       // Create new reviewer linked to the user
       const { error: createError } = await supabase.from('reviewers').insert({
         organization_id: id,
-        name: collab.name || collab.github_username,
         user_id: userId,
         is_active: true,
       });

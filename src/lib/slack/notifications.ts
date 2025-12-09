@@ -262,8 +262,8 @@ export async function sendReviewReminder(
     .from('reviewers')
     .select(
       `
-      name,
       user:users (
+        full_name,
         slack_user_id
       )
     `
@@ -352,10 +352,10 @@ export async function sendEscalationAlert(
     .eq('organization_id', organizationId)
     .single();
 
-  // Get reviewer name
+  // Get reviewer name from linked user
   const { data: reviewer } = await supabase
     .from('reviewers')
-    .select('name')
+    .select('user:users(full_name)')
     .eq('id', assignment.reviewer_id)
     .single();
 
@@ -379,12 +379,16 @@ export async function sendEscalationAlert(
     .eq('organization_id', organizationId)
     .in('user_id', admins?.map((a) => a.user_id) || []);
 
+  const reviewerName =
+    (reviewer?.user as { full_name: string | null } | null)?.full_name ||
+    'Unknown';
+
   const blocks = buildEscalationBlocks({
     title: assignment.pull_request.title,
     number: assignment.pull_request.github_pr_number,
     repo: assignment.pull_request.repository.full_name,
     url: assignment.pull_request.html_url,
-    reviewer_name: reviewer?.name || 'Unknown',
+    reviewer_name: reviewerName,
     hours_pending: Math.round(hoursPending),
   });
 

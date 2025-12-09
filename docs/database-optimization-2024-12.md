@@ -14,24 +14,28 @@ This document summarizes the database schema optimization performed to reduce da
 - `github_username`
 - `slack_user_id`
 - `email`
+- `name` (redundant with `users.full_name`)
 
 This caused:
 - Data inconsistency risks (same data in two places)
 - Extra storage overhead
 - Complex sync logic to keep both tables in sync
 
-**Solution:** Removed duplicate columns from `reviewers`. These fields are now accessed via the `user_id` foreign key relationship to the `users` table.
+**Solution:** 
+1. Removed duplicate columns from `reviewers`
+2. Made `user_id` required (NOT NULL) - every reviewer must have a linked user
+3. All reviewer info now comes from the linked `users` table
 
 #### Before
 ```
 reviewers
 ├── id
 ├── organization_id
-├── user_id (FK → users)
-├── name
-├── github_username    ← REMOVED
-├── slack_user_id      ← REMOVED  
-├── email              ← REMOVED
+├── user_id (FK → users, nullable)
+├── name                  ← REMOVED
+├── github_username       ← REMOVED
+├── slack_user_id         ← REMOVED  
+├── email                 ← REMOVED
 ├── is_active
 └── timestamps
 ```
@@ -41,11 +45,11 @@ reviewers
 reviewers                     users
 ├── id                        ├── id
 ├── organization_id           ├── email
-├── user_id (FK) ──────────► ├── github_username
-├── name                      ├── github_user_id
-├── is_active                 ├── slack_user_id
-└── timestamps                ├── slack_username
-                              └── full_name
+├── user_id (FK, NOT NULL) ─► ├── full_name
+├── is_active                 ├── github_username
+└── timestamps                ├── github_user_id
+                              ├── slack_user_id
+                              └── slack_username
 ```
 
 ### 2. New Indexes Added
@@ -61,7 +65,7 @@ reviewers                     users
 
 | Constraint | Table | Columns | Purpose |
 |------------|-------|---------|---------|
-| `reviewers_org_user_key` | reviewers | (organization_id, user_id) WHERE user_id NOT NULL | Prevent duplicate reviewers per org for the same user |
+| `reviewers_org_user_key` | reviewers | (organization_id, user_id) | Prevent duplicate reviewers per org for the same user |
 
 ### 4. Dropped Unused Table
 
@@ -71,61 +75,60 @@ reviewers                     users
 
 ## Code Changes
 
-The following files were updated to join with the `users` table instead of reading directly from `reviewers`:
+The following files were updated to use `users` table instead of reading directly from `reviewers`:
 
 ### Query Updates
 - `src/lib/routing/engine.ts` - `getReviewers()` function
 - `src/lib/slack/notifications.ts` - `sendReviewReminder()`, `sendEscalationAlert()`
 - `src/lib/dashboard/service.ts` - `fetchReviewerWorkload()`, `fetchRecentActivity()`
+- `src/lib/escalation/processor.ts` - `getEscalationSummary()`
 - `src/app/api/organizations/[id]/reviewers/route.ts` - GET and POST handlers
 - `src/app/api/organizations/[id]/rules/route.ts` - Reviewer detail fetching
 - `src/app/api/organizations/[id]/rules/[ruleId]/route.ts` - Reviewer detail fetching
 
 ### Sync Route Refactors
-- `src/app/api/organizations/[id]/reviewers/sync-github/route.ts` - Now creates/updates users and links to reviewers
-- `src/app/api/organizations/[id]/reviewers/sync-slack/route.ts` - Now updates users table with Slack info
+- `src/app/api/organizations/[id]/reviewers/sync-github/route.ts` - Creates/updates users and links to reviewers
+- `src/app/api/organizations/[id]/reviewers/sync-slack/route.ts` - Updates users table with Slack info
+
+### Frontend Updates
+- `src/app/(main)/rules-builder/columns.tsx` - Display reviewer name from user
+- `src/app/(main)/rules-builder/create-rule-dialog.tsx` - Display reviewer name from user
+- `src/app/(main)/rules-builder/edit-rule-dialog.tsx` - Display reviewer name from user
 
 ### Type Updates
-- `src/lib/schema/reviewer.ts` - Updated interfaces
-- `src/types/supabase.ts` - Removed dropped columns from types
+- `src/lib/schema/reviewer.ts` - Updated interfaces, `user_id` now required
+- `src/types/supabase.ts` - Removed dropped columns, `user_id` NOT NULL
 
 ---
 
-## Migration
+## Migrations
 
-**File:** `supabase/migrations/20251208132342_optimize_schema.sql`
+### Migration 1: `20251208132342_optimize_schema.sql`
+Initial optimization - removes duplicate columns (github_username, slack_user_id, email) and adds indexes.
+
+### Migration 2: `20251209000001_consolidate_reviewer_name.sql`
+Consolidates name field - makes `user_id` NOT NULL and drops `name` column.
 
 ```sql
--- Add indexes
-CREATE INDEX review_assignments_reviewer_status_idx ON review_assignments(reviewer_id, status);
-CREATE INDEX reviewers_user_id_idx ON reviewers(user_id) WHERE user_id IS NOT NULL;
-CREATE INDEX notifications_org_status_idx ON notifications(organization_id, status);
-CREATE INDEX pull_requests_author_login_idx ON pull_requests(author_login);
+-- Ensure all reviewers have linked users
+-- Make user_id NOT NULL
+ALTER TABLE reviewers ALTER COLUMN user_id SET NOT NULL;
 
--- Add unique constraint
-CREATE UNIQUE INDEX reviewers_org_user_key ON reviewers(organization_id, user_id) WHERE user_id IS NOT NULL;
-
--- Drop duplicate columns
-ALTER TABLE reviewers DROP COLUMN github_username;
-ALTER TABLE reviewers DROP COLUMN slack_user_id;
-ALTER TABLE reviewers DROP COLUMN email;
-
--- Drop unused table
-DROP TABLE IF EXISTS processed_events;
+-- Drop the name column (now redundant with users.full_name)
+ALTER TABLE reviewers DROP COLUMN name;
 ```
 
 ---
 
 ## API Response Structure
 
-User-related fields (`github_username`, `slack_user_id`, `email`) are in the nested `user` object. The `name` field is kept as a fallback for reviewers without linked users.
+All reviewer data comes from the linked `user` object. Every reviewer must have a linked user.
 
 ```json
 {
   "reviewer": {
     "id": "...",
     "organization_id": "...",
-    "name": "John Doe",
     "is_active": true,
     "created_at": "...",
     "updated_at": "...",
@@ -140,8 +143,10 @@ User-related fields (`github_username`, `slack_user_id`, `email`) are in the nes
 }
 ```
 
-**Note:** If a reviewer doesn't have a linked user, the `user` field will be `null` and the `name` field should be used for display.
-```
+**Notes:**
+- The `name` field has been removed from reviewers - use `user.full_name` for display
+- The `user_id` is now required (NOT NULL)
+- Creating a reviewer requires a valid `user_id`
 
 ---
 
@@ -153,4 +158,3 @@ The following array columns could be converted to junction tables for better FK 
 - `escalations.notified_user_ids` → `escalation_notifications` junction table
 
 This was deferred as it requires more significant refactoring and the current implementation works correctly.
-

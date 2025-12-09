@@ -717,11 +717,11 @@ export type Database = {
       generate_slug: { Args: { input_text: string }; Returns: string };
       get_user_org_ids: { Args: never; Returns: string[] };
       is_org_admin:
-        | { Args: { org_id: string; user_id: string }; Returns: boolean }
-        | { Args: { org_id: string }; Returns: boolean };
+        | { Args: { org_id: string }; Returns: boolean }
+        | { Args: { org_id: string; user_id: string }; Returns: boolean };
       is_org_member:
-        | { Args: { org_id: string; user_id: string }; Returns: boolean }
-        | { Args: { org_id: string }; Returns: boolean };
+        | { Args: { org_id: string }; Returns: boolean }
+        | { Args: { org_id: string; user_id: string }; Returns: boolean };
       user_has_org_access: { Args: { org_id: string }; Returns: boolean };
       user_is_org_admin: { Args: { org_id: string }; Returns: boolean };
     };

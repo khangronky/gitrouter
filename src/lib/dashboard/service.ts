@@ -367,9 +367,9 @@ export async function fetchReviewerWorkload({
     .select(
       `
       id,
-      name,
       user:users (
-        github_username
+        github_username,
+        full_name
       )
     `
     )
@@ -401,11 +401,15 @@ export async function fetchReviewerWorkload({
   }
 
   return reviewers.map((reviewer) => {
-    const githubUsername = (
-      reviewer.user as { github_username: string | null } | null
-    )?.github_username;
+    const user = reviewer.user as {
+      github_username: string | null;
+      full_name: string | null;
+    } | null;
+    const displayName = user?.github_username
+      ? `@${user.github_username}`
+      : user?.full_name || 'Unknown';
     return {
-      name: githubUsername ? `@${githubUsername}` : reviewer.name,
+      name: displayName,
       assigned: assignmentCounts[reviewer.id] || 0,
       capacity: DEFAULT_REVIEWER_CAPACITY,
     };
@@ -613,9 +617,9 @@ export async function fetchRecentActivity({
         id,
         reviewer:reviewers (
           id,
-          name,
           user:users (
-            github_username
+            github_username,
+            full_name
           )
         )
       )
@@ -642,14 +646,13 @@ export async function fetchRecentActivity({
     const assigned = (pr.review_assignments || [])
       .map((a) => {
         const reviewer = a.reviewer as {
-          name: string;
-          user: { github_username: string | null } | null;
+          user: { github_username: string | null; full_name: string | null } | null;
         } | null;
         const githubUsername = reviewer?.user?.github_username;
         if (githubUsername) {
           return `@${githubUsername}`;
         }
-        return reviewer?.name || 'Unknown';
+        return reviewer?.user?.full_name || 'Unknown';
       })
       .filter((name, index, arr) => arr.indexOf(name) === index); // unique values
 
