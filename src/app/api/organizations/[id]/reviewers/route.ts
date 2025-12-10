@@ -110,10 +110,10 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Verify user exists
+    // Verify user exists and get their name
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id')
+      .select('id, full_name')
       .eq('id', user_id)
       .single();
 
@@ -153,6 +153,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       .insert({
         organization_id: id,
         user_id,
+        name: user.full_name || 'Unknown',
         is_active: is_active ?? true,
       })
       .select(

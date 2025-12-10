@@ -75,7 +75,7 @@ export function useEnsureCurrentUserReviewer(orgId: string) {
       );
 
       const existingReviewer = response.reviewers.find(
-        (r) => r.user_id === userData.user_id
+        (r) => r.user?.id === userData.user_id
       );
 
       if (existingReviewer) {
