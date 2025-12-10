@@ -174,7 +174,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
       // Check if reviewer exists by name (fuzzy match) without GitHub info
       const existingByName = collab.name
         ? existingReviewers?.find((r) => {
-            const user = r.user as { full_name: string | null; github_username: string | null } | null;
+            const user = r.user as {
+              full_name: string | null;
+              github_username: string | null;
+            } | null;
             return (
               user?.full_name?.toLowerCase() === collab.name?.toLowerCase() &&
               !user?.github_username
