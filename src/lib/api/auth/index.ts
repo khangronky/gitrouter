@@ -2,15 +2,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetcher } from '@/lib/api';
 import type {
   CurrentUserType,
+  ForgotPasswordResponseType,
+  ForgotPasswordSchema,
   LoginResponseType,
   LoginSchema,
   RegisterResponseType,
   RegisterSchema,
   ResendOtpResponseType,
   ResendOtpSchema,
+  ResetPasswordResponseType,
+  ResetPasswordSchema,
   UpdateUserSchema,
   VerifyOtpResponseType,
   VerifyOtpSchema,
+  VerifyRecoveryOtpResponseType,
+  VerifyRecoveryOtpSchema,
 } from '@/lib/schema/auth';
 
 /**
@@ -103,6 +109,57 @@ export const verifyOtpMutation = () => {
       payload: VerifyOtpSchema
     ): Promise<VerifyOtpResponseType> => {
       return fetcher<VerifyOtpResponseType>('/auth/otp/verify', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+  });
+};
+
+/**
+ * Forgot Password Mutation (Send Recovery OTP)
+ */
+export const forgotPasswordMutation = () => {
+  return useMutation({
+    mutationFn: async (
+      payload: ForgotPasswordSchema
+    ): Promise<ForgotPasswordResponseType> => {
+      return fetcher<ForgotPasswordResponseType>('/auth/password-reset', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+  });
+};
+
+/**
+ * Verify Recovery OTP Mutation
+ */
+export const verifyRecoveryOtpMutation = () => {
+  return useMutation({
+    mutationFn: async (
+      payload: VerifyRecoveryOtpSchema
+    ): Promise<VerifyRecoveryOtpResponseType> => {
+      return fetcher<VerifyRecoveryOtpResponseType>(
+        '/auth/password-reset/verify',
+        {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        }
+      );
+    },
+  });
+};
+
+/**
+ * Reset Password Mutation
+ */
+export const resetPasswordMutation = () => {
+  return useMutation({
+    mutationFn: async (
+      payload: ResetPasswordSchema
+    ): Promise<ResetPasswordResponseType> => {
+      return fetcher<ResetPasswordResponseType>('/auth/password-reset/update', {
         method: 'POST',
         body: JSON.stringify(payload),
       });

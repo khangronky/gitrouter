@@ -101,6 +101,15 @@ export default function LoginForm({ returnUrl }: { returnUrl: string }) {
           )}
         />
 
+        <div className="text-right">
+          <Link
+            href="/forgot-password"
+            className="text-primary-500 text-sm underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+
         <div className="flex flex-col gap-2">
           <Button
             type="submit"
