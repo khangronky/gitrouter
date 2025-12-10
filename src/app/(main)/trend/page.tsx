@@ -3,20 +3,34 @@
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Line,
   LineChart,
   XAxis,
   YAxis,
 } from 'recharts';
-import { TrendingDown, Check } from 'lucide-react';
+import { TrendingDown, Check, Users } from 'lucide-react';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+
+// Mock data for Reviewer Workload Balance Trend
+const workloadBalanceData = [
+  { week: 'Week 1', alice: 8, bob: 12, charlie: 6, diana: 10 },
+  { week: 'Week 2', alice: 10, bob: 10, charlie: 8, diana: 9 },
+  { week: 'Week 3', alice: 9, bob: 9, charlie: 9, diana: 10 },
+  { week: 'Week 4', alice: 11, bob: 8, charlie: 10, diana: 8 },
+  { week: 'Week 5', alice: 10, bob: 9, charlie: 9, diana: 9 },
+  { week: 'Week 6', alice: 9, bob: 10, charlie: 10, diana: 10 },
+];
 
 // Mock data for PR Review Speed Trend
 const reviewSpeedData = [
@@ -68,6 +82,25 @@ const prVolumeConfig = {
   count: {
     label: 'PR Count',
     color: '#8b5cf6',
+  },
+} satisfies ChartConfig;
+
+const workloadBalanceConfig = {
+  alice: {
+    label: 'Alice',
+    color: '#3b82f6',
+  },
+  bob: {
+    label: 'Bob',
+    color: '#10b981',
+  },
+  charlie: {
+    label: 'Charlie',
+    color: '#f59e0b',
+  },
+  diana: {
+    label: 'Diana',
+    color: '#ef4444',
   },
 } satisfies ChartConfig;
 
@@ -209,15 +242,17 @@ export default function TrendPage() {
         </Card>
       </div>
 
-      {/* Bottom Row: PR Volume Trend */}
-      <Card className="p-4 flex flex-col">
-        <div className="flex flex-col gap-1">
-          <CardTitle>PR Volume Trend</CardTitle>
-          <CardDescription>
-            Total number of pull requests created daily
-          </CardDescription>
-        </div>
-        <ChartContainer config={prVolumeConfig} className="h-[250px] w-full">
+      {/* Bottom Row: PR Volume Trend & Reviewer Workload Balance */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* PR Volume Trend */}
+        <Card className="p-4 flex flex-col">
+          <div className="flex flex-col gap-1">
+            <CardTitle>PR Volume Trend</CardTitle>
+            <CardDescription>
+              Total number of pull requests created daily
+            </CardDescription>
+          </div>
+          <ChartContainer config={prVolumeConfig} className="h-[200px] w-full flex-1">
           <AreaChart
             data={prVolumeData}
             margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
@@ -264,14 +299,90 @@ export default function TrendPage() {
             />
           </AreaChart>
         </ChartContainer>
-        <p className="text-muted-foreground text-sm mt-4">
-          Average PRs/day:{' '}
-          <span className="text-foreground font-medium">12</span>
-          {' | '}
-          Total this month:{' '}
-          <span className="text-foreground font-medium">360</span>
-        </p>
-      </Card>
+          <p className="text-muted-foreground text-sm mt-4">
+            Average PRs/day:{' '}
+            <span className="text-foreground font-medium">12</span>
+            {' | '}
+            Total this month:{' '}
+            <span className="text-foreground font-medium">360</span>
+          </p>
+        </Card>
+
+        {/* Reviewer Workload Balance Trend */}
+        <Card className="p-4 flex flex-col">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Reviewer Workload Balance Trend
+            </CardTitle>
+            <CardDescription>
+              Distribution of assigned PRs per reviewer over time
+            </CardDescription>
+          </div>
+          <ChartContainer
+            config={workloadBalanceConfig}
+            className="h-[200px] w-full flex-1"
+          >
+          <BarChart
+            data={workloadBalanceData}
+            margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="var(--border)"
+            />
+            <XAxis
+              dataKey="week"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs text-muted-foreground"
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs text-muted-foreground"
+            />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartLegend content={<ChartLegendContent />} />
+            <Bar
+              dataKey="alice"
+              stackId="workload"
+              fill="var(--color-alice)"
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="bob"
+              stackId="workload"
+              fill="var(--color-bob)"
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="charlie"
+              stackId="workload"
+              fill="var(--color-charlie)"
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="diana"
+              stackId="workload"
+              fill="var(--color-diana)"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ChartContainer>
+          <p className="text-muted-foreground text-sm mt-4 flex items-center gap-1">
+            Workload Variance:{' '}
+            <span className="text-green-600 font-medium">Low</span>
+            <span className="text-foreground">
+              {' '}
+              (evenly distributed across team)
+            </span>
+          </p>
+        </Card>
+      </div>
     </section>
   );
 }
