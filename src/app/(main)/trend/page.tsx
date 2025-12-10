@@ -252,53 +252,58 @@ export default function TrendPage() {
               Total number of pull requests created daily
             </CardDescription>
           </div>
-          <ChartContainer config={prVolumeConfig} className="h-[200px] w-full flex-1">
-          <AreaChart
-            data={prVolumeData}
-            margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+          <ChartContainer
+            config={prVolumeConfig}
+            className="h-[200px] w-full flex-1"
           >
-            <defs>
-              <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="0%"
-                  stopColor="var(--color-count)"
-                  stopOpacity={0.4}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--color-count)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="var(--border)"
-            />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              className="text-xs text-muted-foreground"
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              className="text-xs text-muted-foreground"
-            />
-            <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
-            <Area
-              type="monotone"
-              dataKey="count"
-              stroke="var(--color-count)"
-              strokeWidth={2}
-              fill="url(#volumeGradient)"
-            />
-          </AreaChart>
-        </ChartContainer>
+            <AreaChart
+              data={prVolumeData}
+              margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+            >
+              <defs>
+                <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="0%"
+                    stopColor="var(--color-count)"
+                    stopOpacity={0.4}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--color-count)"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs text-muted-foreground"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs text-muted-foreground"
+              />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="var(--color-count)"
+                strokeWidth={2}
+                fill="url(#volumeGradient)"
+              />
+            </AreaChart>
+          </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
             Average PRs/day:{' '}
             <span className="text-foreground font-medium">12</span>
@@ -323,56 +328,56 @@ export default function TrendPage() {
             config={workloadBalanceConfig}
             className="h-[200px] w-full flex-1"
           >
-          <BarChart
-            data={workloadBalanceData}
-            margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="var(--border)"
-            />
-            <XAxis
-              dataKey="week"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              className="text-xs text-muted-foreground"
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              className="text-xs text-muted-foreground"
-            />
+            <BarChart
+              data={workloadBalanceData}
+              margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="week"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs text-muted-foreground"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs text-muted-foreground"
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-            <Bar
-              dataKey="alice"
-              stackId="workload"
-              fill="var(--color-alice)"
-              radius={[0, 0, 0, 0]}
-            />
-            <Bar
-              dataKey="bob"
-              stackId="workload"
-              fill="var(--color-bob)"
-              radius={[0, 0, 0, 0]}
-            />
-            <Bar
-              dataKey="charlie"
-              stackId="workload"
-              fill="var(--color-charlie)"
-              radius={[0, 0, 0, 0]}
-            />
-            <Bar
-              dataKey="diana"
-              stackId="workload"
-              fill="var(--color-diana)"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ChartContainer>
+              <Bar
+                dataKey="alice"
+                stackId="workload"
+                fill="var(--color-alice)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="bob"
+                stackId="workload"
+                fill="var(--color-bob)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="charlie"
+                stackId="workload"
+                fill="var(--color-charlie)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="diana"
+                stackId="workload"
+                fill="var(--color-diana)"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4 flex items-center gap-1">
             Workload Variance:{' '}
             <span className="text-green-600 font-medium">Low</span>
