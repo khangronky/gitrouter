@@ -32,7 +32,9 @@ export default async function PullRequestsPage() {
       ),
       review_assignments (
         reviewers (
-          name
+          user:users (
+            full_name
+          )
         )
       )
     `
@@ -63,7 +65,7 @@ export default async function PullRequestsPage() {
       author: pr.author_login,
       reviewer:
         pr.review_assignments && pr.review_assignments.length > 0
-          ? pr.review_assignments[0]?.reviewers?.name || null
+          ? (pr.review_assignments[0]?.reviewers as { user: { full_name: string | null } | null } | null)?.user?.full_name || null
           : null,
       status: pr.status,
       created: new Date(pr.created_at).toLocaleDateString('en-US', {

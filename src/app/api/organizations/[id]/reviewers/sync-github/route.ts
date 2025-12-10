@@ -63,11 +63,11 @@ export async function POST(_request: Request, { params }: RouteParams) {
       .select(
         `
         id,
-        name,
         user_id,
         user:users (
           id,
           email,
+          full_name,
           github_user_id,
           github_username
         )
@@ -174,9 +174,9 @@ export async function POST(_request: Request, { params }: RouteParams) {
       // Check if reviewer exists by name (fuzzy match) without GitHub info
       const existingByName = collab.name
         ? existingReviewers?.find((r) => {
-            const user = r.user as { github_username: string | null } | null;
+            const user = r.user as { full_name: string | null; github_username: string | null } | null;
             return (
-              r.name.toLowerCase() === collab.name?.toLowerCase() &&
+              user?.full_name?.toLowerCase() === collab.name?.toLowerCase() &&
               !user?.github_username
             );
           })
@@ -267,7 +267,6 @@ export async function POST(_request: Request, { params }: RouteParams) {
       const { error: createError } = await supabase.from('reviewers').insert({
         organization_id: id,
         user_id: userId,
-        name: collab.name || collab.github_username,
         is_active: true,
       });
 
