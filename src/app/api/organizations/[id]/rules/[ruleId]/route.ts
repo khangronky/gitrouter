@@ -56,16 +56,38 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // Fetch reviewer details
-    const { data: reviewers } = await supabase
+    // Fetch reviewer details, joining with users for name and github_username
+    const { data: reviewersData } = await supabase
       .from('reviewers')
-      .select('id, name, github_username')
+      .select(
+        `
+        id,
+        user:users (
+          full_name,
+          github_username
+        )
+      `
+      )
       .in('id', rule.reviewer_ids);
+
+    // Transform to include name and github_username at top level
+    const reviewers =
+      reviewersData?.map((r) => {
+        const user = r.user as {
+          full_name: string | null;
+          github_username: string | null;
+        } | null;
+        return {
+          id: r.id,
+          name: user?.full_name || 'Unknown',
+          github_username: user?.github_username || null,
+        };
+      }) || [];
 
     return NextResponse.json({
       rule: {
         ...rule,
-        reviewers: reviewers || [],
+        reviewers,
       },
     });
   } catch (error) {

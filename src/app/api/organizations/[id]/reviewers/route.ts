@@ -24,30 +24,26 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
-    const { data: reviewers, error } = await supabase
+    const { data: reviewersData, error } = await supabase
       .from('reviewers')
       .select(
         `
         id,
         organization_id,
-        user_id,
-        name,
-        github_username,
-        slack_user_id,
-        email,
         is_active,
         created_at,
         updated_at,
         user:users (
           id,
           email,
-          full_name
+          full_name,
+          github_username,
+          slack_user_id
         )
       `
       )
       .eq('organization_id', id)
-      .eq('is_active', true)
-      .order('name', { ascending: true });
+      .eq('is_active', true);
 
     if (error) {
       console.error('Error fetching reviewers:', error);
@@ -57,7 +53,16 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
-    return NextResponse.json({ reviewers });
+    // Sort by user.full_name
+    const sortedReviewers = reviewersData?.sort((a, b) => {
+      const nameA =
+        (a.user as { full_name: string | null } | null)?.full_name || '';
+      const nameB =
+        (b.user as { full_name: string | null } | null)?.full_name || '';
+      return nameA.localeCompare(nameB);
+    });
+
+    return NextResponse.json({ reviewers: sortedReviewers });
   } catch (error) {
     console.error('Error in GET /api/organizations/[id]/reviewers:', error);
     return NextResponse.json(
@@ -69,7 +74,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
 /**
  * POST /api/organizations/[id]/reviewers
- * Create a new reviewer
+ * Create a new reviewer (requires a linked user)
  */
 export async function POST(request: Request, { params }: RouteParams) {
   try {
@@ -94,63 +99,68 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    const { name, user_id, github_username, slack_user_id, email, is_active } =
+    const { user_id, github_username, slack_user_id, is_active } =
       validation.data;
 
-    // If user_id provided, verify user exists
-    if (user_id) {
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user_id)
-        .single();
+    // Verify user exists and get their name
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .eq('id', user_id)
+      .single();
 
-      if (userError || !user) {
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      }
-
-      // Check if reviewer already exists for this user in this org
-      const { data: existingReviewer } = await supabase
-        .from('reviewers')
-        .select('id')
-        .eq('organization_id', id)
-        .eq('user_id', user_id)
-        .single();
-
-      if (existingReviewer) {
-        return NextResponse.json(
-          {
-            error: 'Reviewer already exists for this user',
-            reviewer: existingReviewer,
-          },
-          { status: 409 }
-        );
-      }
+    if (userError || !user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const { data: reviewer, error: createError } = await supabase
+    // Check if reviewer already exists for this user in this org
+    const { data: existingReviewer } = await supabase
+      .from('reviewers')
+      .select('id')
+      .eq('organization_id', id)
+      .eq('user_id', user_id)
+      .single();
+
+    if (existingReviewer) {
+      return NextResponse.json(
+        {
+          error: 'Reviewer already exists for this user',
+          reviewer: existingReviewer,
+        },
+        { status: 409 }
+      );
+    }
+
+    // Update user with provided integration fields if any
+    const userUpdates: Record<string, string> = {};
+    if (github_username) userUpdates.github_username = github_username;
+    if (slack_user_id) userUpdates.slack_user_id = slack_user_id;
+
+    if (Object.keys(userUpdates).length > 0) {
+      await supabase.from('users').update(userUpdates).eq('id', user_id);
+    }
+
+    const { data: reviewerData, error: createError } = await supabase
       .from('reviewers')
       .insert({
         organization_id: id,
-        name,
-        user_id: user_id || null,
-        github_username: github_username || null,
-        slack_user_id: slack_user_id || null,
-        email: email || null,
+        user_id,
         is_active: is_active ?? true,
       })
       .select(
         `
         id,
         organization_id,
-        user_id,
-        name,
-        github_username,
-        slack_user_id,
-        email,
         is_active,
         created_at,
-        updated_at
+        updated_at,
+        user:users (
+          id,
+          email,
+          full_name,
+          github_username,
+          slack_user_id
+        )
       `
       )
       .single();
@@ -163,7 +173,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    return NextResponse.json({ reviewer }, { status: 201 });
+    return NextResponse.json({ reviewer: reviewerData }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/organizations/[id]/reviewers:', error);
     return NextResponse.json(

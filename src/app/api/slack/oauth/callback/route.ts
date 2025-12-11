@@ -155,35 +155,23 @@ export async function GET(request: Request) {
           // Also create/update a reviewer entry for this user
           const { data: existingReviewer } = await adminSupabase
             .from('reviewers')
-            .select('id, name')
+            .select('id')
             .eq('organization_id', orgId)
             .eq('user_id', auth.userId)
             .single();
 
           if (!existingReviewer) {
-            // Create new reviewer with Slack info
+            // Create new reviewer linked to user (Slack info is on users table)
             await adminSupabase.from('reviewers').insert({
               organization_id: orgId,
               user_id: auth.userId,
-              name: userInfo.user.real_name || slackUsername || 'Unknown',
-              slack_user_id: authedUserId,
-              email: slackEmail || null,
             });
             console.log(
               `Created reviewer for user ${auth.userId} with Slack ID ${authedUserId}`
             );
           } else {
-            // Update existing reviewer with Slack info
-            await adminSupabase
-              .from('reviewers')
-              .update({
-                slack_user_id: authedUserId,
-                email: slackEmail || undefined,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', existingReviewer.id);
             console.log(
-              `Updated reviewer ${existingReviewer.id} with Slack ID ${authedUserId}`
+              `Reviewer ${existingReviewer.id} already exists for user with Slack ID ${authedUserId}`
             );
           }
         }

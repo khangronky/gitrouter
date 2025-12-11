@@ -215,8 +215,10 @@ export async function getEscalationSummary(
       id,
       assigned_at,
       reviewer:reviewers!inner (
-        name,
-        organization_id
+        organization_id,
+        user:users (
+          full_name
+        )
       ),
       pull_request:pull_requests!inner (
         title,
@@ -260,7 +262,7 @@ export async function getEscalationSummary(
     return {
       id: a.id,
       hours_pending: Math.round(hoursPending),
-      reviewer_name: a.reviewer.name,
+      reviewer_name: a.reviewer?.user?.full_name || 'Unknown',
       pr_title: a.pull_request.title,
       pr_number: a.pull_request.github_pr_number,
       repo_name: a.pull_request.repository.full_name,

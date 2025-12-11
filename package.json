@@ -6,6 +6,7 @@
     "clean": "rm bun.lock && bunx npkill --delete-all -y",
     "dev": "bun --bun next dev",
     "devx": "bun sb:start && bun dev",
+    "dev:https": "bun --bun next dev --experimental-https",
     "build": "bun --bun next build",
     "start": "bun --bun next start",
     "format": "biome format",

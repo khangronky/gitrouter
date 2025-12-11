@@ -240,8 +240,6 @@ export default function RulesBuilderPage() {
       // Ensure current user has a reviewer entry
       const result = await ensureReviewerMutation.mutateAsync({
         user_id: user.id,
-        name: user.name || user.email,
-        email: user.email,
       });
 
       // Create the default catch-all rule with lowest priority (highest number)
