@@ -19,10 +19,6 @@ CREATE INDEX IF NOT EXISTS review_assignments_reviewer_status_idx
 CREATE INDEX IF NOT EXISTS reviewers_user_id_idx 
   ON reviewers(user_id) WHERE user_id IS NOT NULL;
 
--- Index for looking up notifications by org and status
-CREATE INDEX IF NOT EXISTS notifications_org_status_idx 
-  ON notifications(organization_id, status);
-
 -- Index for looking up PRs by author
 CREATE INDEX IF NOT EXISTS pull_requests_author_login_idx 
   ON pull_requests(author_login);
