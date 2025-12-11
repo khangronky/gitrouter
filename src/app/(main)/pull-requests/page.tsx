@@ -62,15 +62,18 @@ export default async function PullRequestsPage() {
   const transformedPRs: PullRequest[] =
     pullRequests?.map((pr) => {
       let reviewerName: string | null = null;
-      
+
       if (pr.review_assignments && pr.review_assignments.length > 0) {
         const reviewer = pr.review_assignments[0]?.reviewer as {
-          user: { full_name: string | null; github_username: string | null } | null;
+          user: {
+            full_name: string | null;
+            github_username: string | null;
+          } | null;
         } | null;
-        
+
         if (reviewer?.user) {
           // Prefer github_username, fall back to full_name
-          reviewerName = reviewer.user.github_username 
+          reviewerName = reviewer.user.github_username
             ? `@${reviewer.user.github_username}`
             : reviewer.user.full_name;
         }
