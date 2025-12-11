@@ -58,7 +58,6 @@ reviewers                     users
 |-------|-------|---------|---------|
 | `review_assignments_reviewer_status_idx` | review_assignments | (reviewer_id, status) | Speed up reviewer workload queries |
 | `reviewers_user_id_idx` | reviewers | (user_id) WHERE NOT NULL | Speed up user→reviewer lookups |
-| `notifications_org_status_idx` | notifications | (organization_id, status) | Speed up notification queries |
 | `pull_requests_author_login_idx` | pull_requests | (author_login) | Speed up PR author filtering |
 
 ### 3. New Unique Constraints
