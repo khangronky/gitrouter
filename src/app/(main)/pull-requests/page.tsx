@@ -31,9 +31,10 @@ export default async function PullRequestsPage() {
         full_name
       ),
       review_assignments (
-        reviewers (
+        reviewer:reviewers (
           user:users (
-            full_name
+            full_name,
+            github_username
           )
         )
       )
@@ -59,27 +60,37 @@ export default async function PullRequestsPage() {
 
   // Transform the data to match the expected format
   const transformedPRs: PullRequest[] =
-    pullRequests?.map((pr) => ({
-      id: pr.id,
-      title: pr.title,
-      author: pr.author_login,
-      reviewer:
-        pr.review_assignments && pr.review_assignments.length > 0
-          ? (
-              pr.review_assignments[0]?.reviewers as {
-                user: { full_name: string | null } | null;
-              } | null
-            )?.user?.full_name || null
-          : null,
-      status: pr.status,
-      created: new Date(pr.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      }),
-      repository: pr.repositories?.full_name || 'Unknown',
-      html_url: pr.html_url,
-    })) || [];
+    pullRequests?.map((pr) => {
+      let reviewerName: string | null = null;
+      
+      if (pr.review_assignments && pr.review_assignments.length > 0) {
+        const reviewer = pr.review_assignments[0]?.reviewer as {
+          user: { full_name: string | null; github_username: string | null } | null;
+        } | null;
+        
+        if (reviewer?.user) {
+          // Prefer github_username, fall back to full_name
+          reviewerName = reviewer.user.github_username 
+            ? `@${reviewer.user.github_username}`
+            : reviewer.user.full_name;
+        }
+      }
+
+      return {
+        id: pr.id,
+        title: pr.title,
+        author: pr.author_login,
+        reviewer: reviewerName,
+        status: pr.status,
+        created: new Date(pr.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+        repository: pr.repositories?.full_name || 'Unknown',
+        html_url: pr.html_url,
+      };
+    }) || [];
 
   return <PullRequestsClient pullRequests={transformedPRs} />;
 }

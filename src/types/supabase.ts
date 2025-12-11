@@ -640,6 +640,8 @@ export type Database = {
           github_user_id: number | null;
           github_username: string | null;
           id: string;
+          jira_account_id: string | null;
+          jira_email: string | null;
           slack_user_id: string | null;
           slack_username: string | null;
           username: string | null;
@@ -651,6 +653,8 @@ export type Database = {
           github_user_id?: number | null;
           github_username?: string | null;
           id?: string;
+          jira_account_id?: string | null;
+          jira_email?: string | null;
           slack_user_id?: string | null;
           slack_username?: string | null;
           username?: string | null;
@@ -662,6 +666,8 @@ export type Database = {
           github_user_id?: number | null;
           github_username?: string | null;
           id?: string;
+          jira_account_id?: string | null;
+          jira_email?: string | null;
           slack_user_id?: string | null;
           slack_username?: string | null;
           username?: string | null;

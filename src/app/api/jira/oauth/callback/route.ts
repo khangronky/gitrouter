@@ -19,6 +19,13 @@ interface AtlassianResource {
   avatarUrl?: string;
 }
 
+interface JiraCurrentUser {
+  accountId: string;
+  emailAddress: string;
+  displayName: string;
+  active: boolean;
+}
+
 /**
  * GET /api/jira/oauth/callback
  * Handle Jira OAuth callback
@@ -179,6 +186,40 @@ export async function GET(request: Request) {
     } else {
       // Create new integration
       await adminSupabase.from('jira_integrations').insert(integrationData);
+    }
+
+    // Auto-capture Jira info for the installing user
+    try {
+      // Fetch the authenticated user's Jira account info using /myself endpoint
+      const myselfResponse = await fetch(
+        `https://api.atlassian.com/ex/jira/${site.id}/rest/api/3/myself`,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (myselfResponse.ok) {
+        const jiraUser: JiraCurrentUser = await myselfResponse.json();
+
+        // Update the user's Jira info
+        await adminSupabase
+          .from('users')
+          .update({
+            jira_account_id: jiraUser.accountId,
+            jira_email: jiraUser.emailAddress,
+          })
+          .eq('id', auth.userId);
+
+        console.log(
+          `Linked Jira account ${jiraUser.displayName} (${jiraUser.accountId}) to user ${auth.userId}`
+        );
+      }
+    } catch (error) {
+      console.error('Failed to capture Jira user info:', error);
+      // Don't fail the OAuth flow - just log the error
     }
 
     return NextResponse.redirect(

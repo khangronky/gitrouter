@@ -117,7 +117,7 @@ export async function fetchDashboardKpis({
     .gte('created_at', previousPeriod.startDate.toISOString())
     .lte('created_at', previousPeriod.endDate.toISOString());
 
-  // Current pending PRs (open status with pending review assignments)
+  // Current pending PRs (ONLY open PRs with pending review assignments)
   const { data: pendingAssignments } = await supabase
     .from('review_assignments')
     .select(`
@@ -132,9 +132,10 @@ export async function fetchDashboardKpis({
       )
     `)
     .eq('status', 'pending')
+    .eq('pull_request.status', 'open')
     .in('pull_request.repository_id', repoIds);
 
-  // Get previous period pending count
+  // Get previous period pending count (only for open PRs)
   const { data: previousPendingAssignments } = await supabase
     .from('review_assignments')
     .select(`
@@ -142,42 +143,38 @@ export async function fetchDashboardKpis({
       pull_request:pull_requests!inner (
         id,
         repository_id,
+        status,
         created_at
       )
     `)
     .eq('status', 'pending')
+    .eq('pull_request.status', 'open')
     .in('pull_request.repository_id', repoIds)
     .lte('pull_request.created_at', previousPeriod.endDate.toISOString());
 
-  // Calculate SLA compliance - PRs where first review happened within SLA_THRESHOLD_HOURS
-  const { data: slaAssignments } = await supabase
-    .from('review_assignments')
-    .select(`
-      id,
-      assigned_at,
-      reviewed_at,
-      pull_request:pull_requests!inner (
-        id,
-        repository_id,
-        created_at
-      )
-    `)
-    .in('pull_request.repository_id', repoIds)
-    .gte('pull_request.created_at', startDate.toISOString())
-    .lte('pull_request.created_at', endDate.toISOString())
-    .not('reviewed_at', 'is', null);
+  // Calculate SLA compliance based on merged PRs
+  // SLA = PRs merged within SLA_THRESHOLD_HOURS of creation
+  const { data: mergedPRsForSLA } = await supabase
+    .from('pull_requests')
+    .select('id, created_at, merged_at')
+    .in('repository_id', repoIds)
+    .eq('status', 'merged')
+    .not('merged_at', 'is', null)
+    .gte('merged_at', startDate.toISOString())
+    .lte('merged_at', endDate.toISOString());
 
-  // Calculate SLA compliance rate
+  // Calculate SLA compliance rate based on merged PRs
+  // SLA = PR merged within SLA_THRESHOLD_HOURS of creation
   let slaMetCount = 0;
   let totalReviewed = 0;
-  if (slaAssignments) {
-    for (const assignment of slaAssignments) {
-      if (assignment.reviewed_at && assignment.assigned_at) {
+  if (mergedPRsForSLA) {
+    for (const pr of mergedPRsForSLA) {
+      if (pr.merged_at && pr.created_at) {
         totalReviewed++;
-        const assignedTime = new Date(assignment.assigned_at).getTime();
-        const reviewedTime = new Date(assignment.reviewed_at).getTime();
-        const hoursToReview = (reviewedTime - assignedTime) / (1000 * 60 * 60);
-        if (hoursToReview <= SLA_THRESHOLD_HOURS) {
+        const createdTime = new Date(pr.created_at).getTime();
+        const mergedTime = new Date(pr.merged_at).getTime();
+        const hoursToMerge = (mergedTime - createdTime) / (1000 * 60 * 60);
+        if (hoursToMerge <= SLA_THRESHOLD_HOURS) {
           slaMetCount++;
         }
       }
@@ -186,34 +183,26 @@ export async function fetchDashboardKpis({
 
   const currentSlaRate = totalReviewed > 0 ? slaMetCount / totalReviewed : 0;
 
-  // Previous period SLA
-  const { data: previousSlaAssignments } = await supabase
-    .from('review_assignments')
-    .select(`
-      id,
-      assigned_at,
-      reviewed_at,
-      pull_request:pull_requests!inner (
-        id,
-        repository_id,
-        created_at
-      )
-    `)
-    .in('pull_request.repository_id', repoIds)
-    .gte('pull_request.created_at', previousPeriod.startDate.toISOString())
-    .lte('pull_request.created_at', previousPeriod.endDate.toISOString())
-    .not('reviewed_at', 'is', null);
+  // Previous period SLA (merged PRs in previous period)
+  const { data: previousMergedPRs } = await supabase
+    .from('pull_requests')
+    .select('id, created_at, merged_at')
+    .in('repository_id', repoIds)
+    .eq('status', 'merged')
+    .not('merged_at', 'is', null)
+    .gte('merged_at', previousPeriod.startDate.toISOString())
+    .lte('merged_at', previousPeriod.endDate.toISOString());
 
   let prevSlaMetCount = 0;
   let prevTotalReviewed = 0;
-  if (previousSlaAssignments) {
-    for (const assignment of previousSlaAssignments) {
-      if (assignment.reviewed_at && assignment.assigned_at) {
+  if (previousMergedPRs) {
+    for (const pr of previousMergedPRs) {
+      if (pr.merged_at && pr.created_at) {
         prevTotalReviewed++;
-        const assignedTime = new Date(assignment.assigned_at).getTime();
-        const reviewedTime = new Date(assignment.reviewed_at).getTime();
-        const hoursToReview = (reviewedTime - assignedTime) / (1000 * 60 * 60);
-        if (hoursToReview <= SLA_THRESHOLD_HOURS) {
+        const createdTime = new Date(pr.created_at).getTime();
+        const mergedTime = new Date(pr.merged_at).getTime();
+        const hoursToMerge = (mergedTime - createdTime) / (1000 * 60 * 60);
+        if (hoursToMerge <= SLA_THRESHOLD_HOURS) {
           prevSlaMetCount++;
         }
       }
@@ -233,6 +222,17 @@ export async function fetchDashboardKpis({
   const totalPrevious = previousPRs?.length || 0;
   const pendingCurrent = pendingAssignments?.length || 0;
   const pendingPrevious = previousPendingAssignments?.length || 0;
+
+  console.log('[Dashboard] fetchDashboardKpis debug:', {
+    timeRange,
+    repoIds,
+    totalCurrent,
+    totalPrevious,
+    pendingCurrent,
+    pendingPrevious,
+    slaMetCount,
+    totalReviewed,
+  });
 
   const noteText =
     timeRange === '7d'
@@ -267,6 +267,8 @@ export async function fetchDashboardKpis({
 
 /**
  * Fetch latency series data for the dashboard chart
+ * Calculates First Review Latency as: merged_at - created_at for merged PRs
+ * (When a PR is merged, it means it has been reviewed)
  */
 export async function fetchLatencySeries({
   supabase,
@@ -292,63 +294,74 @@ export async function fetchLatencySeries({
     return [];
   }
 
-  // Get review assignments with timestamps
-  const { data: assignments } = await supabase
-    .from('review_assignments')
-    .select(`
-      id,
-      assigned_at,
-      reviewed_at,
-      pull_request:pull_requests!inner (
-        id,
-        repository_id,
-        created_at
-      )
-    `)
-    .in('pull_request.repository_id', repoIds)
-    .gte('assigned_at', startDate.toISOString())
-    .lte('assigned_at', endDate.toISOString())
-    .not('reviewed_at', 'is', null);
+  // Get merged PRs - latency is calculated as (merged_at - created_at)
+  const { data: mergedPRs } = await supabase
+    .from('pull_requests')
+    .select('id, created_at, merged_at')
+    .in('repository_id', repoIds)
+    .eq('status', 'merged')
+    .not('merged_at', 'is', null)
+    .gte('merged_at', startDate.toISOString())
+    .lte('merged_at', endDate.toISOString());
+
+  console.log('[Dashboard] fetchLatencySeries debug:', {
+    timeRange,
+    repoIds,
+    dateRange: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    mergedPRsCount: mergedPRs?.length || 0,
+  });
 
   // Group by day and calculate average latency
   const dailyLatency: Record<string, { totalHours: number; count: number }> =
     {};
 
-  if (assignments) {
-    for (const assignment of assignments) {
-      if (assignment.reviewed_at && assignment.assigned_at) {
-        const assignedDate = new Date(assignment.assigned_at);
-        const dayKey = assignedDate.toLocaleDateString('en-US', {
+  if (mergedPRs) {
+    for (const pr of mergedPRs) {
+      if (pr.merged_at && pr.created_at) {
+        const mergedDate = new Date(pr.merged_at);
+        const dayName = mergedDate.toLocaleDateString('en-US', {
           weekday: 'short',
         });
-        const dateKey = assignedDate.toISOString().split('T')[0];
-        const key = `${dateKey}-${dayKey}`;
+        const dateKey = mergedDate.toISOString().split('T')[0];
+        // Use | separator since dates already contain -
+        const key = `${dateKey}|${dayName}`;
 
-        const assignedTime = assignedDate.getTime();
-        const reviewedTime = new Date(assignment.reviewed_at).getTime();
-        const hoursToReview = (reviewedTime - assignedTime) / (1000 * 60 * 60);
+        const createdTime = new Date(pr.created_at).getTime();
+        const mergedTime = mergedDate.getTime();
+        const hoursToMerge = (mergedTime - createdTime) / (1000 * 60 * 60);
 
         if (!dailyLatency[key]) {
           dailyLatency[key] = { totalHours: 0, count: 0 };
         }
-        dailyLatency[key].totalHours += hoursToReview;
+        dailyLatency[key].totalHours += hoursToMerge;
         dailyLatency[key].count++;
       }
     }
   }
 
-  // Convert to series format sorted by date
-  const series: LatencySeries = Object.entries(dailyLatency)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, data]) => ({
-      day: key.split('-')[1] || key,
-      hours: Math.round((data.totalHours / data.count) * 10) / 10,
-    }));
-
-  // If we don't have enough data, pad with defaults
-  if (series.length === 0) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days.map((day) => ({ day, hours: 0 }));
+  // Generate all days in the time range for a complete line chart
+  // Start from Monday of the first week
+  const series: LatencySeries = [];
+  const currentDate = new Date(startDate);
+  
+  // Adjust to start from Monday (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+  const dayOfWeek = currentDate.getDay();
+  const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days; otherwise go back to Monday
+  currentDate.setDate(currentDate.getDate() - daysToSubtract);
+  
+  while (currentDate <= endDate) {
+    const dateKey = currentDate.toISOString().split('T')[0];
+    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const key = `${dateKey}|${dayName}`;
+    
+    const dayData = dailyLatency[key];
+    series.push({
+      day: dayName,
+      hours: dayData ? Math.round((dayData.totalHours / dayData.count) * 10) / 10 : 0,
+    });
+    
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
   }
 
   return series;

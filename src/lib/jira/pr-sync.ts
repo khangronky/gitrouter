@@ -12,7 +12,73 @@ import {
   getOrgJiraConfig,
   searchJiraUser,
   transitionIssueToStatus,
+  type JiraConfig,
 } from './client';
+
+/**
+ * Find Jira account ID for a GitHub user
+ * Priority: 1) Stored jira_account_id, 2) Search by email, 3) Search by GitHub username
+ */
+async function findJiraAccountId(
+  supabase: TypedSupabaseClient,
+  config: JiraConfig,
+  githubUsername: string
+): Promise<{ accountId: string | null; displayName: string | null }> {
+  // Step 1: Look up user in database by github_username
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, email, jira_account_id, jira_email')
+    .eq('github_username', githubUsername)
+    .single();
+
+  // If user has stored jira_account_id, use it directly
+  if (user?.jira_account_id) {
+    console.log(
+      `Using stored Jira account ID for ${githubUsername}: ${user.jira_account_id}`
+    );
+    return { accountId: user.jira_account_id, displayName: null };
+  }
+
+  // Step 2: If user exists, try searching Jira by their registered email
+  if (user?.email) {
+    const jiraUserByEmail = await searchJiraUser(config, user.email, {
+      isEmail: true,
+    });
+    if (jiraUserByEmail) {
+      console.log(
+        `Found Jira user by email (${user.email}): ${jiraUserByEmail.displayName}`
+      );
+
+      // Store the mapping for future use
+      await supabase
+        .from('users')
+        .update({
+          jira_account_id: jiraUserByEmail.accountId,
+          jira_email: jiraUserByEmail.emailAddress,
+        })
+        .eq('id', user.id);
+
+      return {
+        accountId: jiraUserByEmail.accountId,
+        displayName: jiraUserByEmail.displayName,
+      };
+    }
+  }
+
+  // Step 3: Fall back to searching by GitHub username
+  const jiraUserByUsername = await searchJiraUser(config, githubUsername);
+  if (jiraUserByUsername) {
+    console.log(
+      `Found Jira user by GitHub username (${githubUsername}): ${jiraUserByUsername.displayName}`
+    );
+    return {
+      accountId: jiraUserByUsername.accountId,
+      displayName: jiraUserByUsername.displayName,
+    };
+  }
+
+  return { accountId: null, displayName: null };
+}
 
 /**
  * Link a PR to a Jira issue when PR is opened
@@ -171,11 +237,17 @@ export async function createJiraTicketForPr(
   // Try to find the PR author in Jira to assign the ticket
   let assigneeAccountId: string | undefined;
   let authorNote = '';
-  const jiraUser = await searchJiraUser(config, pr.author_login);
-  if (jiraUser) {
-    assigneeAccountId = jiraUser.accountId;
+
+  const { accountId, displayName } = await findJiraAccountId(
+    supabase,
+    config,
+    pr.author_login
+  );
+
+  if (accountId) {
+    assigneeAccountId = accountId;
     console.log(
-      `Found Jira user for ${pr.author_login}: ${jiraUser.displayName}`
+      `Found Jira user for ${pr.author_login}${displayName ? `: ${displayName}` : ''}`
     );
   } else {
     console.log(`No Jira user found for GitHub user: ${pr.author_login}`);

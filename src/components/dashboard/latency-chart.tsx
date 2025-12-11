@@ -36,6 +36,14 @@ export function LatencyChart({
   latencySeries: LatencySeries[];
   className?: string;
 }) {
+  // Calculate actual average from data (excluding zero days)
+  const nonZeroDays = latencySeries.filter((d) => d.hours > 0);
+  const avgHours = nonZeroDays.length > 0
+    ? nonZeroDays.reduce((sum, d) => sum + d.hours, 0) / nonZeroDays.length
+    : 0;
+  const avgFormatted = avgHours.toFixed(1);
+  const isWithinTarget = avgHours <= 4;
+
   return (
     <Card
       className={cn('h-full p-4 flex flex-col justify-between ', className)}
@@ -102,14 +110,16 @@ export function LatencyChart({
             stroke="var(--color-hours)"
             strokeWidth={2}
             fill="url(#latencyGradient)"
+            dot={{ fill: 'var(--color-hours)', strokeWidth: 0, r: 3 }}
+            activeDot={{ fill: 'var(--color-hours)', strokeWidth: 0, r: 5 }}
           />
         </AreaChart>
       </ChartContainer>
 
       <p className="text-muted-foreground text-sm">
         Current avg:{' '}
-        <span className="font-semibold text-foreground">3.2 hours</span> (within
-        target)
+        <span className="font-semibold text-foreground">{avgFormatted} hours</span>{' '}
+        ({isWithinTarget ? 'within target' : 'above target'})
       </p>
     </Card>
   );
