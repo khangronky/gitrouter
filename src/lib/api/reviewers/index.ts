@@ -59,6 +59,7 @@ export function useCreateReviewer(orgId: string) {
 /**
  * Ensure current user has a reviewer entry
  * Returns existing reviewer if found, creates new one if not
+ * Uses user_id to fetch name and email from the users table
  */
 export function useEnsureCurrentUserReviewer(orgId: string) {
   const queryClient = useQueryClient();
@@ -66,8 +67,6 @@ export function useEnsureCurrentUserReviewer(orgId: string) {
   return useMutation({
     mutationFn: async (userData: {
       user_id: string;
-      name: string;
-      email?: string;
     }) => {
       // First try to fetch existing reviewer for user
       const response = await fetcher<ReviewerListResponseType>(
@@ -82,15 +81,14 @@ export function useEnsureCurrentUserReviewer(orgId: string) {
         return { reviewer: existingReviewer, created: false };
       }
 
-      // Create new reviewer
+      // Create new reviewer with only user_id
+      // User's name and email are already in the users table
       const newReviewer = await fetcher<ReviewerResponseType>(
         `/organizations/${orgId}/reviewers`,
         {
           method: 'POST',
           body: JSON.stringify({
-            name: userData.name,
             user_id: userData.user_id,
-            email: userData.email,
           }),
         }
       );
