@@ -65,9 +65,7 @@ export function useEnsureCurrentUserReviewer(orgId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userData: {
-      user_id: string;
-    }) => {
+    mutationFn: async (userData: { user_id: string }) => {
       // First try to fetch existing reviewer for user
       const response = await fetcher<ReviewerListResponseType>(
         `/organizations/${orgId}/reviewers`
