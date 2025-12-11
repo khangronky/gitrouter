@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { addRepositorySchema } from '@/lib/schema/repository';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
+import { addRepositorySchema } from '@/lib/schema/repository';
+import { createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -16,21 +16,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const { id } = await params;
     const supabase = await createClient();
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'repositories/route.ts:14',
-        message: 'GET /repositories starting',
-        data: { orgId: id },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        hypothesisId: 'A',
-      }),
-    }).catch(() => {});
-    // #endregion
-
     const permission = await requireOrgPermission(supabase, id, 'repos:view');
     if (!permission.success) {
       return NextResponse.json(
@@ -38,21 +23,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
         { status: permission.status }
       );
     }
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'repositories/route.ts:27',
-        message: 'About to query repositories with default_reviewer:reviewers',
-        data: { selectColumns: 'id,name' },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        hypothesisId: 'A',
-      }),
-    }).catch(() => {});
-    // #endregion
 
     const { data: repositories, error } = await supabase
       .from('repositories')
@@ -79,26 +49,6 @@ export async function GET(_request: Request, { params }: RouteParams) {
       )
       .eq('organization_id', id)
       .order('full_name', { ascending: true });
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'repositories/route.ts:50',
-        message: 'Query completed',
-        data: {
-          hasError: !!error,
-          errorCode: error?.code,
-          errorMessage: error?.message,
-          dataCount: repositories?.length,
-        },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        hypothesisId: 'A',
-      }),
-    }).catch(() => {});
-    // #endregion
 
     if (error) {
       console.error('Error fetching repositories:', error);

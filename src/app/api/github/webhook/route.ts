@@ -410,7 +410,7 @@ async function handlePullRequestEvent(
       );
 
       console.log(
-        '✅ [B1] Routing engine done (${Date.now() - routingEngineStart}ms)'
+        `✅ [B1] Routing engine done (${Date.now() - routingEngineStart}ms)`
       );
       console.log('📊 Routing result:', {
         pr: savedPr.github_pr_number,

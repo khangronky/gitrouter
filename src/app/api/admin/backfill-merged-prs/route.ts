@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
  * Backfill review assignments for PRs that were merged before the auto-approve logic was added
  * This is a one-time cleanup endpoint
  */
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   try {
     const supabase = await createClient();
 
