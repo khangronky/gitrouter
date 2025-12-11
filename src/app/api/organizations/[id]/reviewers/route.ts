@@ -102,14 +102,6 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { user_id, github_username, slack_user_id, is_active } =
       validation.data;
 
-    // user_id is required to create a reviewer
-    if (!user_id) {
-      return NextResponse.json(
-        { error: 'user_id is required to create a reviewer' },
-        { status: 400 }
-      );
-    }
-
     // Verify user exists and get their name
     const { data: user, error: userError } = await supabase
       .from('users')
