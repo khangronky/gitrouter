@@ -35,12 +35,20 @@ export async function POST(request: Request) {
     // Get raw body for signature verification
     console.log('⏱️ [1s] Getting raw body...');
     const rawBody = await request.text();
-    console.log('✅ [1] Webhook payload length:', rawBody.length, `(${Date.now() - startTime}ms)`);
+    console.log(
+      '✅ [1] Webhook payload length:',
+      rawBody.length,
+      `(${Date.now() - startTime}ms)`
+    );
 
     // Verify signature
     const signature = request.headers.get('x-hub-signature-256');
     console.log('⏱️ [2s] Checking signature...');
-    console.log('✅ [2] Signature present:', !!signature, `(${Date.now() - startTime}ms)`);
+    console.log(
+      '✅ [2] Signature present:',
+      !!signature,
+      `(${Date.now() - startTime}ms)`
+    );
 
     if (!signature) {
       console.log('❌ [2] ERROR: Missing signature');
@@ -51,7 +59,11 @@ export async function POST(request: Request) {
     try {
       console.log('⏱️ [3s] Getting webhook secret...');
       secret = getWebhookSecret();
-      console.log('✅ [3] Webhook secret configured:', !!secret, `(${Date.now() - startTime}ms)`);
+      console.log(
+        '✅ [3] Webhook secret configured:',
+        !!secret,
+        `(${Date.now() - startTime}ms)`
+      );
     } catch (e) {
       console.error('❌ [3] ERROR: GITHUB_WEBHOOK_SECRET not configured!', e);
       return NextResponse.json(
@@ -62,7 +74,11 @@ export async function POST(request: Request) {
 
     console.log('⏱️ [4s] Verifying webhook signature...');
     const isValid = await verifyWebhookSignature(secret, rawBody, signature);
-    console.log('✅ [4] Signature valid:', isValid, `(${Date.now() - startTime}ms)`);
+    console.log(
+      '✅ [4] Signature valid:',
+      isValid,
+      `(${Date.now() - startTime}ms)`
+    );
 
     if (!isValid) {
       console.log('❌ [4] ERROR: Invalid signature');
@@ -74,7 +90,11 @@ export async function POST(request: Request) {
     const deliveryId = request.headers.get('x-github-delivery');
 
     console.log('⏱️ [5s] Getting event headers...');
-    console.log('✅ [5] Event info:', { eventType, deliveryId: deliveryId?.substring(0, 8) }, `(${Date.now() - startTime}ms)`);
+    console.log(
+      '✅ [5] Event info:',
+      { eventType, deliveryId: deliveryId?.substring(0, 8) },
+      `(${Date.now() - startTime}ms)`
+    );
 
     if (!eventType || !deliveryId) {
       console.log('❌ [5] ERROR: Missing event headers');
@@ -87,7 +107,11 @@ export async function POST(request: Request) {
     // Parse payload
     console.log('⏱️ [6s] Parsing payload...');
     const payload = JSON.parse(rawBody);
-    console.log('✅ [6] Payload parsed, action:', payload.action, `(${Date.now() - startTime}ms)`);
+    console.log(
+      '✅ [6] Payload parsed, action:',
+      payload.action,
+      `(${Date.now() - startTime}ms)`
+    );
 
     // Use admin client for webhook processing (bypasses RLS)
     console.log('⏱️ [7s] Creating admin client...');
@@ -101,7 +125,11 @@ export async function POST(request: Request) {
       .select('id')
       .eq('event_id', deliveryId)
       .single();
-    console.log('✅ [8] Idempotency check done, exists:', !!existingEvent, `(${Date.now() - startTime}ms)`);
+    console.log(
+      '✅ [8] Idempotency check done, exists:',
+      !!existingEvent,
+      `(${Date.now() - startTime}ms)`
+    );
 
     if (existingEvent) {
       // Already processed, return success
@@ -142,7 +170,9 @@ export async function POST(request: Request) {
 
       case 'installation_repositories':
         // Could handle repo add/remove from installation
-        console.log('ℹ️ installation_repositories event received but not handled');
+        console.log(
+          'ℹ️ installation_repositories event received but not handled'
+        );
         return NextResponse.json({ message: 'Event received' });
 
       default:
@@ -151,7 +181,10 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('❌ Webhook processing error:', error);
-    console.error('Error details:', error instanceof Error ? error.message : String(error));
+    console.error(
+      'Error details:',
+      error instanceof Error ? error.message : String(error)
+    );
     console.log(`Total time before error: ${Date.now() - startTime}ms`);
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -210,7 +243,9 @@ async function handlePullRequestEvent(
     )
     .eq('github_repo_id', repository.id)
     .single();
-  console.log(`✅ [A] Repository lookup done (${Date.now() - repoStartTime}ms, total: ${Date.now() - startTime}ms)`);
+  console.log(
+    `✅ [A] Repository lookup done (${Date.now() - repoStartTime}ms, total: ${Date.now() - startTime}ms)`
+  );
 
   if (repoError || !repo) {
     // Repository not registered with any org - ignore
@@ -222,7 +257,7 @@ async function handlePullRequestEvent(
     console.log('ℹ️ Repository is inactive');
     return NextResponse.json({ message: 'Repository is inactive' });
   }
-  
+
   console.log(`✅ [A] Repo found: ${repo.id} (org: ${repo.organization_id})`);
 
   const installationId =
@@ -310,7 +345,9 @@ async function handlePullRequestEvent(
 
   // If PR is merged, mark all pending review assignments as reviewed
   if (status === 'merged' && pr.merged_at) {
-    console.log(`⏱️ [AUTO-APPROVE] Marking pending assignments as reviewed for merged PR #${savedPr.github_pr_number}`);
+    console.log(
+      `⏱️ [AUTO-APPROVE] Marking pending assignments as reviewed for merged PR #${savedPr.github_pr_number}`
+    );
     const autoApproveStart = Date.now();
     try {
       const { error: updateError } = await supabase
@@ -326,7 +363,9 @@ async function handlePullRequestEvent(
       if (updateError) {
         console.error('❌ Failed to auto-approve assignments:', updateError);
       } else {
-        console.log(`✅ [AUTO-APPROVE] Completed (${Date.now() - autoApproveStart}ms)`);
+        console.log(
+          `✅ [AUTO-APPROVE] Completed (${Date.now() - autoApproveStart}ms)`
+        );
       }
     } catch (autoApproveError) {
       console.error('❌ Auto-approve failed:', autoApproveError);
@@ -344,7 +383,9 @@ async function handlePullRequestEvent(
     ['opened', 'reopened', 'ready_for_review'].includes(action) &&
     status === 'open'
   ) {
-    console.log(`⏱️ [B] Starting routing for PR #${savedPr.github_pr_number}...`);
+    console.log(
+      `⏱️ [B] Starting routing for PR #${savedPr.github_pr_number}...`
+    );
     const routingStartTime = Date.now();
 
     try {
@@ -368,7 +409,9 @@ async function handlePullRequestEvent(
         labels
       );
 
-      console.log('✅ [B1] Routing engine done (${Date.now() - routingEngineStart}ms)');
+      console.log(
+        '✅ [B1] Routing engine done (${Date.now() - routingEngineStart}ms)'
+      );
       console.log('📊 Routing result:', {
         pr: savedPr.github_pr_number,
         matched: routingResult.matched,
@@ -388,7 +431,9 @@ async function handlePullRequestEvent(
         if (githubReviewers.length > 0 && installationId) {
           const githubStart = Date.now();
           try {
-            console.log(`  [B2] Requesting GitHub reviews from ${githubReviewers.length} reviewers...`);
+            console.log(
+              `  [B2] Requesting GitHub reviews from ${githubReviewers.length} reviewers...`
+            );
             const reviewResult = await requestPullRequestReview(
               installationId,
               repository.owner.login,
@@ -396,12 +441,18 @@ async function handlePullRequestEvent(
               pr.number,
               githubReviewers
             );
-            console.log(`✅ [B2] GitHub reviews done (${Date.now() - githubStart}ms)`, {
-              requested: githubReviewers,
-              success: !!reviewResult,
-            });
+            console.log(
+              `✅ [B2] GitHub reviews done (${Date.now() - githubStart}ms)`,
+              {
+                requested: githubReviewers,
+                success: !!reviewResult,
+              }
+            );
           } catch (githubError) {
-            console.error(`❌ [B2] Failed to request GitHub reviews (${Date.now() - githubStart}ms):`, githubError);
+            console.error(
+              `❌ [B2] Failed to request GitHub reviews (${Date.now() - githubStart}ms):`,
+              githubError
+            );
             // Don't fail - continue with Slack notifications
           }
         }
@@ -426,11 +477,19 @@ async function handlePullRequestEvent(
           { full_name: repository.full_name },
           routingResult.reviewers
         );
-        console.log(`✅ [B3] Slack notifications done (${Date.now() - slackStart}ms)`, notifyResult);
+        console.log(
+          `✅ [B3] Slack notifications done (${Date.now() - slackStart}ms)`,
+          notifyResult
+        );
       }
-      console.log(`✅ [B] Routing completed (${Date.now() - routingStartTime}ms total)`);
+      console.log(
+        `✅ [B] Routing completed (${Date.now() - routingStartTime}ms total)`
+      );
     } catch (routingError) {
-      console.error(`❌ [B] Routing failed (${Date.now() - routingStartTime}ms):`, routingError);
+      console.error(
+        `❌ [B] Routing failed (${Date.now() - routingStartTime}ms):`,
+        routingError
+      );
       // Don't fail the webhook - PR is already saved
     }
   }
@@ -453,7 +512,7 @@ async function handlePullRequestEvent(
     });
 
     console.log(`✅ [C] Jira sync done (${Date.now() - jiraStartTime}ms)`);
-    
+
     // If a new ticket was created, update the PR record
     if (
       jiraResult.jira_ticket_id &&
@@ -483,7 +542,10 @@ async function handlePullRequestEvent(
       );
     }
   } catch (jiraError) {
-    console.error(`❌ [C] Jira sync failed (${Date.now() - jiraStartTime}ms):`, jiraError);
+    console.error(
+      `❌ [C] Jira sync failed (${Date.now() - jiraStartTime}ms):`,
+      jiraError
+    );
     // Don't fail the webhook - PR is already saved
   }
 
@@ -492,7 +554,9 @@ async function handlePullRequestEvent(
     console.log(`⏱️ [D] Sending status-specific Slack notifications...`);
     const statusSlackStart = Date.now();
     if (status === 'closed') {
-      console.log(`  [D] Sending closed notification for PR #${savedPr.github_pr_number}`);
+      console.log(
+        `  [D] Sending closed notification for PR #${savedPr.github_pr_number}`
+      );
       await sendPrClosedNotification(
         supabase,
         repo.organization_id,
@@ -506,9 +570,13 @@ async function handlePullRequestEvent(
         { full_name: repository.full_name },
         jiraTicketId
       );
-      console.log(`✅ [D] Closed notification sent (${Date.now() - statusSlackStart}ms)`);
+      console.log(
+        `✅ [D] Closed notification sent (${Date.now() - statusSlackStart}ms)`
+      );
     } else if (status === 'merged') {
-      console.log(`  [D] Sending merged notification for PR #${savedPr.github_pr_number}`);
+      console.log(
+        `  [D] Sending merged notification for PR #${savedPr.github_pr_number}`
+      );
       await sendPrMergedNotification(
         supabase,
         repo.organization_id,
@@ -523,14 +591,18 @@ async function handlePullRequestEvent(
         { full_name: repository.full_name },
         jiraTicketId
       );
-      console.log(`✅ [D] Merged notification sent (${Date.now() - statusSlackStart}ms)`);
+      console.log(
+        `✅ [D] Merged notification sent (${Date.now() - statusSlackStart}ms)`
+      );
     }
   } catch (slackError) {
     console.error('❌ [D] Slack notification failed:', slackError);
     // Don't fail the webhook
   }
 
-  console.log(`🟢 [WEBHOOK COMPLETE] PR #${savedPr.github_pr_number} processed in ${Date.now() - startTime}ms`);
+  console.log(
+    `🟢 [WEBHOOK COMPLETE] PR #${savedPr.github_pr_number} processed in ${Date.now() - startTime}ms`
+  );
   return NextResponse.json({
     message: 'Pull request processed',
     pr_id: savedPr.id,

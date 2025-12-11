@@ -17,7 +17,18 @@ export async function GET(_request: Request, { params }: RouteParams) {
     const supabase = await createClient();
 
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'repositories/route.ts:14',message:'GET /repositories starting',data:{orgId:id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'repositories/route.ts:14',
+        message: 'GET /repositories starting',
+        data: { orgId: id },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        hypothesisId: 'A',
+      }),
+    }).catch(() => {});
     // #endregion
 
     const permission = await requireOrgPermission(supabase, id, 'repos:view');
@@ -29,7 +40,18 @@ export async function GET(_request: Request, { params }: RouteParams) {
     }
 
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'repositories/route.ts:27',message:'About to query repositories with default_reviewer:reviewers',data:{selectColumns:'id,name'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'repositories/route.ts:27',
+        message: 'About to query repositories with default_reviewer:reviewers',
+        data: { selectColumns: 'id,name' },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        hypothesisId: 'A',
+      }),
+    }).catch(() => {});
     // #endregion
 
     const { data: repositories, error } = await supabase
@@ -59,7 +81,23 @@ export async function GET(_request: Request, { params }: RouteParams) {
       .order('full_name', { ascending: true });
 
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'repositories/route.ts:50',message:'Query completed',data:{hasError:!!error,errorCode:error?.code,errorMessage:error?.message,dataCount:repositories?.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/b04a0253-89f8-4165-81d0-a7e42233853c', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'repositories/route.ts:50',
+        message: 'Query completed',
+        data: {
+          hasError: !!error,
+          errorCode: error?.code,
+          errorMessage: error?.message,
+          dataCount: repositories?.length,
+        },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        hypothesisId: 'A',
+      }),
+    }).catch(() => {});
     // #endregion
 
     if (error) {

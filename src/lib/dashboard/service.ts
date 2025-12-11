@@ -307,7 +307,10 @@ export async function fetchLatencySeries({
   console.log('[Dashboard] fetchLatencySeries debug:', {
     timeRange,
     repoIds,
-    dateRange: { startDate: startDate.toISOString(), endDate: endDate.toISOString() },
+    dateRange: {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    },
     mergedPRsCount: mergedPRs?.length || 0,
   });
 
@@ -343,23 +346,27 @@ export async function fetchLatencySeries({
   // Start from Monday of the first week
   const series: LatencySeries = [];
   const currentDate = new Date(startDate);
-  
+
   // Adjust to start from Monday (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
   const dayOfWeek = currentDate.getDay();
   const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days; otherwise go back to Monday
   currentDate.setDate(currentDate.getDate() - daysToSubtract);
-  
+
   while (currentDate <= endDate) {
     const dateKey = currentDate.toISOString().split('T')[0];
-    const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = currentDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+    });
     const key = `${dateKey}|${dayName}`;
-    
+
     const dayData = dailyLatency[key];
     series.push({
       day: dayName,
-      hours: dayData ? Math.round((dayData.totalHours / dayData.count) * 10) / 10 : 0,
+      hours: dayData
+        ? Math.round((dayData.totalHours / dayData.count) * 10) / 10
+        : 0,
     });
-    
+
     // Move to next day
     currentDate.setDate(currentDate.getDate() + 1);
   }

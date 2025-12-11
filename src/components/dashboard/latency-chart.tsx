@@ -38,9 +38,10 @@ export function LatencyChart({
 }) {
   // Calculate actual average from data (excluding zero days)
   const nonZeroDays = latencySeries.filter((d) => d.hours > 0);
-  const avgHours = nonZeroDays.length > 0
-    ? nonZeroDays.reduce((sum, d) => sum + d.hours, 0) / nonZeroDays.length
-    : 0;
+  const avgHours =
+    nonZeroDays.length > 0
+      ? nonZeroDays.reduce((sum, d) => sum + d.hours, 0) / nonZeroDays.length
+      : 0;
   const avgFormatted = avgHours.toFixed(1);
   const isWithinTarget = avgHours <= 4;
 
@@ -118,7 +119,9 @@ export function LatencyChart({
 
       <p className="text-muted-foreground text-sm">
         Current avg:{' '}
-        <span className="font-semibold text-foreground">{avgFormatted} hours</span>{' '}
+        <span className="font-semibold text-foreground">
+          {avgFormatted} hours
+        </span>{' '}
         ({isWithinTarget ? 'within target' : 'above target'})
       </p>
     </Card>
