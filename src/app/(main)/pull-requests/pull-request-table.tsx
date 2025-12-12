@@ -422,7 +422,7 @@ export function PullRequestTable({
       {totalRows > 0 && (
         <div className="flex items-center justify-between text-sm">
           <div className="text-muted-foreground">
-            Showing {endRow - startRow + 1} of {totalRows} results
+            Showing {startRow}-{endRow} of {totalRows} results
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
