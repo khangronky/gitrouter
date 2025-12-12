@@ -234,7 +234,11 @@ export const columns: ColumnDef<PullRequest>[] = [
                 {(!filterValue || filterValue === 'all') && (
                   <Check className="mr-2 h-4 w-4" />
                 )}
-                <span className={!filterValue || filterValue === 'all' ? '' : 'ml-6'}>
+                <span
+                  className={
+                    !filterValue || filterValue === 'all' ? '' : 'ml-6'
+                  }
+                >
                   All
                 </span>
               </DropdownMenuItem>
@@ -243,21 +247,27 @@ export const columns: ColumnDef<PullRequest>[] = [
                 onClick={() => column.setFilterValue('open')}
               >
                 {filterValue === 'open' && <Check className="mr-2 h-4 w-4" />}
-                <span className={filterValue === 'open' ? '' : 'ml-6'}>Open</span>
+                <span className={filterValue === 'open' ? '' : 'ml-6'}>
+                  Open
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => column.setFilterValue('merged')}
               >
                 {filterValue === 'merged' && <Check className="mr-2 h-4 w-4" />}
-                <span className={filterValue === 'merged' ? '' : 'ml-6'}>Merged</span>
+                <span className={filterValue === 'merged' ? '' : 'ml-6'}>
+                  Merged
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => column.setFilterValue('closed')}
               >
                 {filterValue === 'closed' && <Check className="mr-2 h-4 w-4" />}
-                <span className={filterValue === 'closed' ? '' : 'ml-6'}>Closed</span>
+                <span className={filterValue === 'closed' ? '' : 'ml-6'}>
+                  Closed
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

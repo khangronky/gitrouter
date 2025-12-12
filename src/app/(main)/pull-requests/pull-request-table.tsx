@@ -150,10 +150,18 @@ export function PullRequestTable({
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="cursor-pointer">All Status</SelectItem>
-              <SelectItem value="open" className="cursor-pointer">Open</SelectItem>
-              <SelectItem value="merged" className="cursor-pointer">Merged</SelectItem>
-              <SelectItem value="closed" className="cursor-pointer">Closed</SelectItem>
+              <SelectItem value="all" className="cursor-pointer">
+                All Status
+              </SelectItem>
+              <SelectItem value="open" className="cursor-pointer">
+                Open
+              </SelectItem>
+              <SelectItem value="merged" className="cursor-pointer">
+                Merged
+              </SelectItem>
+              <SelectItem value="closed" className="cursor-pointer">
+                Closed
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select value={repositoryFilter} onValueChange={setRepositoryFilter}>
@@ -161,7 +169,9 @@ export function PullRequestTable({
               <SelectValue placeholder="Repository" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="cursor-pointer">All Repos</SelectItem>
+              <SelectItem value="all" className="cursor-pointer">
+                All Repos
+              </SelectItem>
               {repositories.map((repo) => (
                 <SelectItem key={repo} value={repo} className="cursor-pointer">
                   {repo}
@@ -174,9 +184,15 @@ export function PullRequestTable({
               <SelectValue placeholder="Reviewer" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="cursor-pointer">All Reviewers</SelectItem>
+              <SelectItem value="all" className="cursor-pointer">
+                All Reviewers
+              </SelectItem>
               {reviewers.map((reviewer) => (
-                <SelectItem key={reviewer} value={reviewer} className="cursor-pointer">
+                <SelectItem
+                  key={reviewer}
+                  value={reviewer}
+                  className="cursor-pointer"
+                >
                   {reviewer}
                 </SelectItem>
               ))}
