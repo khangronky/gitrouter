@@ -21,7 +21,7 @@ export function PullRequestsClient({
   ).sort();
 
   return (
-    <div className="flex min-h-screen flex-col gap-8 p-4">
+    <div className="flex-1 flex-col h-full space-y-6 p-4">
       <div className="flex flex-col gap-2">
         <h1 className="font-bold text-2xl text-foreground">
           Browse Pull Requests
