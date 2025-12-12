@@ -229,9 +229,7 @@ export function PullRequestTable({
                 aria-expanded={repoOpen}
                 className="w-[180px] justify-between cursor-pointer"
               >
-                {repositoryFilter === 'all'
-                  ? 'All Repos'
-                  : repositoryFilter}
+                {repositoryFilter === 'all' ? 'All Repos' : repositoryFilter}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -293,9 +291,7 @@ export function PullRequestTable({
                 aria-expanded={reviewerOpen}
                 className="w-[160px] justify-between cursor-pointer"
               >
-                {reviewerFilter === 'all'
-                  ? 'All Reviewers'
-                  : reviewerFilter}
+                {reviewerFilter === 'all' ? 'All Reviewers' : reviewerFilter}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -315,9 +311,7 @@ export function PullRequestTable({
                       <Check
                         className={cn(
                           'mr-2 h-4 w-4',
-                          reviewerFilter === 'all'
-                            ? 'opacity-100'
-                            : 'opacity-0'
+                          reviewerFilter === 'all' ? 'opacity-100' : 'opacity-0'
                         )}
                       />
                       All Reviewers
