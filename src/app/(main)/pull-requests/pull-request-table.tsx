@@ -13,10 +13,12 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table';
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ChevronsUpDown,
 } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +38,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 import type { PullRequest } from './columns';
 
 interface PullRequestTableProps {
@@ -61,6 +77,19 @@ export function PullRequestTable({
   const [repositoryFilter, setRepositoryFilter] = React.useState<string>('all');
   const [reviewerFilter, setReviewerFilter] = React.useState<string>('all');
   const [titleFilter, setTitleFilter] = React.useState<string>('');
+
+  // Popover open states
+  const [statusOpen, setStatusOpen] = React.useState(false);
+  const [repoOpen, setRepoOpen] = React.useState(false);
+  const [reviewerOpen, setReviewerOpen] = React.useState(false);
+
+  // Status options
+  const statusOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'open', label: 'Open' },
+    { value: 'merged', label: 'Merged' },
+    { value: 'closed', label: 'Closed' },
+  ];
 
   const table = useReactTable({
     data,
@@ -145,59 +174,179 @@ export function PullRequestTable({
             onChange={(event) => setTitleFilter(event.target.value)}
             className="w-[280px]"
           />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px] cursor-pointer">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="cursor-pointer">
-                All Status
-              </SelectItem>
-              <SelectItem value="open" className="cursor-pointer">
-                Open
-              </SelectItem>
-              <SelectItem value="merged" className="cursor-pointer">
-                Merged
-              </SelectItem>
-              <SelectItem value="closed" className="cursor-pointer">
-                Closed
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={repositoryFilter} onValueChange={setRepositoryFilter}>
-            <SelectTrigger className="w-[180px] cursor-pointer">
-              <SelectValue placeholder="Repository" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="cursor-pointer">
-                All Repos
-              </SelectItem>
-              {repositories.map((repo) => (
-                <SelectItem key={repo} value={repo} className="cursor-pointer">
-                  {repo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={reviewerFilter} onValueChange={setReviewerFilter}>
-            <SelectTrigger className="w-[160px] cursor-pointer">
-              <SelectValue placeholder="Reviewer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="cursor-pointer">
-                All Reviewers
-              </SelectItem>
-              {reviewers.map((reviewer) => (
-                <SelectItem
-                  key={reviewer}
-                  value={reviewer}
-                  className="cursor-pointer"
-                >
-                  {reviewer}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          {/* Status Filter Combobox */}
+          <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={statusOpen}
+                className="w-[140px] justify-between cursor-pointer"
+              >
+                {statusOptions.find((s) => s.value === statusFilter)?.label}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[140px] p-0">
+              <Command>
+                <CommandInput placeholder="Search status..." />
+                <CommandList>
+                  <CommandEmpty>No status found.</CommandEmpty>
+                  <CommandGroup>
+                    {statusOptions.map((status) => (
+                      <CommandItem
+                        key={status.value}
+                        value={status.value}
+                        onSelect={(currentValue) => {
+                          setStatusFilter(currentValue);
+                          setStatusOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            statusFilter === status.value
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        {status.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          {/* Repository Filter Combobox */}
+          <Popover open={repoOpen} onOpenChange={setRepoOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={repoOpen}
+                className="w-[180px] justify-between cursor-pointer"
+              >
+                {repositoryFilter === 'all'
+                  ? 'All Repos'
+                  : repositoryFilter}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Search repository..." />
+                <CommandList>
+                  <CommandEmpty>No repository found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all"
+                      onSelect={() => {
+                        setRepositoryFilter('all');
+                        setRepoOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          repositoryFilter === 'all'
+                            ? 'opacity-100'
+                            : 'opacity-0'
+                        )}
+                      />
+                      All Repos
+                    </CommandItem>
+                    {repositories.map((repo) => (
+                      <CommandItem
+                        key={repo}
+                        value={repo}
+                        onSelect={(currentValue) => {
+                          setRepositoryFilter(currentValue);
+                          setRepoOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            repositoryFilter === repo
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        {repo}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          {/* Reviewer Filter Combobox */}
+          <Popover open={reviewerOpen} onOpenChange={setReviewerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={reviewerOpen}
+                className="w-[160px] justify-between cursor-pointer"
+              >
+                {reviewerFilter === 'all'
+                  ? 'All Reviewers'
+                  : reviewerFilter}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder="Search reviewer..." />
+                <CommandList>
+                  <CommandEmpty>No reviewer found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all"
+                      onSelect={() => {
+                        setReviewerFilter('all');
+                        setReviewerOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          reviewerFilter === 'all'
+                            ? 'opacity-100'
+                            : 'opacity-0'
+                        )}
+                      />
+                      All Reviewers
+                    </CommandItem>
+                    {reviewers.map((reviewer) => (
+                      <CommandItem
+                        key={reviewer}
+                        value={reviewer}
+                        onSelect={(currentValue) => {
+                          setReviewerFilter(currentValue);
+                          setReviewerOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            reviewerFilter === reviewer
+                              ? 'opacity-100'
+                              : 'opacity-0'
+                          )}
+                        />
+                        {reviewer}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
