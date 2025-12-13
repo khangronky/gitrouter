@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Pencil, Copy, Trash2 } from 'lucide-react';
+import { MoreVertical, Pencil, Copy, Trash2, ArrowUpDown } from 'lucide-react';
 import type {
   RoutingRuleType,
   RoutingCondition,
@@ -122,14 +122,33 @@ export const createRulesColumns = ({
   },
   {
     accessorKey: 'name',
-    header: 'Rule Name',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="cursor-pointer -ml-4"
+      >
+        Rule Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => (
       <span className="font-medium">{row.getValue('name')}</span>
     ),
   },
   {
     id: 'matchRule',
-    header: 'Match Rule',
+    accessorFn: (row) => parseConditions(row.conditions).matchValue,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="cursor-pointer"
+      >
+        Match Rule
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     meta: { align: 'center' },
     cell: ({ row }) => {
       const { matchValue } = parseConditions(row.original.conditions);
@@ -138,7 +157,17 @@ export const createRulesColumns = ({
   },
   {
     id: 'matchType',
-    header: 'Match Type',
+    accessorFn: (row) => parseConditions(row.conditions).matchType,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="cursor-pointer"
+      >
+        Match Type
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     meta: { align: 'center' },
     cell: ({ row }) => {
       const { matchType } = parseConditions(row.original.conditions);
@@ -147,7 +176,17 @@ export const createRulesColumns = ({
   },
   {
     id: 'assignees',
-    header: 'Assignees',
+    accessorFn: (row) => getReviewerNames(row.reviewer_ids, reviewers),
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="cursor-pointer"
+      >
+        Assignees
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     meta: { align: 'center' },
     cell: ({ row }) => {
       return (
@@ -157,7 +196,16 @@ export const createRulesColumns = ({
   },
   {
     accessorKey: 'is_active',
-    header: 'Status',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="cursor-pointer"
+      >
+        Status
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     meta: { align: 'center' },
     cell: ({ row }) => {
       const isActive = row.getValue('is_active') as boolean;
