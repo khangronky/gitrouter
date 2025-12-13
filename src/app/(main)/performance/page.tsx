@@ -34,12 +34,48 @@ import { Badge } from '@/components/ui/badge';
 
 // Mock data for PR Review Speed Table
 const reviewerPerformanceData = [
-  { reviewer: '@alice', avgTime: '2.4 hours', prsReviewed: 45, sla: '98%', trend: 'up' },
-  { reviewer: '@bob', avgTime: '3.1 hours', prsReviewed: 38, sla: '92%', trend: 'up' },
-  { reviewer: '@charlie', avgTime: '2.8 hours', prsReviewed: 42, sla: '95%', trend: 'up' },
-  { reviewer: '@diana', avgTime: '2.2 hours', prsReviewed: 51, sla: '99%', trend: 'up' },
-  { reviewer: '@eve', avgTime: '3.5 hours', prsReviewed: 35, sla: '88%', trend: 'down' },
-  { reviewer: '@frank', avgTime: '2.6 hours', prsReviewed: 40, sla: '96%', trend: 'up' },
+  {
+    reviewer: '@alice',
+    avgTime: '2.4 hours',
+    prsReviewed: 45,
+    sla: '98%',
+    trend: 'up',
+  },
+  {
+    reviewer: '@bob',
+    avgTime: '3.1 hours',
+    prsReviewed: 38,
+    sla: '92%',
+    trend: 'up',
+  },
+  {
+    reviewer: '@charlie',
+    avgTime: '2.8 hours',
+    prsReviewed: 42,
+    sla: '95%',
+    trend: 'up',
+  },
+  {
+    reviewer: '@diana',
+    avgTime: '2.2 hours',
+    prsReviewed: 51,
+    sla: '99%',
+    trend: 'up',
+  },
+  {
+    reviewer: '@eve',
+    avgTime: '3.5 hours',
+    prsReviewed: 35,
+    sla: '88%',
+    trend: 'down',
+  },
+  {
+    reviewer: '@frank',
+    avgTime: '2.6 hours',
+    prsReviewed: 40,
+    sla: '96%',
+    trend: 'up',
+  },
 ];
 
 // Mock data for Repository Comparison
@@ -239,9 +275,13 @@ export default function PerformancePage() {
               <TableBody>
                 {reviewerPerformanceData.map((row) => (
                   <TableRow key={row.reviewer}>
-                    <TableCell className="font-medium">{row.reviewer}</TableCell>
+                    <TableCell className="font-medium">
+                      {row.reviewer}
+                    </TableCell>
                     <TableCell>{row.avgTime}</TableCell>
-                    <TableCell className="text-center">{row.prsReviewed}</TableCell>
+                    <TableCell className="text-center">
+                      {row.prsReviewed}
+                    </TableCell>
                     <TableCell className="text-center">{row.sla}</TableCell>
                     <TableCell className="text-center">
                       <Badge
@@ -276,9 +316,7 @@ export default function PerformancePage() {
         <Card className="p-4 flex flex-col">
           <div className="flex flex-col gap-1">
             <CardTitle>Repository Comparison (Avg Review Time)</CardTitle>
-            <CardDescription>
-              Average review time by repository
-            </CardDescription>
+            <CardDescription>Average review time by repository</CardDescription>
           </div>
           <ChartContainer
             config={repoComparisonConfig}
@@ -318,11 +356,7 @@ export default function PerformancePage() {
                   />
                 }
               />
-              <Bar
-                dataKey="hours"
-                fill="var(--color-hours)"
-                radius={4}
-              >
+              <Bar dataKey="hours" fill="var(--color-hours)" radius={4}>
                 <LabelList
                   dataKey="repo"
                   position="insideLeft"
@@ -343,7 +377,9 @@ export default function PerformancePage() {
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
             Slowest:{' '}
-            <span className="text-foreground font-medium">backend (4.2h avg)</span>
+            <span className="text-foreground font-medium">
+              backend (4.2h avg)
+            </span>
             {' | '}
             Fastest:{' '}
             <span className="text-foreground font-medium">docs (1.2h avg)</span>
@@ -402,7 +438,9 @@ export default function PerformancePage() {
                 tickFormatter={(value) => `${value}h`}
                 className="text-xs text-muted-foreground"
               />
-              <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
               <Area
                 type="monotone"
                 dataKey="hours"
@@ -463,7 +501,9 @@ export default function PerformancePage() {
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
             Peak day:{' '}
-            <span className="text-foreground font-medium">Thursday (35 reviews)</span>
+            <span className="text-foreground font-medium">
+              Thursday (35 reviews)
+            </span>
             {' | '}
             Weekly avg:{' '}
             <span className="text-foreground font-medium">22 reviews/day</span>
@@ -481,8 +521,14 @@ export default function PerformancePage() {
               Composite quality metrics per reviewer
             </CardDescription>
           </div>
-          <ChartContainer config={reviewQualityConfig} className="h-[280px] w-full flex-1">
-            <RadarChart data={reviewQualityData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+          <ChartContainer
+            config={reviewQualityConfig}
+            className="h-[280px] w-full flex-1"
+          >
+            <RadarChart
+              data={reviewQualityData}
+              margin={{ top: 20, right: 30, bottom: 20, left: 30 }}
+            >
               <PolarGrid stroke="var(--border)" />
               <PolarAngleAxis dataKey="metric" className="text-xs" />
               <ChartTooltip content={<ChartTooltipContent />} />
@@ -533,18 +579,51 @@ export default function PerformancePage() {
               Distribution of PR sizes per team member
             </CardDescription>
           </div>
-          <ChartContainer config={prSizeByAuthorConfig} className="h-[280px] w-full flex-1">
+          <ChartContainer
+            config={prSizeByAuthorConfig}
+            className="h-[280px] w-full flex-1"
+          >
             <BarChart
               data={prSizeByAuthorData}
               margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-              <XAxis dataKey="author" tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="author"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="small" stackId="size" fill="var(--color-small)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="medium" stackId="size" fill="var(--color-medium)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="large" stackId="size" fill="var(--color-large)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="small"
+                stackId="size"
+                fill="var(--color-small)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="medium"
+                stackId="size"
+                fill="var(--color-medium)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="large"
+                stackId="size"
+                fill="var(--color-large)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ChartContainer>
           <div className="mt-4 flex items-center justify-center gap-4 text-sm">
@@ -574,24 +653,51 @@ export default function PerformancePage() {
               When reviewers are fastest to respond
             </CardDescription>
           </div>
-          <ChartContainer config={responseByHourConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={responseByHourConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <BarChart
               data={responseByHourData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-              <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(v) => `${v}m`} className="text-xs" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="hour"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(v) => `${v}m`}
+                className="text-xs"
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="avgMinutes" fill="var(--color-avgMinutes)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="avgMinutes"
+                fill="var(--color-avgMinutes)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
             Fastest:{' '}
-            <span className="text-foreground font-medium">10am (12 min avg)</span>
+            <span className="text-foreground font-medium">
+              10am (12 min avg)
+            </span>
             {' | '}
             Slowest:{' '}
-            <span className="text-foreground font-medium">12pm (35 min avg)</span>
+            <span className="text-foreground font-medium">
+              12pm (35 min avg)
+            </span>
           </p>
         </Card>
 
@@ -603,25 +709,45 @@ export default function PerformancePage() {
               Percentage of PRs that merge without issues
             </CardDescription>
           </div>
-          <ChartContainer config={mergeSuccessConfig} className="mt-4 h-[180px] w-full flex-1">
+          <ChartContainer
+            config={mergeSuccessConfig}
+            className="mt-4 h-[180px] w-full flex-1"
+          >
             <BarChart
               data={mergeSuccessData}
               layout="vertical"
               margin={{ top: 0, right: 30, bottom: 0, left: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={true} horizontal={false} stroke="var(--border)" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={true}
+                horizontal={false}
+                stroke="var(--border)"
+              />
               <XAxis type="number" hide domain={[0, 100]} />
               <YAxis type="category" dataKey="repo" hide />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="rate" fill="var(--color-rate)" radius={4}>
-                <LabelList dataKey="repo" position="insideLeft" offset={8} className="fill-white" fontSize={12} />
-                <LabelList dataKey="rate" position="right" offset={8} className="fill-foreground" fontSize={12} formatter={(v: number) => `${v}%`} />
+                <LabelList
+                  dataKey="repo"
+                  position="insideLeft"
+                  offset={8}
+                  className="fill-white"
+                  fontSize={12}
+                />
+                <LabelList
+                  dataKey="rate"
+                  position="right"
+                  offset={8}
+                  className="fill-foreground"
+                  fontSize={12}
+                  formatter={(v: number) => `${v}%`}
+                />
               </Bar>
             </BarChart>
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
-            Team avg:{' '}
-            <span className="text-green-600 font-medium">92%</span>
+            Team avg: <span className="text-green-600 font-medium">92%</span>
             <span className="text-foreground"> success rate</span>
           </p>
         </Card>
@@ -637,21 +763,45 @@ export default function PerformancePage() {
               Average comments per review by reviewer
             </CardDescription>
           </div>
-          <ChartContainer config={commentsDistributionConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={commentsDistributionConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <BarChart
               data={commentsDistributionData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-              <XAxis dataKey="reviewer" tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="reviewer"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="comments" fill="var(--color-comments)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="comments"
+                fill="var(--color-comments)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
             Most thorough:{' '}
-            <span className="text-foreground font-medium">Charlie (12.1 avg)</span>
+            <span className="text-foreground font-medium">
+              Charlie (12.1 avg)
+            </span>
             {' | '}
             Team avg:{' '}
             <span className="text-foreground font-medium">7.0 comments</span>
@@ -666,16 +816,38 @@ export default function PerformancePage() {
               How often each reviewer becomes a bottleneck
             </CardDescription>
           </div>
-          <ChartContainer config={bottleneckConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={bottleneckConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <BarChart
               data={bottleneckData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-              <XAxis dataKey="reviewer" tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} className="text-xs" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--border)"
+              />
+              <XAxis
+                dataKey="reviewer"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                className="text-xs"
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="frequency" fill="var(--color-frequency)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="frequency"
+                fill="var(--color-frequency)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
@@ -683,7 +855,9 @@ export default function PerformancePage() {
             <span className="text-red-600 font-medium">Eve (12 times)</span>
             {' | '}
             Lowest:{' '}
-            <span className="text-green-600 font-medium">Charlie (2 times)</span>
+            <span className="text-green-600 font-medium">
+              Charlie (2 times)
+            </span>
           </p>
         </Card>
       </div>

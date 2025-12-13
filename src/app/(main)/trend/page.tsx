@@ -356,7 +356,10 @@ export default function TrendPage() {
               Total number of pull requests created daily
             </CardDescription>
           </div>
-          <ChartContainer config={prVolumeConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={prVolumeConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <AreaChart
               data={prVolumeData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
@@ -393,7 +396,9 @@ export default function TrendPage() {
                 tickMargin={8}
                 className="text-xs text-muted-foreground"
               />
-              <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
               <Area
                 type="monotone"
                 dataKey="count"
@@ -498,7 +503,10 @@ export default function TrendPage() {
               Average time from PR creation to merge
             </CardDescription>
           </div>
-          <ChartContainer config={cycleTimeConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={cycleTimeConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <LineChart
               data={cycleTimeData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
@@ -522,13 +530,20 @@ export default function TrendPage() {
                 tickFormatter={(value) => `${value}h`}
                 className="text-xs text-muted-foreground"
               />
-              <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
               <Line
                 type="monotone"
                 dataKey="hours"
                 stroke="var(--color-hours)"
                 strokeWidth={2}
-                dot={{ fill: 'var(--color-hours)', stroke: 'var(--card)', strokeWidth: 2, r: 4 }}
+                dot={{
+                  fill: 'var(--color-hours)',
+                  stroke: 'var(--card)',
+                  strokeWidth: 2,
+                  r: 4,
+                }}
               />
             </LineChart>
           </ChartContainer>
@@ -547,7 +562,10 @@ export default function TrendPage() {
               Average time until first reviewer action
             </CardDescription>
           </div>
-          <ChartContainer config={firstResponseConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={firstResponseConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <LineChart
               data={firstResponseData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
@@ -571,13 +589,20 @@ export default function TrendPage() {
                 tickFormatter={(value) => `${value}m`}
                 className="text-xs text-muted-foreground"
               />
-              <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
               <Line
                 type="monotone"
                 dataKey="minutes"
                 stroke="var(--color-minutes)"
                 strokeWidth={2}
-                dot={{ fill: 'var(--color-minutes)', stroke: 'var(--card)', strokeWidth: 2, r: 4 }}
+                dot={{
+                  fill: 'var(--color-minutes)',
+                  stroke: 'var(--card)',
+                  strokeWidth: 2,
+                  r: 4,
+                }}
               />
             </LineChart>
           </ChartContainer>
@@ -599,15 +624,26 @@ export default function TrendPage() {
               Percentage of PRs requiring multiple review cycles
             </CardDescription>
           </div>
-          <ChartContainer config={reworkRateConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={reworkRateConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <AreaChart
               data={reworkRateData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
             >
               <defs>
                 <linearGradient id="reworkGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-percentage)" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="var(--color-percentage)" stopOpacity={0} />
+                  <stop
+                    offset="0%"
+                    stopColor="var(--color-percentage)"
+                    stopOpacity={0.4}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--color-percentage)"
+                    stopOpacity={0}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -629,7 +665,9 @@ export default function TrendPage() {
                 tickFormatter={(value) => `${value}%`}
                 className="text-xs text-muted-foreground"
               />
-              <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
               <Area
                 type="monotone"
                 dataKey="percentage"
@@ -654,7 +692,10 @@ export default function TrendPage() {
               Small, medium, and large PRs over time
             </CardDescription>
           </div>
-          <ChartContainer config={prSizeConfig} className="h-[200px] w-full flex-1">
+          <ChartContainer
+            config={prSizeConfig}
+            className="h-[200px] w-full flex-1"
+          >
             <BarChart
               data={prSizeData}
               margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
@@ -679,9 +720,24 @@ export default function TrendPage() {
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="small" stackId="size" fill="var(--color-small)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="medium" stackId="size" fill="var(--color-medium)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="large" stackId="size" fill="var(--color-large)" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="small"
+                stackId="size"
+                fill="var(--color-small)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="medium"
+                stackId="size"
+                fill="var(--color-medium)"
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="large"
+                stackId="size"
+                fill="var(--color-large)"
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ChartContainer>
           <p className="text-muted-foreground text-sm mt-4">
@@ -700,7 +756,10 @@ export default function TrendPage() {
             Percentage of PRs approved vs rejected over time
           </CardDescription>
         </div>
-        <ChartContainer config={approvalRateConfig} className="h-[200px] w-full">
+        <ChartContainer
+          config={approvalRateConfig}
+          className="h-[200px] w-full"
+        >
           <BarChart
             data={approvalRateData}
             margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
@@ -727,8 +786,18 @@ export default function TrendPage() {
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="approved" stackId="approval" fill="var(--color-approved)" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="rejected" stackId="approval" fill="var(--color-rejected)" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="approved"
+              stackId="approval"
+              fill="var(--color-approved)"
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="rejected"
+              stackId="approval"
+              fill="var(--color-rejected)"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ChartContainer>
         <p className="text-muted-foreground text-sm mt-4">
