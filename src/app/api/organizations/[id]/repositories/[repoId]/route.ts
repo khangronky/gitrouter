@@ -40,8 +40,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
         updated_at,
         default_reviewer:reviewers (
           id,
-          name,
-          github_username
+          user:users (
+            full_name,
+            github_username
+          )
         )
       `
       )

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { addRepositorySchema } from '@/lib/schema/repository';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
+import { addRepositorySchema } from '@/lib/schema/repository';
+import { createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -40,7 +40,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
         updated_at,
         default_reviewer:reviewers (
           id,
-          name
+          user:users (
+            full_name,
+            github_username
+          )
         )
       `
       )

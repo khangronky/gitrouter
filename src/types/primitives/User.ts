@@ -8,4 +8,6 @@ export interface User {
   github_username?: string | null;
   slack_user_id?: string | null;
   slack_username?: string | null;
+  jira_account_id?: string | null;
+  jira_email?: string | null;
 }

@@ -84,7 +84,9 @@ const getReviewerNames = (
   return reviewerIds
     .map((id) => {
       const reviewer = allReviewers.find((r) => r.id === id);
-      return reviewer ? `@${reviewer.github_username || reviewer.name}` : null;
+      return reviewer
+        ? `@${reviewer.user?.github_username || reviewer.user?.full_name || 'Unknown'}`
+        : null;
     })
     .filter(Boolean)
     .join(', ');

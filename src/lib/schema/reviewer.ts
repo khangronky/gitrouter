@@ -6,16 +6,13 @@ import { z } from 'zod';
 
 /**
  * Create Reviewer Schema
+ * Requires a user_id - the reviewer's name comes from user.full_name.
+ * github_username and slack_user_id can be provided to update the user.
  */
 export const createReviewerSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Reviewer name is required')
-    .max(100, 'Reviewer name must be at most 100 characters'),
-  user_id: z.string().uuid().nullable().optional(), // link to existing user
-  github_username: z.string().max(39).nullable().optional(), // GitHub max username length
-  slack_user_id: z.string().nullable().optional(),
-  email: z.email().nullable().optional(),
+  user_id: z.string().uuid(), // Required - link to existing user
+  github_username: z.string().max(39).nullable().optional(), // Updated on users table
+  slack_user_id: z.string().nullable().optional(), // Updated on users table
   is_active: z.boolean().default(true),
 });
 
@@ -25,11 +22,9 @@ export type CreateReviewerSchema = z.infer<typeof createReviewerSchema>;
  * Update Reviewer Schema
  */
 export const updateReviewerSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  user_id: z.string().uuid().nullable().optional(),
-  github_username: z.string().max(39).nullable().optional(),
-  slack_user_id: z.string().nullable().optional(),
-  email: z.email().nullable().optional(),
+  user_id: z.string().uuid().optional(), // Can change linked user
+  github_username: z.string().max(39).nullable().optional(), // Updated on users table
+  slack_user_id: z.string().nullable().optional(), // Updated on users table
   is_active: z.boolean().optional(),
 });
 
@@ -37,23 +32,21 @@ export type UpdateReviewerSchema = z.infer<typeof updateReviewerSchema>;
 
 /**
  * Reviewer Type
+ * All user info (name, github_username, slack_user_id, email) is in the nested user object.
  */
 export interface ReviewerType {
   id: string;
   organization_id: string;
-  user_id: string | null;
-  name: string;
-  github_username: string | null;
-  slack_user_id: string | null;
-  email: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  user?: {
+  user: {
     id: string;
     email: string;
     full_name: string | null;
-  } | null;
+    github_username: string | null;
+    slack_user_id: string | null;
+  };
 }
 
 /**

@@ -486,11 +486,15 @@ export async function getProjectIssueTypes(
 
 /**
  * Search for a Jira user by email or display name
- * Tries to match GitHub username to a Jira user
+ * @param config - Jira configuration
+ * @param query - Email address, display name, or username to search
+ * @param options.isEmail - If true, treats query as email and requires exact match
+ * @returns Jira user if found, null otherwise
  */
 export async function searchJiraUser(
   config: JiraConfig,
-  query: string
+  query: string,
+  options?: { isEmail?: boolean }
 ): Promise<JiraUserType | null> {
   // Try searching by query (matches email, displayName, etc.)
   const { data, error } = await jiraFetch<JiraUserType[]>(
@@ -504,6 +508,15 @@ export async function searchJiraUser(
 
   // Look for exact matches first (case-insensitive)
   const queryLower = query.toLowerCase();
+
+  // If searching by email, prioritize exact email match
+  if (options?.isEmail) {
+    const exactEmailMatch = data.find(
+      (user) => user.emailAddress?.toLowerCase() === queryLower
+    );
+    // For email search, only return if we have an exact match
+    return exactEmailMatch || null;
+  }
 
   // Try to find by email prefix or displayName containing the query
   const match = data.find((user) => {
