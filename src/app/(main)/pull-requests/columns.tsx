@@ -1,9 +1,15 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Filter, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { Database } from '@/types/supabase';
 
 export type PullRequest = {
@@ -45,20 +51,27 @@ export const columns: ColumnDef<PullRequest>[] = [
   {
     accessorKey: 'id',
     header: ({ column }) => {
+      const sorted = column.getIsSorted();
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(sorted === 'asc')}
           className="h-8"
         >
           PR&apos;s ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          {sorted === 'desc' ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : sorted === 'asc' ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
         </Button>
       );
     },
     cell: ({ row }) => {
       return (
-        <div className="font-normal text-foreground text-sm">
+        <div className="font-normal text-foreground px-4 text-sm">
           #{row.original.id.substring(0, 8)}
         </div>
       );
@@ -67,20 +80,27 @@ export const columns: ColumnDef<PullRequest>[] = [
   {
     accessorKey: 'title',
     header: ({ column }) => {
+      const sorted = column.getIsSorted();
       return (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(sorted === 'asc')}
           className="h-8"
         >
           Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          {sorted === 'desc' ? (
+            <ArrowDown className="ml-2 h-4 w-4" />
+          ) : sorted === 'asc' ? (
+            <ArrowUp className="ml-2 h-4 w-4" />
+          ) : (
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          )}
         </Button>
       );
     },
     cell: ({ row }) => {
       return (
-        <div className="min-w-[225px] font-normal text-foreground text-sm">
+        <div className="min-w-[225px] px-4 font-normal text-foreground text-sm">
           {row.getValue('title')}
         </div>
       );
@@ -93,15 +113,22 @@ export const columns: ColumnDef<PullRequest>[] = [
   {
     accessorKey: 'repository',
     header: ({ column }) => {
+      const sorted = column.getIsSorted();
       return (
         <div className="text-center">
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(sorted === 'asc')}
             className="h-8"
           >
             Repository
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
           </Button>
         </div>
       );
@@ -121,15 +148,22 @@ export const columns: ColumnDef<PullRequest>[] = [
   {
     accessorKey: 'author',
     header: ({ column }) => {
+      const sorted = column.getIsSorted();
       return (
         <div className="text-center">
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(sorted === 'asc')}
             className="h-8"
           >
             Author
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
           </Button>
         </div>
       );
@@ -145,15 +179,22 @@ export const columns: ColumnDef<PullRequest>[] = [
   {
     accessorKey: 'reviewer',
     header: ({ column }) => {
+      const sorted = column.getIsSorted();
       return (
         <div className="text-center">
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(sorted === 'asc')}
             className="h-8"
           >
             Reviewer
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
           </Button>
         </div>
       );
@@ -175,16 +216,61 @@ export const columns: ColumnDef<PullRequest>[] = [
   {
     accessorKey: 'status',
     header: ({ column }) => {
+      const filterValue = column.getFilterValue() as string | undefined;
       return (
-        <div className="text-center">
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="h-8"
-          >
-            Status
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+        <div className="flex justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 cursor-pointer">
+                Status
+                <Filter className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => column.setFilterValue(undefined)}
+              >
+                {(!filterValue || filterValue === 'all') && (
+                  <Check className="mr-2 h-4 w-4" />
+                )}
+                <span
+                  className={
+                    !filterValue || filterValue === 'all' ? '' : 'ml-6'
+                  }
+                >
+                  All
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => column.setFilterValue('open')}
+              >
+                {filterValue === 'open' && <Check className="mr-2 h-4 w-4" />}
+                <span className={filterValue === 'open' ? '' : 'ml-6'}>
+                  Open
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => column.setFilterValue('merged')}
+              >
+                {filterValue === 'merged' && <Check className="mr-2 h-4 w-4" />}
+                <span className={filterValue === 'merged' ? '' : 'ml-6'}>
+                  Merged
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => column.setFilterValue('closed')}
+              >
+                {filterValue === 'closed' && <Check className="mr-2 h-4 w-4" />}
+                <span className={filterValue === 'closed' ? '' : 'ml-6'}>
+                  Closed
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },
@@ -196,22 +282,29 @@ export const columns: ColumnDef<PullRequest>[] = [
       );
     },
     filterFn: (row, id, value) => {
-      if (value === 'all') return true;
+      if (!value || value === 'all') return true;
       return row.getValue(id) === value;
     },
   },
   {
     accessorKey: 'created',
     header: ({ column }) => {
+      const sorted = column.getIsSorted();
       return (
         <div className="text-center">
           <Button
             variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(sorted === 'asc')}
             className="h-8"
           >
             Created
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            {sorted === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : sorted === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
           </Button>
         </div>
       );
