@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { createOrganizationSchema } from '@/lib/schema/organization';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
 
@@ -87,20 +87,25 @@ export async function POST(request: Request) {
 
     const { name, slug } = validation.data;
 
-    // Generate slug if not provided
+    // Generate slug if not provided or empty
     const orgSlug =
-      slug ||
-      name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim() +
-        '-' +
-        Math.random().toString(36).substring(2, 8);
+      slug && slug.length > 0
+        ? slug
+        : name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim() +
+          '-' +
+          Math.random().toString(36).substring(2, 8);
+
+    // Use admin client to bypass RLS for org creation
+    // (auth is already validated above)
+    const adminClient = await createAdminClient();
 
     // Create the organization
-    const { data: org, error: orgError } = await supabase
+    const { data: org, error: orgError } = await adminClient
       .from('organizations')
       .insert({
         name,
@@ -126,7 +131,7 @@ export async function POST(request: Request) {
     }
 
     // Add user as owner
-    const { error: memberError } = await supabase
+    const { error: memberError } = await adminClient
       .from('organization_members')
       .insert({
         organization_id: org.id,
@@ -136,7 +141,7 @@ export async function POST(request: Request) {
 
     if (memberError) {
       // Rollback: delete the organization
-      await supabase.from('organizations').delete().eq('id', org.id);
+      await adminClient.from('organizations').delete().eq('id', org.id);
       console.error('Error adding owner membership:', memberError);
       return NextResponse.json(
         { error: 'Failed to create organization' },

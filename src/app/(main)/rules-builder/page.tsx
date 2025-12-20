@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useOrganizations } from '@/lib/api/organizations';
+import { useState, useMemo } from 'react';
 import {
   useRoutingRules,
   useCreateRoutingRule,
@@ -13,6 +12,7 @@ import {
   useEnsureCurrentUserReviewer,
 } from '@/lib/api/reviewers';
 import { useUserStore } from '@/stores/user-store';
+import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Plus, Wand2 } from 'lucide-react';
@@ -40,37 +40,29 @@ const DEFAULT_FORM_DATA: RuleFormData = {
 };
 
 export default function RulesBuilderPage() {
-  const { data: orgData, isLoading: orgsLoading } = useOrganizations();
+  const {
+    currentOrgId,
+    isLoading: orgsLoading,
+    organizations,
+  } = useCurrentOrganization();
   const user = useUserStore((state) => state.user);
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<RoutingRuleType | null>(null);
   const [formData, setFormData] = useState<RuleFormData>(DEFAULT_FORM_DATA);
   const [useHardcodedData, setUseHardcodedData] = useState(false);
 
-  // Auto-select first org
-  useEffect(() => {
-    if (
-      orgData?.organizations &&
-      orgData.organizations.length > 0 &&
-      !selectedOrgId
-    ) {
-      setSelectedOrgId(orgData.organizations[0].id);
-    }
-  }, [orgData?.organizations, selectedOrgId]);
-
   const { data: rulesData, isLoading: rulesLoading } = useRoutingRules(
-    selectedOrgId || ''
+    currentOrgId || ''
   );
-  const { data: reviewersData } = useReviewers(selectedOrgId || '');
-  const createRuleMutation = useCreateRoutingRule(selectedOrgId || '');
-  const deleteRuleMutation = useDeleteRoutingRule(selectedOrgId || '');
+  const { data: reviewersData } = useReviewers(currentOrgId || '');
+  const createRuleMutation = useCreateRoutingRule(currentOrgId || '');
+  const deleteRuleMutation = useDeleteRoutingRule(currentOrgId || '');
   const ensureReviewerMutation = useEnsureCurrentUserReviewer(
-    selectedOrgId || ''
+    currentOrgId || ''
   );
   const updateRuleMutation = useUpdateRoutingRule(
-    selectedOrgId || '',
+    currentOrgId || '',
     editingRule?.id || ''
   );
 
@@ -173,7 +165,7 @@ export default function RulesBuilderPage() {
   };
 
   const handleEditRule = async () => {
-    if (!editingRule || !selectedOrgId) return;
+    if (!editingRule || !currentOrgId) return;
 
     try {
       await updateRuleMutation.mutateAsync({
@@ -231,7 +223,7 @@ export default function RulesBuilderPage() {
   };
 
   const handleCreateDefaultRule = async () => {
-    if (!user || !selectedOrgId) {
+    if (!user || !currentOrgId) {
       toast.error('Please log in to create a default rule');
       return;
     }
@@ -285,7 +277,7 @@ export default function RulesBuilderPage() {
     );
   }
 
-  if (!orgData?.organizations?.length) {
+  if (!organizations.length) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
