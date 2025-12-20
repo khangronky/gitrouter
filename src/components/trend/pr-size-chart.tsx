@@ -44,10 +44,7 @@ export function PrSizeChart() {
           Small, medium, and large PRs over time
         </CardDescription>
       </div>
-      <ChartContainer
-        config={prSizeConfig}
-        className="h-[200px] w-full flex-1"
-      >
+      <ChartContainer config={prSizeConfig} className="h-[200px] w-full flex-1">
         <BarChart
           data={prSizeData}
           margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
@@ -100,4 +97,3 @@ export function PrSizeChart() {
     </Card>
   );
 }
-

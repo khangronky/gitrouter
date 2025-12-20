@@ -62,9 +62,7 @@ export function FirstResponseChart() {
             tickFormatter={(value) => `${value}m`}
             className="text-xs text-muted-foreground"
           />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="line" />}
-          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Line
             type="monotone"
             dataKey="minutes"
@@ -87,4 +85,3 @@ export function FirstResponseChart() {
     </Card>
   );
 }
-

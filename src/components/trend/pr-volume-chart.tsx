@@ -76,9 +76,7 @@ export function PrVolumeChart() {
             tickMargin={8}
             className="text-xs text-muted-foreground"
           />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="line" />}
-          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Area
             type="monotone"
             dataKey="count"
@@ -89,8 +87,7 @@ export function PrVolumeChart() {
         </AreaChart>
       </ChartContainer>
       <p className="text-muted-foreground text-sm mt-4">
-        Average PRs/day:{' '}
-        <span className="text-foreground font-medium">12</span>
+        Average PRs/day: <span className="text-foreground font-medium">12</span>
         {' | '}
         Total this month:{' '}
         <span className="text-foreground font-medium">360</span>
@@ -98,4 +95,3 @@ export function PrVolumeChart() {
     </Card>
   );
 }
-

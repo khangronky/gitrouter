@@ -8,4 +8,3 @@ export { FirstResponseChart } from './first-response-chart';
 export { ReworkRateChart } from './rework-rate-chart';
 export { PrSizeChart } from './pr-size-chart';
 export { ApprovalRateChart } from './approval-rate-chart';
-

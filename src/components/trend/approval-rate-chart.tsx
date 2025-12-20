@@ -40,10 +40,7 @@ export function ApprovalRateChart() {
           Percentage of PRs approved vs rejected over time
         </CardDescription>
       </div>
-      <ChartContainer
-        config={approvalRateConfig}
-        className="h-[200px] w-full"
-      >
+      <ChartContainer config={approvalRateConfig} className="h-[200px] w-full">
         <BarChart
           data={approvalRateData}
           margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
@@ -92,4 +89,3 @@ export function ApprovalRateChart() {
     </Card>
   );
 }
-

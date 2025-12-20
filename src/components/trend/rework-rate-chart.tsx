@@ -75,9 +75,7 @@ export function ReworkRateChart() {
             tickFormatter={(value) => `${value}%`}
             className="text-xs text-muted-foreground"
           />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="line" />}
-          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Area
             type="monotone"
             dataKey="percentage"
@@ -95,4 +93,3 @@ export function ReworkRateChart() {
     </Card>
   );
 }
-

@@ -76,14 +76,23 @@ export default function TrendPage() {
         {/* Speed Tab */}
         <TabsContent value="speed" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '0ms' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '0ms' }}
+            >
               <ReviewSpeedChart />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+            >
               <CycleTimeChart />
             </div>
           </div>
-          <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+          <div
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+          >
             <FirstResponseChart />
           </div>
         </TabsContent>
@@ -91,14 +100,23 @@ export default function TrendPage() {
         {/* Volume Tab */}
         <TabsContent value="volume" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '0ms' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '0ms' }}
+            >
               <PrVolumeChart />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+            >
               <WorkloadBalanceChart />
             </div>
           </div>
-          <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+          <div
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+          >
             <PrSizeChart />
           </div>
         </TabsContent>
@@ -106,14 +124,23 @@ export default function TrendPage() {
         {/* Quality Tab */}
         <TabsContent value="quality" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '0ms' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '0ms' }}
+            >
               <SlaComplianceChart />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+            >
               <ReworkRateChart />
             </div>
           </div>
-          <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+          <div
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+          >
             <ApprovalRateChart />
           </div>
         </TabsContent>
