@@ -53,12 +53,12 @@ export function CreateWorkspaceDialog({
     setIsSubmitting(true);
     try {
       const result = await createOrgMutation.mutateAsync(data);
-      
+
       // Switch to the new organization
       if (result.organization?.id) {
         setCurrentOrg(result.organization.id);
       }
-      
+
       toast.success('Workspace created successfully');
       reset();
       onOpenChange(false);
@@ -98,7 +98,9 @@ export function CreateWorkspaceDialog({
                 disabled={isSubmitting}
               />
               {errors.name && (
-                <p className="text-destructive text-sm">{errors.name.message}</p>
+                <p className="text-destructive text-sm">
+                  {errors.name.message}
+                </p>
               )}
             </div>
             <div className="grid gap-2">
@@ -112,7 +114,9 @@ export function CreateWorkspaceDialog({
                 disabled={isSubmitting}
               />
               {errors.slug && (
-                <p className="text-destructive text-sm">{errors.slug.message}</p>
+                <p className="text-destructive text-sm">
+                  {errors.slug.message}
+                </p>
               )}
               <p className="text-muted-foreground text-xs">
                 Used in URLs. Leave empty to auto-generate from name.
@@ -138,4 +142,3 @@ export function CreateWorkspaceDialog({
     </Dialog>
   );
 }
-
