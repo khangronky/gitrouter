@@ -1,29 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { AccountSettings } from '@/components/settings/account-settings';
 import { TeamSettings } from '@/components/settings/team-settings';
 import { IntegrationsSettings } from '@/components/settings/integrations-settings';
 import { RepositorySettings } from '@/components/settings/repository-settings';
 import { NotificationSettings } from '@/components/settings/notification-settings';
-import { useOrganizations } from '@/lib/api/organizations';
+import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SettingsPage() {
-  const { data, isLoading, error } = useOrganizations();
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
-
-  // Auto-select first org (user's own org)
-  useEffect(() => {
-    if (
-      data?.organizations &&
-      data.organizations.length > 0 &&
-      !selectedOrgId
-    ) {
-      setSelectedOrgId(data.organizations[0].id);
-    }
-  }, [data?.organizations, selectedOrgId]);
+  const { currentOrg, currentOrgId, isLoading, organizations } =
+    useCurrentOrganization();
 
   if (isLoading) {
     return (
@@ -37,7 +25,7 @@ export default function SettingsPage() {
     );
   }
 
-  if (error || !data?.organizations?.length) {
+  if (!organizations.length) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
@@ -50,9 +38,7 @@ export default function SettingsPage() {
     );
   }
 
-  const currentOrg = data.organizations.find((o) => o.id === selectedOrgId);
-
-  if (!currentOrg || !selectedOrgId) {
+  if (!currentOrg || !currentOrgId) {
     return null;
   }
 
@@ -78,7 +64,7 @@ export default function SettingsPage() {
         {/* Team Setting */}
         <section className="mb-8">
           <h2 className="mb-4 text-xl font-semibold">Team Setting</h2>
-          <TeamSettings orgId={selectedOrgId} orgName={currentOrg.name} />
+          <TeamSettings orgId={currentOrgId} orgName={currentOrg.name} />
         </section>
 
         <Separator className="my-8" />
@@ -86,7 +72,7 @@ export default function SettingsPage() {
         {/* Integrations Setting */}
         <section className="mb-8">
           <h2 className="mb-4 text-xl font-semibold">Integrations Setting</h2>
-          <IntegrationsSettings orgId={selectedOrgId} />
+          <IntegrationsSettings orgId={currentOrgId} />
         </section>
 
         {/* Repository */}
@@ -95,7 +81,7 @@ export default function SettingsPage() {
           <p className="mb-4 text-sm text-muted-foreground">
             GitHub Repositories (enable/disable which ones track)
           </p>
-          <RepositorySettings orgId={selectedOrgId} />
+          <RepositorySettings orgId={currentOrgId} />
         </section>
 
         <Separator className="my-8" />
@@ -103,7 +89,7 @@ export default function SettingsPage() {
         {/* Notifications Setting */}
         <section className="mb-8">
           <h2 className="mb-4 text-xl font-semibold">Notifications Setting</h2>
-          <NotificationSettings orgId={selectedOrgId} />
+          <NotificationSettings orgId={currentOrgId} />
         </section>
       </div>
     </div>

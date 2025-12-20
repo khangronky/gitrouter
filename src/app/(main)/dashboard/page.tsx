@@ -9,6 +9,7 @@ import { StalePullRequests } from '@/components/dashboard/stale-pull-requests';
 import { WorkloadChart } from '@/components/dashboard/workload-chart';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
+import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import type {
   TimeRange,
   KpiRowData,
@@ -57,6 +58,7 @@ interface DashboardResponse {
 }
 
 export default function Page() {
+  const { currentOrgId, isLoading: orgLoading } = useCurrentOrganization();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,33 +66,44 @@ export default function Page() {
     null
   );
 
-  const fetchDashboard = useCallback(async (range: TimeRange) => {
-    setIsLoading(true);
-    setError(null);
+  const fetchDashboard = useCallback(
+    async (range: TimeRange, orgId: string | null) => {
+      if (!orgId) return;
 
-    try {
-      const response = await fetch(`/api/dashboard?timeRange=${range}`);
-      const data: DashboardResponse = await response.json();
+      setIsLoading(true);
+      setError(null);
 
-      if (!response.ok || !data.success) {
-        setError(
-          data.message || data.error || 'Failed to fetch dashboard data'
-        );
-        return;
+      try {
+        const params = new URLSearchParams({
+          timeRange: range,
+          organizationId: orgId,
+        });
+        const response = await fetch(`/api/dashboard?${params.toString()}`);
+        const data: DashboardResponse = await response.json();
+
+        if (!response.ok || !data.success) {
+          setError(
+            data.message || data.error || 'Failed to fetch dashboard data'
+          );
+          return;
+        }
+
+        setDashboardData(data.data);
+      } catch (err) {
+        console.error('Error fetching dashboard:', err);
+        setError('Failed to connect to the server. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
-
-      setDashboardData(data.data);
-    } catch (err) {
-      console.error('Error fetching dashboard:', err);
-      setError('Failed to connect to the server. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchDashboard(timeRange);
-  }, [timeRange, fetchDashboard]);
+    if (!orgLoading && currentOrgId) {
+      fetchDashboard(timeRange, currentOrgId);
+    }
+  }, [timeRange, currentOrgId, orgLoading, fetchDashboard]);
 
   const handleTimeRangeChange = (value: string) => {
     if (value) {
@@ -98,7 +111,7 @@ export default function Page() {
     }
   };
 
-  if (isLoading && !dashboardData) {
+  if ((isLoading || orgLoading) && !dashboardData) {
     return <DashboardSkeleton />;
   }
 
@@ -141,7 +154,7 @@ export default function Page() {
           <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
             <p className="text-sm text-destructive">{error}</p>
             <button
-              onClick={() => fetchDashboard(timeRange)}
+              onClick={() => fetchDashboard(timeRange, currentOrgId)}
               className="mt-2 text-sm text-primary hover:underline"
             >
               Try again
