@@ -40,8 +40,11 @@ const DEFAULT_FORM_DATA: RuleFormData = {
 };
 
 export default function RulesBuilderPage() {
-  const { currentOrgId, isLoading: orgsLoading, organizations } =
-    useCurrentOrganization();
+  const {
+    currentOrgId,
+    isLoading: orgsLoading,
+    organizations,
+  } = useCurrentOrganization();
   const user = useUserStore((state) => state.user);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

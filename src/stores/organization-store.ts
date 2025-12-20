@@ -16,7 +16,8 @@ export const useOrganizationStore = create<OrganizationState>()(
     (set) => ({
       currentOrgId: null,
       isInitialized: false,
-      setCurrentOrg: (orgId) => set({ currentOrgId: orgId, isInitialized: true }),
+      setCurrentOrg: (orgId) =>
+        set({ currentOrgId: orgId, isInitialized: true }),
       clearCurrentOrg: () => set({ currentOrgId: null }),
       setInitialized: (initialized) => set({ isInitialized: initialized }),
     }),
@@ -31,4 +32,3 @@ export const useOrganizationStore = create<OrganizationState>()(
     }
   )
 );
-

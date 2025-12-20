@@ -15,7 +15,7 @@ export function useWorkspaceShortcuts() {
       // Check for CMD (Mac) or Ctrl (Windows/Linux) + number
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const modifierKey = isMac ? event.metaKey : event.ctrlKey;
-      
+
       if (!modifierKey) return;
 
       // Check if key is a number 1-9
@@ -46,4 +46,3 @@ export function useWorkspaceShortcuts() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [organizations, switchByIndex]);
 }
-

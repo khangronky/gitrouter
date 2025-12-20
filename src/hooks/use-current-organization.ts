@@ -85,7 +85,9 @@ export function useCurrentOrganization(): UseCurrentOrganizationReturn {
       // Remove org param if switching away from URL-specified org
       const params = new URLSearchParams(searchParams.toString());
       params.delete('org');
-      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      const newUrl = params.toString()
+        ? `${pathname}?${params.toString()}`
+        : pathname;
       router.replace(newUrl);
     }
   };
@@ -106,4 +108,3 @@ export function useCurrentOrganization(): UseCurrentOrganizationReturn {
     switchByIndex,
   };
 }
-
