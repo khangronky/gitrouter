@@ -3,10 +3,7 @@
 import { Line, LineChart, ResponsiveContainer } from 'recharts';
 import { Card, CardAction, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  IconTrendingDown,
-  IconTrendingUp,
-} from '@tabler/icons-react';
+import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 
 interface PerformanceKpi {
   label: string;
@@ -78,7 +75,13 @@ const performanceKpis: PerformanceKpi[] = [
   },
 ];
 
-function Sparkline({ data, color }: { data: { value: number }[]; color: string }) {
+function Sparkline({
+  data,
+  color,
+}: {
+  data: { value: number }[];
+  color: string;
+}) {
   return (
     <ResponsiveContainer width="100%" height={40}>
       <LineChart data={data}>
@@ -105,8 +108,8 @@ export function PerformanceKpiRow() {
           <Card
             key={kpi.label}
             className="p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-md animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
-            style={{ 
-              animationDelay: `${index * 50}ms`, 
+            style={{
+              animationDelay: `${index * 50}ms`,
               animationFillMode: 'backwards',
             }}
           >
@@ -153,4 +156,3 @@ export function PerformanceKpiRow() {
     </div>
   );
 }
-

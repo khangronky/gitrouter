@@ -36,9 +36,12 @@ export default function PerformancePage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Performance</h1>
           <p className="text-sm text-muted-foreground">
-            {timeRange === '7d' && 'Team and repository metrics for the last 7 days'}
-            {timeRange === '30d' && 'Team and repository metrics for the last 30 days'}
-            {timeRange === '3m' && 'Team and repository metrics for the last 3 months'}
+            {timeRange === '7d' &&
+              'Team and repository metrics for the last 7 days'}
+            {timeRange === '30d' &&
+              'Team and repository metrics for the last 30 days'}
+            {timeRange === '3m' &&
+              'Team and repository metrics for the last 3 months'}
           </p>
         </div>
         <ToggleGroup
@@ -77,18 +80,36 @@ export default function PerformancePage() {
         {/* Reviewers Tab */}
         <TabsContent value="reviewers" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '0ms' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '0ms' }}
+            >
               <ReviewerPerformanceTable />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+            >
               <ReviewQualityChart />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{
+                animationDelay: '150ms',
+                animationFillMode: 'backwards',
+              }}
+            >
               <CommentsDistributionChart />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '225ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{
+                animationDelay: '225ms',
+                animationFillMode: 'backwards',
+              }}
+            >
               <BottleneckChart />
             </div>
           </div>
@@ -97,14 +118,23 @@ export default function PerformancePage() {
         {/* Repositories Tab */}
         <TabsContent value="repositories" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '0ms' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '0ms' }}
+            >
               <RepoComparisonChart />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+            >
               <MergeSuccessChart />
             </div>
           </div>
-          <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+          <div
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+          >
             <PrSizeByAuthorChart />
           </div>
         </TabsContent>
@@ -112,14 +142,23 @@ export default function PerformancePage() {
         {/* Trends Tab */}
         <TabsContent value="trends" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '0ms' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '0ms' }}
+            >
               <TeamSpeedChart />
             </div>
-            <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}>
+            <div
+              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+            >
               <ReviewThroughputChart />
             </div>
           </div>
-          <div className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300" style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}>
+          <div
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+          >
             <ResponseByHourChart />
           </div>
         </TabsContent>

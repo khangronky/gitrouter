@@ -1,6 +1,13 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   ChartConfig,
@@ -91,9 +98,7 @@ export function RepoComparisonChart() {
       </ChartContainer>
       <p className="text-muted-foreground text-sm mt-4">
         Slowest:{' '}
-        <span className="text-foreground font-medium">
-          backend (4.2h avg)
-        </span>
+        <span className="text-foreground font-medium">backend (4.2h avg)</span>
         {' | '}
         Fastest:{' '}
         <span className="text-foreground font-medium">docs (1.2h avg)</span>
@@ -101,4 +106,3 @@ export function RepoComparisonChart() {
     </Card>
   );
 }
-

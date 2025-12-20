@@ -31,9 +31,7 @@ export function ReviewThroughputChart() {
     <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>Daily Review Throughput</CardTitle>
-        <CardDescription>
-          Number of reviews completed per day
-        </CardDescription>
+        <CardDescription>Number of reviews completed per day</CardDescription>
       </div>
       <ChartContainer
         config={reviewThroughputConfig}
@@ -81,4 +79,3 @@ export function ReviewThroughputChart() {
     </Card>
   );
 }
-
