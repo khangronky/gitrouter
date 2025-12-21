@@ -107,7 +107,7 @@ export function TrendKpiRow() {
         return (
           <Card
             key={kpi.label}
-            className="p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-md animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="p-4 flex flex-col justify-between gap-3 transition-all duration-200 hover:shadow-md animate-in fade-in-50 slide-in-from-bottom-2 "
             style={{
               animationDelay: `${index * 50}ms`,
               animationFillMode: 'backwards',
