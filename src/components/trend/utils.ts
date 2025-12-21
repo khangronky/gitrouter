@@ -70,9 +70,7 @@ export function groupByWeek<T>(
 
   for (const item of data) {
     const itemDate = getDate(item);
-    const weekIndex = Math.floor(
-      (itemDate.getTime() - startTime) / msPerWeek
-    );
+    const weekIndex = Math.floor((itemDate.getTime() - startTime) / msPerWeek);
     if (weekIndex >= 0 && weekIndex < numWeeks) {
       weekMap.get(weekIndex)?.push(item);
     }
