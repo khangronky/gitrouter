@@ -1,27 +1,30 @@
 'use client';
 
+import { GitBranch, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Users, GitBranch, TrendingUp } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  PerformanceKpiRow,
-  ReviewerPerformanceTable,
-  RepoComparisonChart,
-  TeamSpeedChart,
-  ReviewThroughputChart,
-  ReviewQualityChart,
-  PrSizeByAuthorChart,
-  ResponseByHourChart,
-  MergeSuccessChart,
-  CommentsDistributionChart,
   BottleneckChart,
+  CommentsDistributionChart,
+  MergeSuccessChart,
+  PerformanceKpiRow,
+  PrSizeByAuthorChart,
+  RepoComparisonChart,
+  ResponseByHourChart,
+  ReviewerPerformanceTable,
+  ReviewQualityChart,
+  ReviewThroughputChart,
+  TeamSpeedChart,
 } from '@/components/performance';
+import { PerformanceSkeleton } from '@/components/performance/performance-skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useCurrentOrganization } from '@/hooks/use-current-organization';
 
 type TimeRange = '7d' | '30d' | '3m';
 
 export default function PerformancePage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
+  const { currentOrgId, isLoading: orgLoading } = useCurrentOrganization();
 
   const handleTimeRangeChange = (value: string) => {
     if (value) {
@@ -29,13 +32,17 @@ export default function PerformancePage() {
     }
   };
 
+  if (orgLoading || !currentOrgId) {
+    return <PerformanceSkeleton />;
+  }
+
   return (
-    <section className="p-4 space-y-6">
+    <section className="space-y-6 p-4">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Performance</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="font-bold text-2xl text-foreground">Performance</h1>
+          <p className="text-muted-foreground text-sm">
             {timeRange === '7d' &&
               'Team and repository metrics for the last 7 days'}
             {timeRange === '30d' &&
@@ -58,7 +65,7 @@ export default function PerformancePage() {
       </div>
 
       {/* Summary KPIs */}
-      <PerformanceKpiRow />
+      <PerformanceKpiRow timeRange={timeRange} organizationId={currentOrgId} />
 
       {/* Tabbed Charts */}
       <Tabs defaultValue="reviewers" className="w-full">
@@ -81,13 +88,16 @@ export default function PerformancePage() {
         <TabsContent value="reviewers" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <ReviewerPerformanceTable />
+              <ReviewerPerformanceTable
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
               <ReviewQualityChart />
@@ -95,7 +105,7 @@ export default function PerformancePage() {
           </div>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{
                 animationDelay: '150ms',
                 animationFillMode: 'backwards',
@@ -104,13 +114,16 @@ export default function PerformancePage() {
               <CommentsDistributionChart />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{
                 animationDelay: '225ms',
                 animationFillMode: 'backwards',
               }}
             >
-              <BottleneckChart />
+              <BottleneckChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
           </div>
         </TabsContent>
@@ -119,23 +132,32 @@ export default function PerformancePage() {
         <TabsContent value="repositories" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <RepoComparisonChart />
+              <RepoComparisonChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <MergeSuccessChart />
+              <MergeSuccessChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
           </div>
           <div
-            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
             style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
           >
-            <PrSizeByAuthorChart />
+            <PrSizeByAuthorChart
+              timeRange={timeRange}
+              organizationId={currentOrgId}
+            />
           </div>
         </TabsContent>
 
@@ -143,23 +165,32 @@ export default function PerformancePage() {
         <TabsContent value="trends" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <TeamSpeedChart />
+              <TeamSpeedChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <ReviewThroughputChart />
+              <ReviewThroughputChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
           </div>
           <div
-            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
             style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
           >
-            <ResponseByHourChart />
+            <ResponseByHourChart
+              timeRange={timeRange}
+              organizationId={currentOrgId}
+            />
           </div>
         </TabsContent>
       </Tabs>

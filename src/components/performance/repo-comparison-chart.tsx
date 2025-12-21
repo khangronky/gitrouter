@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import {
   Bar,
   BarChart,
@@ -8,22 +9,26 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { createClient } from '@/lib/supabase/client';
+import { PerformanceChartSkeleton } from './performance-skeleton';
+import {
+  getDateRangeFromTimeRange,
+  getOrgRepositoryIds,
+  type PerformanceChartProps,
+  verifyOrgAccess,
+} from './utils';
 
-const repoComparisonData = [
-  { repo: 'frontend', hours: 2.8 },
-  { repo: 'backend', hours: 4.2 },
-  { repo: 'api', hours: 3.1 },
-  { repo: 'mobile', hours: 3.5 },
-  { repo: 'infra', hours: 1.8 },
-  { repo: 'docs', hours: 1.2 },
-];
+interface RepoComparisonData {
+  repo: string;
+  hours: number;
+}
 
 const repoComparisonConfig = {
   hours: {
@@ -32,9 +37,112 @@ const repoComparisonConfig = {
   },
 } satisfies ChartConfig;
 
-export function RepoComparisonChart() {
+async function fetchRepoComparisonData(
+  timeRange: PerformanceChartProps['timeRange'],
+  organizationId: string
+): Promise<RepoComparisonData[]> {
+  await verifyOrgAccess(organizationId);
+
+  const supabase = createClient();
+  const startDate = getDateRangeFromTimeRange(timeRange);
+  const repoIds = await getOrgRepositoryIds(organizationId);
+
+  if (repoIds.length === 0) {
+    return [];
+  }
+
+  // Get review assignments with repository info
+  const { data: assignments } = await supabase
+    .from('review_assignments')
+    .select(
+      `
+      id,
+      assigned_at,
+      reviewed_at,
+      pull_request:pull_requests!inner (
+        repository_id,
+        repositories (
+          full_name
+        )
+      )
+    `
+    )
+    .in('pull_request.repository_id', repoIds)
+    .gte('assigned_at', startDate.toISOString())
+    .not('reviewed_at', 'is', null);
+
+  if (!assignments || assignments.length === 0) {
+    return [];
+  }
+
+  // Group by repository
+  const repoStats: Record<
+    string,
+    { name: string; totalTime: number; count: number }
+  > = {};
+
+  assignments.forEach((a) => {
+    if (!a.reviewed_at) return;
+    const repo = a.pull_request as any;
+    const repoId = repo.repository_id;
+    const repoName = repo.repositories?.full_name || 'Unknown';
+
+    if (!repoStats[repoId]) {
+      repoStats[repoId] = { name: repoName, totalTime: 0, count: 0 };
+    }
+
+    const hours =
+      (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) /
+      3600000;
+    repoStats[repoId].totalTime += hours;
+    repoStats[repoId].count++;
+  });
+
+  // Calculate averages and format
+  const data: RepoComparisonData[] = Object.values(repoStats)
+    .map((stats) => ({
+      repo: stats.name.split('/').pop() || stats.name, // Just repo name, not org/repo
+      hours: stats.count > 0 ? stats.totalTime / stats.count : 0,
+    }))
+    .sort((a, b) => b.hours - a.hours)
+    .slice(0, 6); // Top 6
+
+  return data;
+}
+
+export function RepoComparisonChart({
+  timeRange,
+  organizationId,
+}: PerformanceChartProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['repo-comparison-chart', timeRange, organizationId],
+    queryFn: () => fetchRepoComparisonData(timeRange, organizationId),
+    enabled: !!organizationId,
+  });
+
+  if (isLoading || !data) {
+    return <PerformanceChartSkeleton chartType="bar" />;
+  }
+
+  if (data.length === 0) {
+    return (
+      <Card className="flex flex-col p-4 transition-all duration-200">
+        <div className="flex flex-col gap-1">
+          <CardTitle>Repository Comparison (Avg Review Time)</CardTitle>
+          <CardDescription>Average review time by repository</CardDescription>
+        </div>
+        <p className="mt-4 text-muted-foreground text-sm">
+          No review data available for this period.
+        </p>
+      </Card>
+    );
+  }
+
+  const slowest = data[0];
+  const fastest = data[data.length - 1];
+
   return (
-    <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
+    <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>Repository Comparison (Avg Review Time)</CardTitle>
         <CardDescription>Average review time by repository</CardDescription>
@@ -44,7 +152,7 @@ export function RepoComparisonChart() {
         className="mt-4 h-[220px] w-full flex-1"
       >
         <BarChart
-          data={repoComparisonData}
+          data={data}
           layout="vertical"
           margin={{ top: 0, right: 30, bottom: 0, left: 0 }}
         >
@@ -71,7 +179,7 @@ export function RepoComparisonChart() {
                 formatter={(value) => (
                   <div className="flex items-center gap-2">
                     <span>Avg Review Time</span>
-                    <span className="font-mono font-medium">{value}h</span>
+                    <span className="font-medium font-mono">{value}h</span>
                   </div>
                 )}
               />
@@ -91,17 +199,21 @@ export function RepoComparisonChart() {
               offset={8}
               className="fill-foreground"
               fontSize={12}
-              formatter={(value: number) => `${value}h`}
+              formatter={(value: number) => `${value.toFixed(1)}h`}
             />
           </Bar>
         </BarChart>
       </ChartContainer>
-      <p className="text-muted-foreground text-sm mt-4">
+      <p className="mt-4 text-muted-foreground text-sm">
         Slowest:{' '}
-        <span className="text-foreground font-medium">backend (4.2h avg)</span>
+        <span className="font-medium text-foreground">
+          {slowest.repo} ({slowest.hours.toFixed(1)}h avg)
+        </span>
         {' | '}
         Fastest:{' '}
-        <span className="text-foreground font-medium">docs (1.2h avg)</span>
+        <span className="font-medium text-foreground">
+          {fastest.repo} ({fastest.hours.toFixed(1)}h avg)
+        </span>
       </p>
     </Card>
   );
