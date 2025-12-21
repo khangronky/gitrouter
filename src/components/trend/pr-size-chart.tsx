@@ -1,24 +1,33 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
 } from '@/components/ui/chart';
+import { createClient } from '@/lib/supabase/client';
+import { TrendChartSkeleton } from './trend-skeleton';
+import {
+  getDateRangeFromTimeRange,
+  getOrgRepositoryIds,
+  getWeekLabel,
+  getWeeksFromTimeRange,
+  type TrendChartProps,
+  verifyOrgAccess,
+} from './utils';
 
-const prSizeData = [
-  { week: 'Week 1', small: 12, medium: 8, large: 5 },
-  { week: 'Week 2', small: 15, medium: 10, large: 4 },
-  { week: 'Week 3', small: 18, medium: 9, large: 3 },
-  { week: 'Week 4', small: 20, medium: 8, large: 3 },
-  { week: 'Week 5', small: 22, medium: 7, large: 2 },
-  { week: 'Week 6', small: 25, medium: 6, large: 2 },
-];
+interface PrSizeData {
+  week: string;
+  small: number;
+  medium: number;
+  large: number;
+}
 
 const prSizeConfig = {
   small: {
@@ -35,9 +44,94 @@ const prSizeConfig = {
   },
 } satisfies ChartConfig;
 
-export function PrSizeChart() {
+async function fetchPrSizeData(
+  timeRange: TrendChartProps['timeRange'],
+  organizationId: string
+): Promise<PrSizeData[]> {
+  await verifyOrgAccess(organizationId);
+
+  const supabase = createClient();
+  const startDate = getDateRangeFromTimeRange(timeRange);
+  const numWeeks = getWeeksFromTimeRange(timeRange);
+  const repoIds = await getOrgRepositoryIds(organizationId);
+
+  if (repoIds.length === 0) {
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({
+        week: getWeekLabel(i),
+        small: 0,
+        medium: 0,
+        large: 0,
+      }));
+  }
+
+  // Get PRs with size info
+  const { data: prs } = await supabase
+    .from('pull_requests')
+    .select('id, created_at, additions, deletions')
+    .in('repository_id', repoIds)
+    .gte('created_at', startDate.toISOString());
+
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+  const startTime = startDate.getTime();
+
+  // Initialize weekly data
+  const weeklyCounts: { small: number[]; medium: number[]; large: number[] } = {
+    small: Array(numWeeks).fill(0),
+    medium: Array(numWeeks).fill(0),
+    large: Array(numWeeks).fill(0),
+  };
+
+  if (prs) {
+    for (const pr of prs) {
+      const createdAt = new Date(pr.created_at);
+      const weekIndex = Math.floor(
+        (createdAt.getTime() - startTime) / msPerWeek
+      );
+
+      if (weekIndex >= 0 && weekIndex < numWeeks) {
+        const totalLines = (pr.additions || 0) + (pr.deletions || 0);
+
+        if (totalLines < 100) {
+          weeklyCounts.small[weekIndex]++;
+        } else if (totalLines <= 500) {
+          weeklyCounts.medium[weekIndex]++;
+        } else {
+          weeklyCounts.large[weekIndex]++;
+        }
+      }
+    }
+  }
+
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      small: weeklyCounts.small[i],
+      medium: weeklyCounts.medium[i],
+      large: weeklyCounts.large[i],
+    }));
+}
+
+export function PrSizeChart({ timeRange, organizationId }: TrendChartProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['pr-size-chart', timeRange, organizationId],
+    queryFn: () => fetchPrSizeData(timeRange, organizationId),
+    enabled: !!organizationId,
+  });
+
+  if (isLoading || !data) {
+    return <TrendChartSkeleton chartType="bar" />;
+  }
+
+  // Calculate trend
+  const firstWeekSmall = data[0]?.small || 0;
+  const lastWeekSmall = data[data.length - 1]?.small || 0;
+  const smallTrend = lastWeekSmall > firstWeekSmall;
+
   return (
-    <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
+    <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>PR Size Distribution Trend</CardTitle>
         <CardDescription>
@@ -46,7 +140,7 @@ export function PrSizeChart() {
       </div>
       <ChartContainer config={prSizeConfig} className="h-[200px] w-full flex-1">
         <BarChart
-          data={prSizeData}
+          data={data}
           margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
         >
           <CartesianGrid
@@ -59,13 +153,13 @@ export function PrSizeChart() {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            className="text-xs text-muted-foreground"
+            className="text-muted-foreground text-xs"
           />
           <YAxis
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            className="text-xs text-muted-foreground"
+            className="text-muted-foreground text-xs"
           />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
@@ -89,10 +183,16 @@ export function PrSizeChart() {
           />
         </BarChart>
       </ChartContainer>
-      <p className="text-muted-foreground text-sm mt-4">
+      <p className="mt-4 text-muted-foreground text-sm">
         Trend:{' '}
-        <span className="text-green-600 font-medium">More small PRs</span>
-        <span className="text-foreground"> (better for reviews)</span>
+        {smallTrend ? (
+          <>
+            <span className="font-medium text-green-600">More small PRs</span>
+            <span className="text-foreground"> (better for reviews)</span>
+          </>
+        ) : (
+          <span className="text-foreground">Stable distribution</span>
+        )}
       </p>
     </Card>
   );

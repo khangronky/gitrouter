@@ -1,25 +1,28 @@
 'use client';
 
+import { BarChart3, ShieldCheck, Zap } from 'lucide-react';
 import { useState } from 'react';
-import { Zap, BarChart3, ShieldCheck } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
-  TrendKpiRow,
-  ReviewSpeedChart,
-  SlaComplianceChart,
-  PrVolumeChart,
-  WorkloadBalanceChart,
+  ApprovalRateChart,
   CycleTimeChart,
   FirstResponseChart,
-  ReworkRateChart,
   PrSizeChart,
-  ApprovalRateChart,
+  PrVolumeChart,
+  ReviewSpeedChart,
+  ReworkRateChart,
+  SlaComplianceChart,
+  TrendKpiRow,
+  WorkloadBalanceChart,
 } from '@/components/trend';
+import { TrendSkeleton } from '@/components/trend/trend-skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useCurrentOrganization } from '@/hooks/use-current-organization';
 
 type TimeRange = '6w' | '12w' | '6m';
 
 export default function TrendPage() {
+  const { currentOrgId, isLoading: orgLoading } = useCurrentOrganization();
   const [timeRange, setTimeRange] = useState<TimeRange>('6w');
 
   const handleTimeRangeChange = (value: string) => {
@@ -28,13 +31,17 @@ export default function TrendPage() {
     }
   };
 
+  if (orgLoading || !currentOrgId) {
+    return <TrendSkeleton />;
+  }
+
   return (
-    <section className="p-4 space-y-6">
+    <section className="space-y-6 p-4">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Trend</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="font-bold text-2xl text-foreground">Trend</h1>
+          <p className="text-muted-foreground text-sm">
             {timeRange === '6w' && 'Historical trends over the last 6 weeks'}
             {timeRange === '12w' && 'Historical trends over the last 12 weeks'}
             {timeRange === '6m' && 'Historical trends over the last 6 months'}
@@ -54,7 +61,7 @@ export default function TrendPage() {
       </div>
 
       {/* Summary KPIs */}
-      <TrendKpiRow />
+      <TrendKpiRow timeRange={timeRange} organizationId={currentOrgId} />
 
       {/* Tabbed Charts */}
       <Tabs defaultValue="speed" className="w-full">
@@ -77,23 +84,32 @@ export default function TrendPage() {
         <TabsContent value="speed" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <ReviewSpeedChart />
+              <ReviewSpeedChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <CycleTimeChart />
+              <CycleTimeChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
           </div>
           <div
-            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
             style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
           >
-            <FirstResponseChart />
+            <FirstResponseChart
+              timeRange={timeRange}
+              organizationId={currentOrgId}
+            />
           </div>
         </TabsContent>
 
@@ -101,23 +117,29 @@ export default function TrendPage() {
         <TabsContent value="volume" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <PrVolumeChart />
+              <PrVolumeChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <WorkloadBalanceChart />
+              <WorkloadBalanceChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
           </div>
           <div
-            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
             style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
           >
-            <PrSizeChart />
+            <PrSizeChart timeRange={timeRange} organizationId={currentOrgId} />
           </div>
         </TabsContent>
 
@@ -125,23 +147,32 @@ export default function TrendPage() {
         <TabsContent value="quality" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <SlaComplianceChart />
+              <SlaComplianceChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
             <div
-              className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <ReworkRateChart />
+              <ReworkRateChart
+                timeRange={timeRange}
+                organizationId={currentOrgId}
+              />
             </div>
           </div>
           <div
-            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
             style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
           >
-            <ApprovalRateChart />
+            <ApprovalRateChart
+              timeRange={timeRange}
+              organizationId={currentOrgId}
+            />
           </div>
         </TabsContent>
       </Tabs>
