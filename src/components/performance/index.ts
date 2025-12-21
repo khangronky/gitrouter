@@ -9,4 +9,3 @@ export { ResponseByHourChart } from './response-by-hour-chart';
 export { MergeSuccessChart } from './merge-success-chart';
 export { CommentsDistributionChart } from './comments-distribution-chart';
 export { BottleneckChart } from './bottleneck-chart';
-

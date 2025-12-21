@@ -73,11 +73,8 @@ export function BottleneckChart() {
         <span className="text-red-600 font-medium">Eve (12 times)</span>
         {' | '}
         Lowest:{' '}
-        <span className="text-green-600 font-medium">
-          Charlie (2 times)
-        </span>
+        <span className="text-green-600 font-medium">Charlie (2 times)</span>
       </p>
     </Card>
   );
 }
-

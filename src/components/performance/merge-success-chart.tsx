@@ -1,6 +1,13 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   ChartConfig,
@@ -78,4 +85,3 @@ export function MergeSuccessChart() {
     </Card>
   );
 }
-

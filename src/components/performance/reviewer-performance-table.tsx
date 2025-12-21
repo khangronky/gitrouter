@@ -80,13 +80,9 @@ export function ReviewerPerformanceTable() {
           <TableBody>
             {reviewerPerformanceData.map((row) => (
               <TableRow key={row.reviewer}>
-                <TableCell className="font-medium">
-                  {row.reviewer}
-                </TableCell>
+                <TableCell className="font-medium">{row.reviewer}</TableCell>
                 <TableCell>{row.avgTime}</TableCell>
-                <TableCell className="text-center">
-                  {row.prsReviewed}
-                </TableCell>
+                <TableCell className="text-center">{row.prsReviewed}</TableCell>
                 <TableCell className="text-center">{row.sla}</TableCell>
                 <TableCell className="text-center">
                   <Badge
@@ -118,4 +114,3 @@ export function ReviewerPerformanceTable() {
     </Card>
   );
 }
-

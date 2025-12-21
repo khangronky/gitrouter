@@ -33,9 +33,7 @@ export function ResponseByHourChart() {
     <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>Response Time by Hour</CardTitle>
-        <CardDescription>
-          When reviewers are fastest to respond
-        </CardDescription>
+        <CardDescription>When reviewers are fastest to respond</CardDescription>
       </div>
       <ChartContainer
         config={responseByHourConfig}
@@ -74,16 +72,11 @@ export function ResponseByHourChart() {
       </ChartContainer>
       <p className="text-muted-foreground text-sm mt-4">
         Fastest:{' '}
-        <span className="text-foreground font-medium">
-          10am (12 min avg)
-        </span>
+        <span className="text-foreground font-medium">10am (12 min avg)</span>
         {' | '}
         Slowest:{' '}
-        <span className="text-foreground font-medium">
-          12pm (35 min avg)
-        </span>
+        <span className="text-foreground font-medium">12pm (35 min avg)</span>
       </p>
     </Card>
   );
 }
-

@@ -70,9 +70,7 @@ export function CommentsDistributionChart() {
       </ChartContainer>
       <p className="text-muted-foreground text-sm mt-4">
         Most thorough:{' '}
-        <span className="text-foreground font-medium">
-          Charlie (12.1 avg)
-        </span>
+        <span className="text-foreground font-medium">Charlie (12.1 avg)</span>
         {' | '}
         Team avg:{' '}
         <span className="text-foreground font-medium">7.0 comments</span>
@@ -80,4 +78,3 @@ export function CommentsDistributionChart() {
     </Card>
   );
 }
-

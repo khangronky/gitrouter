@@ -77,9 +77,7 @@ export function TeamSpeedChart() {
             tickFormatter={(value) => `${value}h`}
             className="text-xs text-muted-foreground"
           />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="line" />}
-          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Area
             type="monotone"
             dataKey="hours"
@@ -97,4 +95,3 @@ export function TeamSpeedChart() {
     </Card>
   );
 }
-
