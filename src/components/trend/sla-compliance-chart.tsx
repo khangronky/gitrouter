@@ -63,9 +63,7 @@ export function SlaComplianceChart() {
             domain={[0, 100]}
             className="text-xs text-muted-foreground"
           />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="line" />}
-          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Line
             type="monotone"
             dataKey="percentage"
@@ -95,4 +93,3 @@ export function SlaComplianceChart() {
     </Card>
   );
 }
-

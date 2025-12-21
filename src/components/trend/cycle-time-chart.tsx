@@ -61,9 +61,7 @@ export function CycleTimeChart() {
             tickFormatter={(value) => `${value}h`}
             className="text-xs text-muted-foreground"
           />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="line" />}
-          />
+          <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Line
             type="monotone"
             dataKey="hours"
@@ -86,4 +84,3 @@ export function CycleTimeChart() {
     </Card>
   );
 }
-
