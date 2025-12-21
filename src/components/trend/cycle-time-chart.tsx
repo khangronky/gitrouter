@@ -103,13 +103,7 @@ export function CycleTimeChart({ timeRange, organizationId }: TrendChartProps) {
   });
 
   if (isLoading || !data) {
-    return (
-      <TrendChartSkeleton
-        title="Review Cycle Time Trend"
-        description="Average time from PR creation to merge"
-        chartType="line"
-      />
-    );
+    return <TrendChartSkeleton chartType="line" />;
   }
 
   // Calculate improvement
