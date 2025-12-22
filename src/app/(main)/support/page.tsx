@@ -36,7 +36,8 @@ const pageGuides = [
     title: 'Dashboard',
     icon: ChartColumnIncreasing,
     url: '/dashboard',
-    description: 'Your central hub for monitoring PR activity and team performance',
+    description:
+      'Your central hub for monitoring PR activity and team performance',
     features: [
       'View real-time PR statistics and metrics',
       'Monitor reviewer workload distribution',
@@ -110,50 +111,65 @@ const quickTips = [
   {
     icon: Zap,
     title: 'Sortable Tables',
-    description: 'Click column headers in Rules Builder to sort data ascending or descending',
+    description:
+      'Click column headers in Rules Builder to sort data ascending or descending',
   },
   {
     icon: Clock,
     title: 'Time Range Filters',
-    description: 'Use the time range toggle on Dashboard to focus on recent or historical data',
+    description:
+      'Use the time range toggle on Dashboard to focus on recent or historical data',
   },
   {
     icon: Shield,
     title: 'Rule Priority',
-    description: 'Higher priority rules (lower number) are evaluated first in the Rules Builder',
+    description:
+      'Higher priority rules (lower number) are evaluated first in the Rules Builder',
   },
   {
     icon: Users,
     title: 'Chart Tooltips',
-    description: 'Hover over any chart element to see detailed data values and insights',
+    description:
+      'Hover over any chart element to see detailed data values and insights',
   },
 ];
 
 const faqs = [
   {
     question: 'How do I connect my GitHub organization?',
-    answer: 'Go to Settings and click "Connect GitHub". You\'ll need admin permissions for your organization to complete the OAuth flow.',
+    answer:
+      'Go to Settings and click "Connect GitHub". You\'ll need admin permissions for your organization to complete the OAuth flow.',
   },
   {
     question: 'How do routing rules work?',
-    answer: 'Routing rules automatically assign reviewers based on conditions you define. Rules are evaluated in priority order (lowest number first), and the first matching rule assigns the reviewers.',
+    answer:
+      'Routing rules automatically assign reviewers based on conditions you define. Rules are evaluated in priority order (lowest number first), and the first matching rule assigns the reviewers.',
   },
   {
     question: 'What counts as a "stale" PR?',
-    answer: 'A PR is considered stale if it has been open for more than 48 hours without activity. You can customize this threshold in Settings.',
+    answer:
+      'A PR is considered stale if it has been open for more than 48 hours without activity. You can customize this threshold in Settings.',
   },
   {
     question: 'How is reviewer workload calculated?',
-    answer: 'Workload is based on the number of PRs currently assigned to a reviewer. The capacity can be set per-reviewer in the organization settings.',
+    answer:
+      'Workload is based on the number of PRs currently assigned to a reviewer. The capacity can be set per-reviewer in the organization settings.',
   },
   {
     question: 'How do I set up SLA targets?',
-    answer: 'Navigate to Settings > SLA Configuration to set review time targets. You can define different SLAs for different repository types.',
+    answer:
+      'Navigate to Settings > SLA Configuration to set review time targets. You can define different SLAs for different repository types.',
   },
 ];
 
 // Step indicator component
-function StepIndicator({ stepNumber, completed }: { stepNumber: number; completed: boolean }) {
+function StepIndicator({
+  stepNumber,
+  completed,
+}: {
+  stepNumber: number;
+  completed: boolean;
+}) {
   if (completed) {
     return (
       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-white">
@@ -173,10 +189,30 @@ const STEPS_STORAGE_KEY = 'gitrouter-getting-started-steps';
 
 // Step definitions
 const steps = [
-  { id: 'github', label: 'Connect your GitHub organization', description: 'in Settings to sync your repositories and team members.', url: '/settings' },
-  { id: 'rules', label: 'Create routing rules', description: 'in the Rules Builder to automate reviewer assignments.', url: '/rules-builder' },
-  { id: 'dashboard', label: 'Monitor your Dashboard', description: 'to track PR metrics, bottlenecks, and team workload.', url: '/dashboard' },
-  { id: 'trends', label: 'Analyze trends', description: 'in the Analytics section to identify areas for improvement.', url: '/trend' },
+  {
+    id: 'github',
+    label: 'Connect your GitHub organization',
+    description: 'in Settings to sync your repositories and team members.',
+    url: '/settings',
+  },
+  {
+    id: 'rules',
+    label: 'Create routing rules',
+    description: 'in the Rules Builder to automate reviewer assignments.',
+    url: '/rules-builder',
+  },
+  {
+    id: 'dashboard',
+    label: 'Monitor your Dashboard',
+    description: 'to track PR metrics, bottlenecks, and team workload.',
+    url: '/dashboard',
+  },
+  {
+    id: 'trends',
+    label: 'Analyze trends',
+    description: 'in the Analytics section to identify areas for improvement.',
+    url: '/trend',
+  },
 ];
 
 export default function SupportPage() {
@@ -219,8 +255,9 @@ export default function SupportPage() {
           <h1 className="text-3xl font-bold text-foreground">Support Center</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Welcome to GitRouter! This guide will help you understand and navigate the application. 
-          Explore the sections below to get the most out of your PR management workflow.
+          Welcome to GitRouter! This guide will help you understand and navigate
+          the application. Explore the sections below to get the most out of
+          your PR management workflow.
         </p>
       </div>
 
@@ -238,14 +275,17 @@ export default function SupportPage() {
               </span>
             </div>
             <CardDescription className="text-base mb-4">
-              GitRouter helps you automate and optimize your PR review workflow. Complete these steps to get started:
+              GitRouter helps you automate and optimize your PR review workflow.
+              Complete these steps to get started:
             </CardDescription>
-            
+
             {/* Progress bar */}
             <div className="w-full h-2 bg-muted rounded-full mb-6 overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary transition-all duration-500"
-                style={{ width: `${isHydrated ? (completedCount / totalSteps) * 100 : 0}%` }}
+                style={{
+                  width: `${isHydrated ? (completedCount / totalSteps) * 100 : 0}%`,
+                }}
               />
             </div>
 
@@ -254,18 +294,29 @@ export default function SupportPage() {
                 const completed = isHydrated && isStepCompleted(step.id);
                 return (
                   <li key={step.id} className="flex items-start gap-3">
-                    <StepIndicator stepNumber={index + 1} completed={completed} />
+                    <StepIndicator
+                      stepNumber={index + 1}
+                      completed={completed}
+                    />
                     <div className="flex-1 flex items-center justify-between gap-2">
-                      <span className={completed ? 'text-muted-foreground line-through' : ''}>
+                      <span
+                        className={
+                          completed ? 'text-muted-foreground line-through' : ''
+                        }
+                      >
                         <strong>{step.label}</strong> {step.description}
                       </span>
-                      <Link href={step.url} onClick={() => markStepComplete(step.id)}>
-                        <Button 
-                          variant={completed ? 'ghost' : 'outline'} 
-                          size="sm" 
+                      <Link
+                        href={step.url}
+                        onClick={() => markStepComplete(step.id)}
+                      >
+                        <Button
+                          variant={completed ? 'ghost' : 'outline'}
+                          size="sm"
                           className="h-7 gap-1 shrink-0 cursor-pointer"
                         >
-                          {completed ? 'Revisit' : 'Go'} <ArrowRight className="h-3 w-3" />
+                          {completed ? 'Revisit' : 'Go'}{' '}
+                          <ArrowRight className="h-3 w-3" />
                         </Button>
                       </Link>
                     </div>
@@ -308,7 +359,10 @@ export default function SupportPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {pageGuides.map((page) => (
-            <Card key={page.title} className="p-4 hover:bg-muted/50 transition-colors">
+            <Card
+              key={page.title}
+              className="p-4 hover:bg-muted/50 transition-colors"
+            >
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-muted">
                   <page.icon className="h-5 w-5 text-foreground" />
@@ -317,7 +371,11 @@ export default function SupportPage() {
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-base">{page.title}</CardTitle>
                     <Link href={page.url}>
-                      <Button variant="ghost" size="sm" className="h-7 gap-1 cursor-pointer">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1 cursor-pointer"
+                      >
                         Go <ArrowRight className="h-3 w-3" />
                       </Button>
                     </Link>
@@ -327,7 +385,10 @@ export default function SupportPage() {
                   </CardDescription>
                   <ul className="space-y-1">
                     {page.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                      >
                         <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
                         <span>{feature}</span>
                       </li>
