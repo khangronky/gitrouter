@@ -1,43 +1,155 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from 'recharts';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { createClient } from '@/lib/supabase/client';
+import { PerformanceChartSkeleton } from './performance-skeleton';
+import {
+  getDateRangeFromTimeRange,
+  getOrgRepositoryIds,
+  type PerformanceChartProps,
+  verifyOrgAccess,
+} from './utils';
 
-const prSizeByAuthorData = [
-  { author: 'Alice', small: 15, medium: 8, large: 2 },
-  { author: 'Bob', small: 10, medium: 12, large: 5 },
-  { author: 'Charlie', small: 18, medium: 6, large: 1 },
-  { author: 'Diana', small: 12, medium: 10, large: 3 },
-];
+interface PrSizeByAuthorData {
+  author: string;
+  small: number;
+  medium: number;
+  large: number;
+}
 
-const prSizeByAuthorConfig = {
-  small: { label: 'Small', color: '#22c55e' },
-  medium: { label: 'Medium', color: '#eab308' },
-  large: { label: 'Large', color: '#ef4444' },
+const prSizeConfig = {
+  small: {
+    label: 'Small',
+    color: '#22c55e',
+  },
+  medium: {
+    label: 'Medium',
+    color: '#f59e0b',
+  },
+  large: {
+    label: 'Large',
+    color: '#ef4444',
+  },
 } satisfies ChartConfig;
 
-export function PrSizeByAuthorChart() {
+async function fetchPrSizeByAuthorData(
+  timeRange: PerformanceChartProps['timeRange'],
+  organizationId: string
+): Promise<PrSizeByAuthorData[]> {
+  await verifyOrgAccess(organizationId);
+
+  const supabase = createClient();
+  const startDate = getDateRangeFromTimeRange(timeRange);
+  const repoIds = await getOrgRepositoryIds(organizationId);
+
+  if (repoIds.length === 0) {
+    return [];
+  }
+
+  // Get PRs with author and size info
+  const { data: prs } = await supabase
+    .from('pull_requests')
+    .select('id, author_login, additions, deletions')
+    .in('repository_id', repoIds)
+    .gte('created_at', startDate.toISOString());
+
+  if (!prs || prs.length === 0) {
+    return [];
+  }
+
+  // Group by author
+  const authorStats: Record<
+    string,
+    { small: number; medium: number; large: number }
+  > = {};
+
+  prs.forEach((pr) => {
+    const author = pr.author_login || 'Unknown';
+    if (!authorStats[author]) {
+      authorStats[author] = { small: 0, medium: 0, large: 0 };
+    }
+
+    const size = (pr.additions || 0) + (pr.deletions || 0);
+    if (size < 100) {
+      authorStats[author].small++;
+    } else if (size <= 500) {
+      authorStats[author].medium++;
+    } else {
+      authorStats[author].large++;
+    }
+  });
+
+  // Format data
+  const data: PrSizeByAuthorData[] = Object.entries(authorStats)
+    .map(([author, stats]) => ({
+      author: author.startsWith('@') ? author : `@${author}`,
+      small: stats.small,
+      medium: stats.medium,
+      large: stats.large,
+    }))
+    .sort((a, b) => {
+      const totalA = a.small + a.medium + a.large;
+      const totalB = b.small + b.medium + b.large;
+      return totalB - totalA;
+    })
+    .slice(0, 8); // Top 8 authors
+
+  return data;
+}
+
+export function PrSizeByAuthorChart({
+  timeRange,
+  organizationId,
+}: PerformanceChartProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['pr-size-by-author-chart', timeRange, organizationId],
+    queryFn: () => fetchPrSizeByAuthorData(timeRange, organizationId),
+    enabled: !!organizationId,
+  });
+
+  if (isLoading || !data) {
+    return <PerformanceChartSkeleton chartType="bar" />;
+  }
+
+  if (data.length === 0) {
+    return (
+      <Card className="flex flex-col p-4 transition-all duration-200">
+        <div className="flex flex-col gap-1">
+          <CardTitle>PR Size by Author</CardTitle>
+          <CardDescription>
+            Distribution of PR sizes (small/medium/large) by author
+          </CardDescription>
+        </div>
+        <p className="mt-4 text-muted-foreground text-sm">
+          No PR data available for this period.
+        </p>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
+    <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>PR Size by Author</CardTitle>
         <CardDescription>
-          Distribution of PR sizes per team member
+          Distribution of PR sizes (small/medium/large) by author
         </CardDescription>
       </div>
       <ChartContainer
-        config={prSizeByAuthorConfig}
-        className="h-[280px] w-full flex-1"
+        config={prSizeConfig}
+        className="mt-4 h-[220px] w-full flex-1"
       >
         <BarChart
-          data={prSizeByAuthorData}
-          margin={{ top: 20, right: 10, bottom: 0, left: -20 }}
+          data={data}
+          margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
         >
           <CartesianGrid
             strokeDasharray="3 3"
@@ -58,40 +170,27 @@ export function PrSizeByAuthorChart() {
             className="text-xs"
           />
           <ChartTooltip content={<ChartTooltipContent />} />
+          <Legend />
           <Bar
             dataKey="small"
-            stackId="size"
+            stackId="a"
             fill="var(--color-small)"
             radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="medium"
-            stackId="size"
+            stackId="a"
             fill="var(--color-medium)"
             radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="large"
-            stackId="size"
+            stackId="a"
             fill="var(--color-large)"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
       </ChartContainer>
-      <div className="mt-4 flex items-center justify-center gap-4 text-sm">
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded-sm bg-[#22c55e]" />
-          <span>Small</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded-sm bg-[#eab308]" />
-          <span>Medium</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded-sm bg-[#ef4444]" />
-          <span>Large</span>
-        </div>
-      </div>
     </Card>
   );
 }

@@ -1,9 +1,9 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -25,9 +25,13 @@ const commentsDistributionConfig = {
   },
 } satisfies ChartConfig;
 
+/**
+ * NOTE: This chart is not implemented yet.
+ * It is a placeholder for the actual chart that will be implemented in the future.
+ */
 export function CommentsDistributionChart() {
   return (
-    <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
+    <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>Review Comments Distribution</CardTitle>
         <CardDescription>
@@ -68,12 +72,12 @@ export function CommentsDistributionChart() {
           />
         </BarChart>
       </ChartContainer>
-      <p className="text-muted-foreground text-sm mt-4">
+      <p className="mt-4 text-muted-foreground text-sm">
         Most thorough:{' '}
-        <span className="text-foreground font-medium">Charlie (12.1 avg)</span>
+        <span className="font-medium text-foreground">Charlie (12.1 avg)</span>
         {' | '}
         Team avg:{' '}
-        <span className="text-foreground font-medium">7.0 comments</span>
+        <span className="font-medium text-foreground">7.0 comments</span>
       </p>
     </Card>
   );
