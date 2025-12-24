@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, CartesianGrid, Legend, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
   type ChartConfig,
@@ -9,24 +9,20 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { TrendChartSkeleton } from './trend-skeleton';
-import type { ApprovalRateData } from '@/lib/schema/trend';
+import type { MergeTimeData } from '@/lib/schema/trend';
 
-interface ApprovalRateChartProps {
-  data?: ApprovalRateData[];
+interface MergeTimeChartProps {
+  data?: MergeTimeData[];
 }
 
-const approvalRateConfig = {
-  approved: {
-    label: 'Approved',
-    color: '#22c55e',
-  },
-  rejected: {
-    label: 'Changes Requested',
-    color: '#ef4444',
+const mergeTimeConfig = {
+  hours: {
+    label: 'Hours',
+    color: '#8b5cf6',
   },
 } satisfies ChartConfig;
 
-export function ApprovalRateChart({ data }: ApprovalRateChartProps) {
+export function MergeTimeChart({ data }: MergeTimeChartProps) {
   if (!data) {
     return <TrendChartSkeleton chartType="bar" />;
   }
@@ -35,33 +31,37 @@ export function ApprovalRateChart({ data }: ApprovalRateChartProps) {
     return (
       <Card className="flex flex-col p-4 transition-all duration-200">
         <div className="flex flex-col gap-1">
-          <CardTitle>Approval vs Changes Requested</CardTitle>
+          <CardTitle>Time to Merge After Approval</CardTitle>
           <CardDescription>
-            Review outcomes over time
+            Average time from approval to merge per week
           </CardDescription>
         </div>
         <p className="mt-4 text-muted-foreground text-sm">
-          No approval data available for this period.
+          No merge data available for this period.
         </p>
       </Card>
     );
   }
 
-  // Calculate totals
-  const totalApproved = data.reduce((sum, d) => sum + d.approved, 0);
-  const totalRejected = data.reduce((sum, d) => sum + d.rejected, 0);
-  const total = totalApproved + totalRejected;
-  const approvalRate =
-    total > 0 ? Math.round((totalApproved / total) * 100) : 0;
+  // Calculate trend
+  const firstHalf = data.slice(0, Math.floor(data.length / 2));
+  const secondHalf = data.slice(Math.floor(data.length / 2));
+  const firstAvg =
+    firstHalf.reduce((sum, d) => sum + d.hours, 0) / firstHalf.length;
+  const secondAvg =
+    secondHalf.reduce((sum, d) => sum + d.hours, 0) / secondHalf.length;
+  const trend = secondAvg < firstAvg ? 'improving' : secondAvg > firstAvg ? 'declining' : 'stable';
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
-        <CardTitle>Approval vs Changes Requested</CardTitle>
-        <CardDescription>Review outcomes over time</CardDescription>
+        <CardTitle>Time to Merge After Approval</CardTitle>
+        <CardDescription>
+          Average time from approval to merge per week
+        </CardDescription>
       </div>
       <ChartContainer
-        config={approvalRateConfig}
+        config={mergeTimeConfig}
         className="h-[200px] w-full flex-1"
       >
         <BarChart
@@ -87,35 +87,28 @@ export function ApprovalRateChart({ data }: ApprovalRateChartProps) {
             className="text-xs"
           />
           <ChartTooltip content={<ChartTooltipContent />} />
-          <Legend />
           <Bar
-            dataKey="approved"
-            stackId="a"
-            fill="var(--color-approved)"
-            radius={[0, 0, 0, 0]}
-          />
-          <Bar
-            dataKey="rejected"
-            stackId="a"
-            fill="var(--color-rejected)"
+            dataKey="hours"
+            fill="var(--color-hours)"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
       </ChartContainer>
       <p className="mt-4 text-muted-foreground text-sm">
-        Overall approval rate:{' '}
+        Trend:{' '}
         <span
           className={`font-medium ${
-            approvalRate >= 70 ? 'text-green-600' : 'text-yellow-600'
+            trend === 'improving' ? 'text-green-600' : trend === 'declining' ? 'text-red-600' : 'text-foreground'
           }`}
         >
-          {approvalRate}%
+          {trend === 'improving' ? 'Improving' : trend === 'declining' ? 'Declining' : 'Stable'}
         </span>
         <span className="text-foreground">
           {' '}
-          ({totalApproved} approved, {totalRejected} changes requested)
+          ({firstAvg.toFixed(1)}h → {secondAvg.toFixed(1)}h)
         </span>
       </p>
     </Card>
   );
 }
+
