@@ -46,7 +46,7 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
   // Calculate statistics
   const avgLines = data.reduce((sum, d) => sum + d.linesPerPr, 0) / data.length;
   const maxLines = Math.max(...data.map((d) => d.linesPerPr));
-  
+
   // Calculate trend
   const firstHalf = data.slice(0, Math.floor(data.length / 2));
   const secondHalf = data.slice(Math.floor(data.length / 2));
@@ -54,9 +54,14 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
     firstHalf.reduce((sum, d) => sum + d.linesPerPr, 0) / firstHalf.length;
   const secondAvg =
     secondHalf.reduce((sum, d) => sum + d.linesPerPr, 0) / secondHalf.length;
-  
+
   // For PR size, stable or decreasing is generally better (smaller PRs)
-  const trend = secondAvg < firstAvg * 0.9 ? 'decreasing' : secondAvg > firstAvg * 1.1 ? 'increasing' : 'stable';
+  const trend =
+    secondAvg < firstAvg * 0.9
+      ? 'decreasing'
+      : secondAvg > firstAvg * 1.1
+        ? 'increasing'
+        : 'stable';
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
@@ -95,8 +100,16 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
           <ChartTooltip content={<ChartTooltipContent />} />
           <defs>
             <linearGradient id="fillLinesPerPr" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--color-linesPerPr)" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="var(--color-linesPerPr)" stopOpacity={0.1} />
+              <stop
+                offset="5%"
+                stopColor="var(--color-linesPerPr)"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--color-linesPerPr)"
+                stopOpacity={0.1}
+              />
             </linearGradient>
           </defs>
           <Area
@@ -117,13 +130,20 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
         Trend:{' '}
         <span
           className={`font-medium ${
-            trend === 'decreasing' ? 'text-green-600' : trend === 'increasing' ? 'text-amber-600' : 'text-foreground'
+            trend === 'decreasing'
+              ? 'text-green-600'
+              : trend === 'increasing'
+                ? 'text-amber-600'
+                : 'text-foreground'
           }`}
         >
-          {trend === 'decreasing' ? 'Smaller PRs' : trend === 'increasing' ? 'Larger PRs' : 'Stable'}
+          {trend === 'decreasing'
+            ? 'Smaller PRs'
+            : trend === 'increasing'
+              ? 'Larger PRs'
+              : 'Stable'}
         </span>
       </p>
     </Card>
   );
 }
-

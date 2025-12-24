@@ -40,9 +40,7 @@ export function PrSizeChart({ data }: PrSizeChartProps) {
       <Card className="flex flex-col p-4 transition-all duration-200">
         <div className="flex flex-col gap-1">
           <CardTitle>PR Size Distribution</CardTitle>
-          <CardDescription>
-            Distribution of PR sizes over time
-          </CardDescription>
+          <CardDescription>Distribution of PR sizes over time</CardDescription>
         </div>
         <p className="mt-4 text-muted-foreground text-sm">
           No PR data available for this period.
@@ -113,8 +111,7 @@ export function PrSizeChart({ data }: PrSizeChartProps) {
         </BarChart>
       </ChartContainer>
       <p className="mt-4 text-muted-foreground text-sm">
-        Distribution:{' '}
-        <span className="text-green-600">{smallPct}% small</span>
+        Distribution: <span className="text-green-600">{smallPct}% small</span>
         {' | '}
         <span className="text-yellow-600">{mediumPct}% medium</span>
         {' | '}
