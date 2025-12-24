@@ -51,7 +51,11 @@ export function MergeTimeChart({ data }: MergeTimeChartProps) {
     : secondHalf.reduce((sum, d) => sum + d.hours, 0) / secondHalf.length;
   const trend = isEmpty
     ? null
-    : secondAvg < firstAvg ? 'improving' : secondAvg > firstAvg ? 'declining' : 'stable';
+    : secondAvg < firstAvg
+      ? 'improving'
+      : secondAvg > firstAvg
+        ? 'declining'
+        : 'stable';
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
@@ -116,10 +120,18 @@ export function MergeTimeChart({ data }: MergeTimeChartProps) {
           <>
             <span
               className={`font-medium ${
-                trend === 'improving' ? 'text-green-600' : trend === 'declining' ? 'text-red-600' : 'text-foreground'
+                trend === 'improving'
+                  ? 'text-green-600'
+                  : trend === 'declining'
+                    ? 'text-red-600'
+                    : 'text-foreground'
               }`}
             >
-              {trend === 'improving' ? 'Improving' : trend === 'declining' ? 'Declining' : 'Stable'}
+              {trend === 'improving'
+                ? 'Improving'
+                : trend === 'declining'
+                  ? 'Declining'
+                  : 'Stable'}
             </span>
             <span className="text-foreground">
               {' '}
@@ -131,4 +143,3 @@ export function MergeTimeChart({ data }: MergeTimeChartProps) {
     </Card>
   );
 }
-

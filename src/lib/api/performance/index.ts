@@ -68,4 +68,3 @@ export function usePerformanceData(
  * Helper type exports
  */
 export type { PerformanceResponse, PerformanceQuery, PerformanceTimeRange };
-

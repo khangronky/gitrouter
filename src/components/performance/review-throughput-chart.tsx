@@ -42,7 +42,9 @@ export function ReviewThroughputChart({ data }: ReviewThroughputChartProps) {
   const isEmpty = data.length === 0 || data.every((d) => d.reviews === 0);
   const chartData = data.length === 0 ? EMPTY_STATE_DATA : data;
 
-  const peakDay = isEmpty ? null : data.reduce((max, d) => (d.reviews > max.reviews ? d : max));
+  const peakDay = isEmpty
+    ? null
+    : data.reduce((max, d) => (d.reviews > max.reviews ? d : max));
   const weeklyAvg = isEmpty
     ? 0
     : Math.round(data.reduce((sum, d) => sum + d.reviews, 0) / data.length);
@@ -92,7 +94,9 @@ export function ReviewThroughputChart({ data }: ReviewThroughputChartProps) {
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">No review data yet</p>
+              <p className="text-sm text-muted-foreground">
+                No review data yet
+              </p>
               <p className="text-xs text-muted-foreground/70">
                 Data will appear when reviews are completed
               </p>
@@ -102,12 +106,16 @@ export function ReviewThroughputChart({ data }: ReviewThroughputChartProps) {
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Peak day:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
           {peakDay ? `${peakDay.day} (${peakDay.reviews} reviews)` : 'N/A'}
         </span>
         {' | '}
         Weekly avg:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
           {isEmpty ? 'N/A' : `${weeklyAvg} reviews/day`}
         </span>
       </p>

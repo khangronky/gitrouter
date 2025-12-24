@@ -73,7 +73,9 @@ export default function PerformancePage() {
       {error && (
         <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
           <p className="text-sm text-destructive">
-            {error instanceof Error ? error.message : 'Failed to fetch performance data'}
+            {error instanceof Error
+              ? error.message
+              : 'Failed to fetch performance data'}
           </p>
         </div>
       )}
@@ -106,13 +108,20 @@ export default function PerformancePage() {
                 className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
                 style={{ animationDelay: '0ms' }}
               >
-                <ReviewerPerformanceTable data={performanceData?.reviewerPerformance} />
+                <ReviewerPerformanceTable
+                  data={performanceData?.reviewerPerformance}
+                />
               </div>
               <div
                 className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-                style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+                style={{
+                  animationDelay: '75ms',
+                  animationFillMode: 'backwards',
+                }}
               >
-                <WorkloadDistributionChart data={performanceData?.workloadDistribution} />
+                <WorkloadDistributionChart
+                  data={performanceData?.workloadDistribution}
+                />
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -123,7 +132,9 @@ export default function PerformancePage() {
                   animationFillMode: 'backwards',
                 }}
               >
-                <TimeToFirstReviewChart data={performanceData?.timeToFirstReview} />
+                <TimeToFirstReviewChart
+                  data={performanceData?.timeToFirstReview}
+                />
               </div>
               <div
                 className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
@@ -137,7 +148,10 @@ export default function PerformancePage() {
             </div>
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
+              style={{
+                animationDelay: '300ms',
+                animationFillMode: 'backwards',
+              }}
             >
               <PrSizeByAuthorChart data={performanceData?.prSizeByAuthor} />
             </div>
@@ -154,7 +168,10 @@ export default function PerformancePage() {
               </div>
               <div
                 className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-                style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+                style={{
+                  animationDelay: '75ms',
+                  animationFillMode: 'backwards',
+                }}
               >
                 <MergeSuccessChart data={performanceData?.mergeSuccess} />
               </div>

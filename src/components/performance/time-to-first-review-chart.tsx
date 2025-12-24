@@ -46,7 +46,9 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
   const isEmpty = data.length === 0;
   const chartData = isEmpty ? EMPTY_STATE_DATA : data;
   const fastest = isEmpty ? null : data[0];
-  const teamAvg = isEmpty ? 0 : data.reduce((sum, d) => sum + d.minutes, 0) / data.length;
+  const teamAvg = isEmpty
+    ? 0
+    : data.reduce((sum, d) => sum + d.minutes, 0) / data.length;
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
@@ -110,7 +112,9 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">No review data yet</p>
+              <p className="text-sm text-muted-foreground">
+                No review data yet
+              </p>
               <p className="text-xs text-muted-foreground/70">
                 Data will appear when reviews are completed
               </p>
@@ -120,8 +124,12 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Fastest:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-green-600'}`}>
-          {fastest ? `${fastest.reviewer} (${formatTime(fastest.minutes)})` : 'N/A'}
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-green-600'}`}
+        >
+          {fastest
+            ? `${fastest.reviewer} (${formatTime(fastest.minutes)})`
+            : 'N/A'}
         </span>
         {' | '}
         Team avg:{' '}
@@ -132,4 +140,3 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
     </Card>
   );
 }
-

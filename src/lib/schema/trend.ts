@@ -128,4 +128,3 @@ export interface TrendErrorResponse {
   message?: string;
   timestamp: string;
 }
-

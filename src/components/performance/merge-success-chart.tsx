@@ -134,13 +134,21 @@ export function MergeSuccessChart({ data }: MergeSuccessChartProps) {
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Highest:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
-          {highest ? `${highest.repo} (${Math.round(highest.successRate)}%)` : 'N/A'}
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
+          {highest
+            ? `${highest.repo} (${Math.round(highest.successRate)}%)`
+            : 'N/A'}
         </span>
         {' | '}
         Lowest:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
-          {lowest ? `${lowest.repo} (${Math.round(lowest.successRate)}%)` : 'N/A'}
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
+          {lowest
+            ? `${lowest.repo} (${Math.round(lowest.successRate)}%)`
+            : 'N/A'}
         </span>
       </p>
     </Card>

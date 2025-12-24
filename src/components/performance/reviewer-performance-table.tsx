@@ -20,12 +20,32 @@ interface ReviewerPerformanceTableProps {
 
 // Empty state placeholder data
 const EMPTY_STATE_DATA: ReviewerPerformance[] = [
-  { reviewer: 'Reviewer 1', avgTime: '—', prsReviewed: 0, sla: '—', trend: 'up' },
-  { reviewer: 'Reviewer 2', avgTime: '—', prsReviewed: 0, sla: '—', trend: 'up' },
-  { reviewer: 'Reviewer 3', avgTime: '—', prsReviewed: 0, sla: '—', trend: 'up' },
+  {
+    reviewer: 'Reviewer 1',
+    avgTime: '—',
+    prsReviewed: 0,
+    sla: '—',
+    trend: 'up',
+  },
+  {
+    reviewer: 'Reviewer 2',
+    avgTime: '—',
+    prsReviewed: 0,
+    sla: '—',
+    trend: 'up',
+  },
+  {
+    reviewer: 'Reviewer 3',
+    avgTime: '—',
+    prsReviewed: 0,
+    sla: '—',
+    trend: 'up',
+  },
 ];
 
-export function ReviewerPerformanceTable({ data }: ReviewerPerformanceTableProps) {
+export function ReviewerPerformanceTable({
+  data,
+}: ReviewerPerformanceTableProps) {
   if (!data) {
     return <PerformanceTableSkeleton />;
   }
@@ -65,17 +85,26 @@ export function ReviewerPerformanceTable({ data }: ReviewerPerformanceTableProps
           </TableHeader>
           <TableBody>
             {tableData.map((row) => (
-              <TableRow key={row.reviewer} className={isEmpty ? 'opacity-50' : ''}>
-                <TableCell className={`font-medium ${isEmpty ? 'text-muted-foreground' : ''}`}>
+              <TableRow
+                key={row.reviewer}
+                className={isEmpty ? 'opacity-50' : ''}
+              >
+                <TableCell
+                  className={`font-medium ${isEmpty ? 'text-muted-foreground' : ''}`}
+                >
                   {row.reviewer}
                 </TableCell>
                 <TableCell className={isEmpty ? 'text-muted-foreground' : ''}>
                   {row.avgTime}
                 </TableCell>
-                <TableCell className={`text-center ${isEmpty ? 'text-muted-foreground' : ''}`}>
+                <TableCell
+                  className={`text-center ${isEmpty ? 'text-muted-foreground' : ''}`}
+                >
                   {row.prsReviewed}
                 </TableCell>
-                <TableCell className={`text-center ${isEmpty ? 'text-muted-foreground' : ''}`}>
+                <TableCell
+                  className={`text-center ${isEmpty ? 'text-muted-foreground' : ''}`}
+                >
                   {row.sla}
                 </TableCell>
                 <TableCell className="text-center">
@@ -104,7 +133,9 @@ export function ReviewerPerformanceTable({ data }: ReviewerPerformanceTableProps
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">No review data yet</p>
+              <p className="text-sm text-muted-foreground">
+                No review data yet
+              </p>
               <p className="text-xs text-muted-foreground/70">
                 Data will appear when reviews are completed
               </p>
