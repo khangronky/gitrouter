@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { BottlenecksTable } from '@/components/dashboard/bottlenecks-table';
 import { KpiRow } from '@/components/dashboard/kpi-row';
 import { LatencyChart } from '@/components/dashboard/latency-chart';
@@ -10,14 +10,11 @@ import { WorkloadChart } from '@/components/dashboard/workload-chart';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
+import { useDashboardData } from '@/lib/api/dashboard';
 import type {
   TimeRange,
   KpiRowData,
   LatencySeries,
-  ReviewerWorkloadSeries,
-  BottlenecksList,
-  StalePullRequestsList,
-  RecentActivityList,
 } from '@/lib/schema/dashboard';
 
 // Fallback data for when API returns empty or during initial load
@@ -38,72 +35,16 @@ const fallbackLatencySeries: LatencySeries = [
   { day: 'Sun', hours: 0 },
 ];
 
-interface DashboardData {
-  kpis: KpiRowData;
-  latencySeries: LatencySeries;
-  reviewerWorkload: ReviewerWorkloadSeries;
-  bottlenecks: BottlenecksList;
-  stalePRs: StalePullRequestsList;
-  recentActivity: RecentActivityList;
-  timeRange: TimeRange;
-}
-
-interface DashboardResponse {
-  success: boolean;
-  data: DashboardData;
-  timestamp: string;
-  timeRange: TimeRange;
-  error?: string;
-  message?: string;
-}
-
 export default function Page() {
   const { currentOrgId, isLoading: orgLoading } = useCurrentOrganization();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
 
-  const fetchDashboard = useCallback(
-    async (range: TimeRange, orgId: string | null) => {
-      if (!orgId) return;
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const params = new URLSearchParams({
-          timeRange: range,
-          organizationId: orgId,
-        });
-        const response = await fetch(`/api/dashboard?${params.toString()}`);
-        const data: DashboardResponse = await response.json();
-
-        if (!response.ok || !data.success) {
-          setError(
-            data.message || data.error || 'Failed to fetch dashboard data'
-          );
-          return;
-        }
-
-        setDashboardData(data.data);
-      } catch (err) {
-        console.error('Error fetching dashboard:', err);
-        setError('Failed to connect to the server. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (!orgLoading && currentOrgId) {
-      fetchDashboard(timeRange, currentOrgId);
-    }
-  }, [timeRange, currentOrgId, orgLoading, fetchDashboard]);
+  const {
+    data: response,
+    isLoading,
+    error,
+    refetch,
+  } = useDashboardData(currentOrgId || '', timeRange);
 
   const handleTimeRangeChange = (value: string) => {
     if (value) {
@@ -111,11 +52,12 @@ export default function Page() {
     }
   };
 
-  if ((isLoading || orgLoading) && !dashboardData) {
+  if ((isLoading || orgLoading) && !response?.data) {
     return <DashboardSkeleton />;
   }
 
   // Use dashboard data or fallbacks
+  const dashboardData = response?.data;
   const kpis = dashboardData?.kpis || fallbackKpis;
   const latencySeries = dashboardData?.latencySeries?.length
     ? dashboardData.latencySeries
@@ -124,6 +66,13 @@ export default function Page() {
   const bottlenecks = dashboardData?.bottlenecks || [];
   const stalePRs = dashboardData?.stalePRs || [];
   const recentActivity = dashboardData?.recentActivity || [];
+
+  // Extract error message
+  const errorMessage = error
+    ? error instanceof Error
+      ? error.message
+      : 'Failed to fetch dashboard data'
+    : null;
 
   return (
     <>
@@ -150,11 +99,11 @@ export default function Page() {
           </ToggleGroup>
         </div>
 
-        {error && (
+        {errorMessage && (
           <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive">{errorMessage}</p>
             <button
-              onClick={() => fetchDashboard(timeRange, currentOrgId)}
+              onClick={() => refetch()}
               className="mt-2 text-sm text-primary hover:underline"
             >
               Try again
