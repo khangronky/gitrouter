@@ -1,40 +1,46 @@
 'use client';
 
-import { GitBranch, TrendingUp, Users } from 'lucide-react';
+import { Activity, GitBranch, Users } from 'lucide-react';
 import { useState } from 'react';
 import {
   BottleneckChart,
-  CommentsDistributionChart,
   MergeSuccessChart,
   PerformanceKpiRow,
   PrSizeByAuthorChart,
   RepoComparisonChart,
-  ResponseByHourChart,
   ReviewerPerformanceTable,
-  ReviewQualityChart,
   ReviewThroughputChart,
-  TeamSpeedChart,
+  TimeToFirstReviewChart,
+  WorkloadDistributionChart,
 } from '@/components/performance';
 import { PerformanceSkeleton } from '@/components/performance/performance-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
-
-type TimeRange = '7d' | '30d' | '3m';
+import { usePerformanceData } from '@/lib/api/performance';
+import type { PerformanceTimeRange } from '@/lib/schema/performance';
 
 export default function PerformancePage() {
-  const [timeRange, setTimeRange] = useState<TimeRange>('7d');
+  const [timeRange, setTimeRange] = useState<PerformanceTimeRange>('7d');
   const { currentOrgId, isLoading: orgLoading } = useCurrentOrganization();
+
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = usePerformanceData(currentOrgId || '', timeRange);
 
   const handleTimeRangeChange = (value: string) => {
     if (value) {
-      setTimeRange(value as TimeRange);
+      setTimeRange(value as PerformanceTimeRange);
     }
   };
 
-  if (orgLoading || !currentOrgId) {
+  if (orgLoading || !currentOrgId || isLoading) {
     return <PerformanceSkeleton />;
   }
+
+  const performanceData = response?.data;
 
   return (
     <section className="space-y-6 p-4">
@@ -64,136 +70,108 @@ export default function PerformancePage() {
         </ToggleGroup>
       </div>
 
-      {/* Summary KPIs */}
-      <PerformanceKpiRow timeRange={timeRange} organizationId={currentOrgId} />
+      {error && (
+        <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+          <p className="text-sm text-destructive">
+            {error instanceof Error ? error.message : 'Failed to fetch performance data'}
+          </p>
+        </div>
+      )}
 
-      {/* Tabbed Charts */}
-      <Tabs defaultValue="reviewers" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="reviewers" className="gap-2">
-            <Users className="h-4 w-4" />
-            Reviewers
-          </TabsTrigger>
-          <TabsTrigger value="repositories" className="gap-2">
-            <GitBranch className="h-4 w-4" />
-            Repositories
-          </TabsTrigger>
-          <TabsTrigger value="trends" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Trends
-          </TabsTrigger>
-        </TabsList>
+      <div className={isLoading ? 'opacity-60 pointer-events-none' : ''}>
+        {/* Summary KPIs */}
+        <PerformanceKpiRow data={performanceData?.kpis} />
 
-        {/* Reviewers Tab */}
-        <TabsContent value="reviewers" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Tabbed Charts */}
+        <Tabs defaultValue="reviewers" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="reviewers" className="gap-2">
+              <Users className="h-4 w-4" />
+              Reviewers
+            </TabsTrigger>
+            <TabsTrigger value="repositories" className="gap-2">
+              <GitBranch className="h-4 w-4" />
+              Repositories
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Activity
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Reviewers Tab */}
+          <TabsContent value="reviewers" className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div
+                className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+                style={{ animationDelay: '0ms' }}
+              >
+                <ReviewerPerformanceTable data={performanceData?.reviewerPerformance} />
+              </div>
+              <div
+                className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+                style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+              >
+                <WorkloadDistributionChart data={performanceData?.workloadDistribution} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div
+                className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+                style={{
+                  animationDelay: '150ms',
+                  animationFillMode: 'backwards',
+                }}
+              >
+                <TimeToFirstReviewChart data={performanceData?.timeToFirstReview} />
+              </div>
+              <div
+                className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+                style={{
+                  animationDelay: '225ms',
+                  animationFillMode: 'backwards',
+                }}
+              >
+                <BottleneckChart data={performanceData?.bottlenecks} />
+              </div>
+            </div>
+            <div
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+              style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
+            >
+              <PrSizeByAuthorChart data={performanceData?.prSizeByAuthor} />
+            </div>
+          </TabsContent>
+
+          {/* Repositories Tab */}
+          <TabsContent value="repositories" className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div
+                className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+                style={{ animationDelay: '0ms' }}
+              >
+                <RepoComparisonChart data={performanceData?.repoComparison} />
+              </div>
+              <div
+                className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+                style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
+              >
+                <MergeSuccessChart data={performanceData?.mergeSuccess} />
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Activity Tab (renamed from Trends) */}
+          <TabsContent value="activity" className="space-y-4">
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <ReviewerPerformanceTable
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <ReviewThroughputChart data={performanceData?.reviewThroughput} />
             </div>
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
-            >
-              <ReviewQualityChart />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{
-                animationDelay: '150ms',
-                animationFillMode: 'backwards',
-              }}
-            >
-              <CommentsDistributionChart />
-            </div>
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{
-                animationDelay: '225ms',
-                animationFillMode: 'backwards',
-              }}
-            >
-              <BottleneckChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Repositories Tab */}
-        <TabsContent value="repositories" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '0ms' }}
-            >
-              <RepoComparisonChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
-            </div>
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
-            >
-              <MergeSuccessChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
-            </div>
-          </div>
-          <div
-            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
-          >
-            <PrSizeByAuthorChart
-              timeRange={timeRange}
-              organizationId={currentOrgId}
-            />
-          </div>
-        </TabsContent>
-
-        {/* Trends Tab */}
-        <TabsContent value="trends" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '0ms' }}
-            >
-              <TeamSpeedChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
-            </div>
-            <div
-              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
-            >
-              <ReviewThroughputChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
-            </div>
-          </div>
-          <div
-            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
-          >
-            <ResponseByHourChart
-              timeRange={timeRange}
-              organizationId={currentOrgId}
-            />
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </section>
   );
 }

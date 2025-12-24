@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
@@ -9,19 +8,11 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { createClient } from '@/lib/supabase/client';
 import { PerformanceChartSkeleton } from './performance-skeleton';
-import {
-  calculateBottleneckFrequency,
-  getDateRangeFromTimeRange,
-  getOrgRepositoryIds,
-  type PerformanceChartProps,
-  verifyOrgAccess,
-} from './utils';
+import type { BottleneckData } from '@/lib/schema/performance';
 
-interface BottleneckData {
-  reviewer: string;
-  frequency: number;
+interface BottleneckChartProps {
+  data?: BottleneckData[];
 }
 
 const bottleneckConfig = {
@@ -31,119 +22,23 @@ const bottleneckConfig = {
   },
 } satisfies ChartConfig;
 
-async function fetchBottleneckData(
-  timeRange: PerformanceChartProps['timeRange'],
-  organizationId: string
-): Promise<BottleneckData[]> {
-  await verifyOrgAccess(organizationId);
+// Empty state placeholder data
+const EMPTY_STATE_DATA: BottleneckData[] = [
+  { reviewer: 'Reviewer 1', frequency: 0 },
+  { reviewer: 'Reviewer 2', frequency: 0 },
+  { reviewer: 'Reviewer 3', frequency: 0 },
+  { reviewer: 'Reviewer 4', frequency: 0 },
+];
 
-  const supabase = createClient();
-  const startDate = getDateRangeFromTimeRange(timeRange);
-  const repoIds = await getOrgRepositoryIds(organizationId);
-
-  if (repoIds.length === 0) {
-    return [];
-  }
-
-  // Get all review assignments with PR info
-  const { data: assignments } = await supabase
-    .from('review_assignments')
-    .select(
-      `
-      id,
-      reviewer_id,
-      assigned_at,
-      reviewed_at,
-      pull_request_id,
-      pull_request:pull_requests!inner (
-        repository_id
-      )
-    `
-    )
-    .in('pull_request.repository_id', repoIds)
-    .gte('assigned_at', startDate.toISOString())
-    .not('reviewed_at', 'is', null);
-
-  if (!assignments || assignments.length === 0) {
-    return [];
-  }
-
-  // Calculate bottleneck frequency
-  const frequencyMap = calculateBottleneckFrequency(
-    assignments.map((a) => ({
-      reviewer_id: a.reviewer_id,
-      assigned_at: a.assigned_at,
-      reviewed_at: a.reviewed_at,
-      pull_request_id: a.pull_request_id,
-    }))
-  );
-
-  // Get reviewer names
-  const reviewerIds = Object.keys(frequencyMap);
-  const { data: reviewers } = await supabase
-    .from('reviewers')
-    .select(
-      `
-      id,
-      user:users (
-        github_username,
-        full_name
-      )
-    `
-    )
-    .in('id', reviewerIds);
-
-  const reviewerMap = new Map<string, string>();
-  reviewers?.forEach((r) => {
-    const user = r.user as any;
-    const name = user?.github_username || user?.full_name || 'Unknown';
-    reviewerMap.set(r.id, name);
-  });
-
-  // Format data
-  const data: BottleneckData[] = Object.entries(frequencyMap)
-    .map(([reviewerId, frequency]) => ({
-      reviewer: reviewerMap.get(reviewerId) || 'Unknown',
-      frequency,
-    }))
-    .sort((a, b) => b.frequency - a.frequency)
-    .slice(0, 8); // Top 8
-
-  return data;
-}
-
-export function BottleneckChart({
-  timeRange,
-  organizationId,
-}: PerformanceChartProps) {
-  const { data, isLoading } = useQuery({
-    queryKey: ['bottleneck-chart', timeRange, organizationId],
-    queryFn: () => fetchBottleneckData(timeRange, organizationId),
-    enabled: !!organizationId,
-  });
-
-  if (isLoading || !data) {
+export function BottleneckChart({ data }: BottleneckChartProps) {
+  if (!data) {
     return <PerformanceChartSkeleton chartType="bar" />;
   }
 
-  if (data.length === 0) {
-    return (
-      <Card className="flex flex-col p-4 transition-all duration-200">
-        <div className="flex flex-col gap-1">
-          <CardTitle>Bottleneck Frequency</CardTitle>
-          <CardDescription>
-            How often each reviewer becomes a bottleneck
-          </CardDescription>
-        </div>
-        <p className="mt-4 text-muted-foreground text-sm">
-          No bottleneck data available for this period.
-        </p>
-      </Card>
-    );
-  }
-
-  const highest = data[0];
-  const lowest = data[data.length - 1];
+  const isEmpty = data.length === 0;
+  const chartData = isEmpty ? EMPTY_STATE_DATA : data;
+  const highest = isEmpty ? null : data[0];
+  const lowest = isEmpty ? null : data[data.length - 1];
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
@@ -153,49 +48,63 @@ export function BottleneckChart({
           How often each reviewer becomes a bottleneck
         </CardDescription>
       </div>
-      <ChartContainer
-        config={bottleneckConfig}
-        className="h-[200px] w-full flex-1"
-      >
-        <BarChart
-          data={data}
-          margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+      <div className="relative">
+        <ChartContainer
+          config={bottleneckConfig}
+          className="h-[200px] w-full flex-1"
         >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            vertical={false}
-            stroke="var(--border)"
-          />
-          <XAxis
-            dataKey="reviewer"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            className="text-xs"
-          />
-          <YAxis
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            className="text-xs"
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar
-            dataKey="frequency"
-            fill="var(--color-frequency)"
-            radius={[4, 4, 0, 0]}
-          />
-        </BarChart>
-      </ChartContainer>
+          <BarChart
+            data={chartData}
+            margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="var(--border)"
+            />
+            <XAxis
+              dataKey="reviewer"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs"
+              tick={{ fill: isEmpty ? 'var(--muted-foreground)' : undefined }}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              className="text-xs"
+            />
+            {!isEmpty && <ChartTooltip content={<ChartTooltipContent />} />}
+            <Bar
+              dataKey="frequency"
+              fill={isEmpty ? 'var(--muted)' : 'var(--color-frequency)'}
+              radius={[4, 4, 0, 0]}
+              opacity={isEmpty ? 0.3 : 1}
+            />
+          </BarChart>
+        </ChartContainer>
+        {isEmpty && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">No bottleneck data yet</p>
+              <p className="text-xs text-muted-foreground/70">
+                Data will appear when reviews are completed
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Highest risk:{' '}
-        <span className="font-medium text-red-600">
-          {highest.reviewer} ({highest.frequency} times)
+        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-red-600'}`}>
+          {highest ? `${highest.reviewer} (${highest.frequency} times)` : 'N/A'}
         </span>
         {' | '}
         Lowest:{' '}
-        <span className="font-medium text-green-600">
-          {lowest.reviewer} ({lowest.frequency} times)
+        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-green-600'}`}>
+          {lowest ? `${lowest.reviewer} (${lowest.frequency} times)` : 'N/A'}
         </span>
       </p>
     </Card>
