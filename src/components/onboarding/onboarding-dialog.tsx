@@ -51,7 +51,10 @@ export function OnboardingDialog() {
 
     // Check for onboarding_step query param (returning from OAuth)
     const onboardingStep = searchParams.get('onboarding_step');
-    if (onboardingStep && STEP_ORDER.includes(onboardingStep as OnboardingStep)) {
+    if (
+      onboardingStep &&
+      STEP_ORDER.includes(onboardingStep as OnboardingStep)
+    ) {
       setCurrentStep(onboardingStep as OnboardingStep);
       setIsOpen(true);
       return;
@@ -136,12 +139,13 @@ export function OnboardingDialog() {
           {currentStep === 'first-rule' && <FirstRuleStep {...stepProps} />}
           {currentStep === 'team' && <TeamStep {...stepProps} />}
           {currentStep === 'completion' && (
-            <CompletionStep onComplete={handleComplete} onBack={goToPreviousStep} />
+            <CompletionStep
+              onComplete={handleComplete}
+              onBack={goToPreviousStep}
+            />
           )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
-

@@ -13,7 +13,8 @@ const features = [
   {
     icon: GitBranch,
     title: 'Automated PR Routing',
-    description: 'Assign reviewers based on file patterns, branches, or authors',
+    description:
+      'Assign reviewers based on file patterns, branches, or authors',
   },
   {
     icon: Users,
@@ -40,7 +41,9 @@ export function WelcomeStep({ onNext, onSkipAll }: WelcomeStepProps) {
     <div className="space-y-6">
       <div className="text-center space-y-2">
         <div className="text-4xl mb-4">👋</div>
-        <h2 className="text-2xl font-bold">Welcome to GitRouter, {userName}!</h2>
+        <h2 className="text-2xl font-bold">
+          Welcome to GitRouter, {userName}!
+        </h2>
         <p className="text-muted-foreground">
           Let&apos;s get you set up in just a few minutes. We&apos;ll help you
           connect your tools and create your first routing rule.
@@ -75,5 +78,3 @@ export function WelcomeStep({ onNext, onSkipAll }: WelcomeStepProps) {
     </div>
   );
 }
-
-

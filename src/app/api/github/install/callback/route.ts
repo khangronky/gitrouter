@@ -232,7 +232,10 @@ export async function GET(request: Request) {
     // Redirect based on whether user came from onboarding
     if (fromOnboarding) {
       return NextResponse.redirect(
-        new URL(`/dashboard?onboarding_step=slack&success=github_installed`, request.url)
+        new URL(
+          `/dashboard?onboarding_step=slack&success=github_installed`,
+          request.url
+        )
       );
     }
 

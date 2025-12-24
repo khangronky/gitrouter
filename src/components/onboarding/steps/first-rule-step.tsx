@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Route, ArrowLeft, ArrowRight, Loader2, Check, Plus, X } from 'lucide-react';
+import {
+  Route,
+  ArrowLeft,
+  ArrowRight,
+  Loader2,
+  Check,
+  Plus,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,7 +44,8 @@ export function FirstRuleStep({ onNext, onBack, orgId }: FirstRuleStepProps) {
   const [selectedReviewerIds, setSelectedReviewerIds] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { data: reviewersData, isLoading: loadingReviewers } = useReviewers(orgId);
+  const { data: reviewersData, isLoading: loadingReviewers } =
+    useReviewers(orgId);
   const createRule = useCreateRoutingRule(orgId);
 
   const reviewers = reviewersData?.reviewers || [];
@@ -48,7 +57,9 @@ export function FirstRuleStep({ onNext, onBack, orgId }: FirstRuleStepProps) {
   };
 
   const handleRemoveReviewer = (reviewerId: string) => {
-    setSelectedReviewerIds(selectedReviewerIds.filter((id) => id !== reviewerId));
+    setSelectedReviewerIds(
+      selectedReviewerIds.filter((id) => id !== reviewerId)
+    );
   };
 
   const handleSelectPattern = (pattern: string) => {
@@ -166,7 +177,9 @@ export function FirstRuleStep({ onNext, onBack, orgId }: FirstRuleStepProps) {
                   variant="secondary"
                   className="flex items-center gap-1"
                 >
-                  {reviewer.user?.full_name || reviewer.user?.email || 'Unknown'}
+                  {reviewer.user?.full_name ||
+                    reviewer.user?.email ||
+                    'Unknown'}
                   <button
                     type="button"
                     onClick={() => handleRemoveReviewer(reviewer.id)}
@@ -198,7 +211,9 @@ export function FirstRuleStep({ onNext, onBack, orgId }: FirstRuleStepProps) {
                   <SelectItem key={reviewer.id} value={reviewer.id}>
                     <div className="flex items-center gap-2">
                       <Plus className="size-3" />
-                      {reviewer.user?.full_name || reviewer.user?.email || 'Unknown'}
+                      {reviewer.user?.full_name ||
+                        reviewer.user?.email ||
+                        'Unknown'}
                       {reviewer.user?.github_username && (
                         <span className="text-muted-foreground">
                           @{reviewer.user.github_username}
@@ -235,5 +250,3 @@ export function FirstRuleStep({ onNext, onBack, orgId }: FirstRuleStepProps) {
     </div>
   );
 }
-
-

@@ -69,7 +69,9 @@ export async function GET(request: Request) {
     }
 
     // Create state parameter with org_id and onboarding flag for callback
-    const stateData: { org_id: string; onboarding?: boolean } = { org_id: orgId };
+    const stateData: { org_id: string; onboarding?: boolean } = {
+      org_id: orgId,
+    };
     if (onboarding) {
       stateData.onboarding = true;
     }

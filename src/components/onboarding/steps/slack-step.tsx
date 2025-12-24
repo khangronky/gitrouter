@@ -1,6 +1,12 @@
 'use client';
 
-import { Check, Loader2, ArrowLeft, ArrowRight, MessageSquare } from 'lucide-react';
+import {
+  Check,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  MessageSquare,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSlackIntegration, useGetSlackOAuthUrl } from '@/lib/api/slack';
 import { toast } from 'sonner';
@@ -100,4 +106,3 @@ export function SlackStep({ onNext, onBack, orgId }: SlackStepProps) {
     </div>
   );
 }
-
