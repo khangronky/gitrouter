@@ -73,7 +73,9 @@ export default function TrendPage() {
       {error && (
         <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
           <p className="text-sm text-destructive">
-            {error instanceof Error ? error.message : 'Failed to fetch trend data'}
+            {error instanceof Error
+              ? error.message
+              : 'Failed to fetch trend data'}
           </p>
         </div>
       )}
@@ -117,13 +119,19 @@ export default function TrendPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+              style={{
+                animationDelay: '150ms',
+                animationFillMode: 'backwards',
+              }}
             >
               <FirstResponseChart data={trendData?.firstResponse} />
             </div>
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '225ms', animationFillMode: 'backwards' }}
+              style={{
+                animationDelay: '225ms',
+                animationFillMode: 'backwards',
+              }}
             >
               <MergeTimeChart data={trendData?.mergeTime} />
             </div>
@@ -173,13 +181,19 @@ export default function TrendPage() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+              style={{
+                animationDelay: '150ms',
+                animationFillMode: 'backwards',
+              }}
             >
               <ApprovalRateChart data={trendData?.approvalRate} />
             </div>
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-              style={{ animationDelay: '225ms', animationFillMode: 'backwards' }}
+              style={{
+                animationDelay: '225ms',
+                animationFillMode: 'backwards',
+              }}
             >
               <ReviewDepthChart data={trendData?.reviewDepth} />
             </div>

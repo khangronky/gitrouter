@@ -36,9 +36,7 @@ export function ApprovalRateChart({ data }: ApprovalRateChartProps) {
       <Card className="flex flex-col p-4 transition-all duration-200">
         <div className="flex flex-col gap-1">
           <CardTitle>Approval vs Changes Requested</CardTitle>
-          <CardDescription>
-            Review outcomes over time
-          </CardDescription>
+          <CardDescription>Review outcomes over time</CardDescription>
         </div>
         <p className="mt-4 text-muted-foreground text-sm">
           No approval data available for this period.

@@ -32,9 +32,7 @@ export function ReworkRateChart({ data }: ReworkRateChartProps) {
       <Card className="flex flex-col p-4 transition-all duration-200">
         <div className="flex flex-col gap-1">
           <CardTitle>Rework Rate Trend</CardTitle>
-          <CardDescription>
-            Percentage of PRs requiring changes
-          </CardDescription>
+          <CardDescription>Percentage of PRs requiring changes</CardDescription>
         </div>
         <p className="mt-4 text-muted-foreground text-sm">
           No rework data available for this period.

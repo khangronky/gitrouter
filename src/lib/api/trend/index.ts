@@ -23,9 +23,7 @@ export const trendKeys = {
 /**
  * Fetch trend data from the API
  */
-export async function fetchTrend(
-  params?: TrendQuery
-): Promise<TrendResponse> {
+export async function fetchTrend(params?: TrendQuery): Promise<TrendResponse> {
   const queryParams = new URLSearchParams();
 
   if (params?.timeRange) {
@@ -49,10 +47,7 @@ export async function fetchTrend(
 /**
  * Hook to fetch trend data with TanStack Query
  */
-export function useTrendData(
-  orgId: string,
-  timeRange: TrendTimeRange
-) {
+export function useTrendData(orgId: string, timeRange: TrendTimeRange) {
   return useQuery({
     queryKey: trendKeys.data(orgId, timeRange),
     queryFn: () =>
@@ -68,4 +63,3 @@ export function useTrendData(
  * Helper type exports
  */
 export type { TrendResponse, TrendQuery, TrendTimeRange };
-
