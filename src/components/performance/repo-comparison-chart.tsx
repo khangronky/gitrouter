@@ -122,7 +122,9 @@ export function RepoComparisonChart({ data }: RepoComparisonChartProps) {
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">No review data yet</p>
+              <p className="text-sm text-muted-foreground">
+                No review data yet
+              </p>
               <p className="text-xs text-muted-foreground/70">
                 Data will appear when reviews are completed
               </p>
@@ -132,13 +134,21 @@ export function RepoComparisonChart({ data }: RepoComparisonChartProps) {
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Slowest:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
-          {slowest ? `${slowest.repo} (${slowest.hours.toFixed(1)}h avg)` : 'N/A'}
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
+          {slowest
+            ? `${slowest.repo} (${slowest.hours.toFixed(1)}h avg)`
+            : 'N/A'}
         </span>
         {' | '}
         Fastest:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
-          {fastest ? `${fastest.repo} (${fastest.hours.toFixed(1)}h avg)` : 'N/A'}
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
+          {fastest
+            ? `${fastest.repo} (${fastest.hours.toFixed(1)}h avg)`
+            : 'N/A'}
         </span>
       </p>
     </Card>

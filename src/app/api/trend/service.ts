@@ -89,7 +89,11 @@ export async function fetchTrendKpis({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   const emptyKpis: TrendKpiData = {
-    avgReviewSpeed: { current: 0, previous: 0, weekly: Array(numWeeks).fill(0) },
+    avgReviewSpeed: {
+      current: 0,
+      previous: 0,
+      weekly: Array(numWeeks).fill(0),
+    },
     slaCompliance: { current: 0, previous: 0, weekly: Array(numWeeks).fill(0) },
     cycleTime: { current: 0, previous: 0, weekly: Array(numWeeks).fill(0) },
     approvalRate: { current: 0, previous: 0, weekly: Array(numWeeks).fill(0) },
@@ -99,7 +103,9 @@ export async function fetchTrendKpis({
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, status, assigned_at, reviewed_at, pull_request:pull_requests!inner (id, repository_id, created_at, merged_at, status)`)
+    .select(
+      `id, status, assigned_at, reviewed_at, pull_request:pull_requests!inner (id, repository_id, created_at, merged_at, status)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString());
 
@@ -126,7 +132,9 @@ export async function fetchTrendKpis({
   if (assignments) {
     for (const assignment of assignments) {
       const assignedAt = new Date(assignment.assigned_at);
-      const weekIndex = Math.floor((assignedAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (assignedAt.getTime() - startTime) / msPerWeek
+      );
 
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         weeklyTotal[weekIndex]++;
@@ -134,7 +142,8 @@ export async function fetchTrendKpis({
 
         if (assignment.reviewed_at) {
           const reviewedAt = new Date(assignment.reviewed_at);
-          const hoursToReview = (reviewedAt.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
+          const hoursToReview =
+            (reviewedAt.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
           weeklyReviewSpeed[weekIndex] += hoursToReview;
           weeklyReviewCounts[weekIndex]++;
           weeklyTotalReviews[weekIndex]++;
@@ -148,10 +157,13 @@ export async function fetchTrendKpis({
     for (const pr of mergedPRs) {
       if (pr.merged_at && pr.created_at) {
         const mergedAt = new Date(pr.merged_at);
-        const weekIndex = Math.floor((mergedAt.getTime() - startTime) / msPerWeek);
+        const weekIndex = Math.floor(
+          (mergedAt.getTime() - startTime) / msPerWeek
+        );
         if (weekIndex >= 0 && weekIndex < numWeeks) {
           const createdAt = new Date(pr.created_at);
-          const cycleHours = (mergedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+          const cycleHours =
+            (mergedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
           weeklyCycleTime[weekIndex] += cycleHours;
           weeklyCycleCounts[weekIndex]++;
         }
@@ -160,13 +172,19 @@ export async function fetchTrendKpis({
   }
 
   const avgReviewSpeedWeekly = weeklyReviewSpeed.map((total, i) =>
-    weeklyReviewCounts[i] > 0 ? Math.round((total / weeklyReviewCounts[i]) * 10) / 10 : 0
+    weeklyReviewCounts[i] > 0
+      ? Math.round((total / weeklyReviewCounts[i]) * 10) / 10
+      : 0
   );
   const slaComplianceWeekly = weeklySlaCount.map((count, i) =>
-    weeklyTotalReviews[i] > 0 ? Math.round((count / weeklyTotalReviews[i]) * 100) : 0
+    weeklyTotalReviews[i] > 0
+      ? Math.round((count / weeklyTotalReviews[i]) * 100)
+      : 0
   );
   const cycleTimeWeekly = weeklyCycleTime.map((total, i) =>
-    weeklyCycleCounts[i] > 0 ? Math.round((total / weeklyCycleCounts[i]) * 10) / 10 : 0
+    weeklyCycleCounts[i] > 0
+      ? Math.round((total / weeklyCycleCounts[i]) * 10) / 10
+      : 0
   );
   const approvalRateWeekly = weeklyApproved.map((approved, i) =>
     weeklyTotal[i] > 0 ? Math.round((approved / weeklyTotal[i]) * 100) : 0
@@ -174,7 +192,9 @@ export async function fetchTrendKpis({
 
   const getAverage = (arr: number[]) => {
     const nonZero = arr.filter((v) => v > 0);
-    return nonZero.length > 0 ? nonZero.reduce((a, b) => a + b, 0) / nonZero.length : 0;
+    return nonZero.length > 0
+      ? nonZero.reduce((a, b) => a + b, 0) / nonZero.length
+      : 0;
   };
 
   const halfPoint = Math.floor(numWeeks / 2);
@@ -215,12 +235,16 @@ export async function fetchReviewSpeedData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ date: getWeekLabel(i), hours: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ date: getWeekLabel(i), hours: 0 }));
   }
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, assigned_at, reviewed_at, pull_request:pull_requests!inner (id, repository_id)`)
+    .select(
+      `id, assigned_at, reviewed_at, pull_request:pull_requests!inner (id, repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .not('reviewed_at', 'is', null)
     .gte('assigned_at', startDate.toISOString());
@@ -235,9 +259,12 @@ export async function fetchReviewSpeedData({
       if (assignment.reviewed_at && assignment.assigned_at) {
         const assignedAt = new Date(assignment.assigned_at);
         const reviewedAt = new Date(assignment.reviewed_at);
-        const weekIndex = Math.floor((assignedAt.getTime() - startTime) / msPerWeek);
+        const weekIndex = Math.floor(
+          (assignedAt.getTime() - startTime) / msPerWeek
+        );
         if (weekIndex >= 0 && weekIndex < numWeeks) {
-          const hoursToReview = (reviewedAt.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
+          const hoursToReview =
+            (reviewedAt.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
           weeklyTotalHours[weekIndex] += hoursToReview;
           weeklyCounts[weekIndex]++;
         }
@@ -245,10 +272,15 @@ export async function fetchReviewSpeedData({
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    date: getWeekLabel(i),
-    hours: weeklyCounts[i] > 0 ? Math.round((weeklyTotalHours[i] / weeklyCounts[i]) * 10) / 10 : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      date: getWeekLabel(i),
+      hours:
+        weeklyCounts[i] > 0
+          ? Math.round((weeklyTotalHours[i] / weeklyCounts[i]) * 10) / 10
+          : 0,
+    }));
 }
 
 export async function fetchCycleTimeData({
@@ -261,7 +293,9 @@ export async function fetchCycleTimeData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), hours: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), hours: 0 }));
   }
 
   const { data: mergedPRs } = await supabase
@@ -282,9 +316,12 @@ export async function fetchCycleTimeData({
       if (pr.merged_at && pr.created_at) {
         const mergedAt = new Date(pr.merged_at);
         const createdAt = new Date(pr.created_at);
-        const weekIndex = Math.floor((mergedAt.getTime() - startTime) / msPerWeek);
+        const weekIndex = Math.floor(
+          (mergedAt.getTime() - startTime) / msPerWeek
+        );
         if (weekIndex >= 0 && weekIndex < numWeeks) {
-          const cycleHours = (mergedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+          const cycleHours =
+            (mergedAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
           weeklyTotalHours[weekIndex] += cycleHours;
           weeklyCounts[weekIndex]++;
         }
@@ -292,10 +329,15 @@ export async function fetchCycleTimeData({
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    hours: weeklyCounts[i] > 0 ? Math.round((weeklyTotalHours[i] / weeklyCounts[i]) * 10) / 10 : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      hours:
+        weeklyCounts[i] > 0
+          ? Math.round((weeklyTotalHours[i] / weeklyCounts[i]) * 10) / 10
+          : 0,
+    }));
 }
 
 export async function fetchFirstResponseData({
@@ -308,12 +350,16 @@ export async function fetchFirstResponseData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), minutes: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), minutes: 0 }));
   }
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, assigned_at, reviewed_at, pull_request:pull_requests!inner (id, repository_id, created_at)`)
+    .select(
+      `id, assigned_at, reviewed_at, pull_request:pull_requests!inner (id, repository_id, created_at)`
+    )
     .in('pull_request.repository_id', repoIds)
     .not('reviewed_at', 'is', null)
     .gte('assigned_at', startDate.toISOString());
@@ -329,9 +375,12 @@ export async function fetchFirstResponseData({
       if (pr?.created_at && assignment.reviewed_at) {
         const createdAt = new Date(pr.created_at);
         const reviewedAt = new Date(assignment.reviewed_at);
-        const weekIndex = Math.floor((createdAt.getTime() - startTime) / msPerWeek);
+        const weekIndex = Math.floor(
+          (createdAt.getTime() - startTime) / msPerWeek
+        );
         if (weekIndex >= 0 && weekIndex < numWeeks) {
-          const minutesToResponse = (reviewedAt.getTime() - createdAt.getTime()) / (1000 * 60);
+          const minutesToResponse =
+            (reviewedAt.getTime() - createdAt.getTime()) / (1000 * 60);
           weeklyTotalMinutes[weekIndex] += minutesToResponse;
           weeklyCounts[weekIndex]++;
         }
@@ -339,10 +388,15 @@ export async function fetchFirstResponseData({
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    minutes: weeklyCounts[i] > 0 ? Math.round(weeklyTotalMinutes[i] / weeklyCounts[i]) : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      minutes:
+        weeklyCounts[i] > 0
+          ? Math.round(weeklyTotalMinutes[i] / weeklyCounts[i])
+          : 0,
+    }));
 }
 
 export async function fetchPrVolumeData({
@@ -355,7 +409,9 @@ export async function fetchPrVolumeData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ date: getWeekLabel(i), count: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ date: getWeekLabel(i), count: 0 }));
   }
 
   const { data: prs } = await supabase
@@ -371,14 +427,18 @@ export async function fetchPrVolumeData({
   if (prs) {
     for (const pr of prs) {
       const createdAt = new Date(pr.created_at);
-      const weekIndex = Math.floor((createdAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (createdAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         weeklyCounts[weekIndex]++;
       }
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({ date: getWeekLabel(i), count: weeklyCounts[i] }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({ date: getWeekLabel(i), count: weeklyCounts[i] }));
 }
 
 export async function fetchWorkloadBalanceData({
@@ -391,12 +451,16 @@ export async function fetchWorkloadBalanceData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i) }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i) }));
   }
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewer:reviewers (user:users (github_username, full_name)), pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewer:reviewers (user:users (github_username, full_name)), pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString());
 
@@ -411,24 +475,31 @@ export async function fetchWorkloadBalanceData({
   if (assignments) {
     for (const assignment of assignments) {
       const assignedAt = new Date(assignment.assigned_at);
-      const weekIndex = Math.floor((assignedAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (assignedAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         const reviewer = assignment.reviewer as any;
-        const reviewerName = reviewer?.user?.github_username || reviewer?.user?.full_name || 'Unknown';
+        const reviewerName =
+          reviewer?.user?.github_username ||
+          reviewer?.user?.full_name ||
+          'Unknown';
         const weekMap = weeklyReviewerCounts.get(weekIndex)!;
         weekMap.set(reviewerName, (weekMap.get(reviewerName) || 0) + 1);
       }
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => {
-    const weekMap = weeklyReviewerCounts.get(i)!;
-    const result: WorkloadBalanceData = { week: getWeekLabel(i) };
-    weekMap.forEach((count, reviewer) => {
-      result[reviewer] = count;
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => {
+      const weekMap = weeklyReviewerCounts.get(i)!;
+      const result: WorkloadBalanceData = { week: getWeekLabel(i) };
+      weekMap.forEach((count, reviewer) => {
+        result[reviewer] = count;
+      });
+      return result;
     });
-    return result;
-  });
 }
 
 export async function fetchPrSizeData({
@@ -441,7 +512,14 @@ export async function fetchPrSizeData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), small: 0, medium: 0, large: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({
+        week: getWeekLabel(i),
+        small: 0,
+        medium: 0,
+        large: 0,
+      }));
   }
 
   const { data: prs } = await supabase
@@ -459,7 +537,9 @@ export async function fetchPrSizeData({
   if (prs) {
     for (const pr of prs) {
       const createdAt = new Date(pr.created_at);
-      const weekIndex = Math.floor((createdAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (createdAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         const size = (pr.additions || 0) + (pr.deletions || 0);
         if (size < 100) weeklySmall[weekIndex]++;
@@ -469,12 +549,14 @@ export async function fetchPrSizeData({
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    small: weeklySmall[i],
-    medium: weeklyMedium[i],
-    large: weeklyLarge[i],
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      small: weeklySmall[i],
+      medium: weeklyMedium[i],
+      large: weeklyLarge[i],
+    }));
 }
 
 export async function fetchSlaComplianceData({
@@ -487,12 +569,16 @@ export async function fetchSlaComplianceData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ date: getWeekLabel(i), percentage: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ date: getWeekLabel(i), percentage: 0 }));
   }
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .not('reviewed_at', 'is', null)
     .gte('assigned_at', startDate.toISOString());
@@ -507,20 +593,28 @@ export async function fetchSlaComplianceData({
       if (assignment.reviewed_at && assignment.assigned_at) {
         const assignedAt = new Date(assignment.assigned_at);
         const reviewedAt = new Date(assignment.reviewed_at);
-        const weekIndex = Math.floor((assignedAt.getTime() - startTime) / msPerWeek);
+        const weekIndex = Math.floor(
+          (assignedAt.getTime() - startTime) / msPerWeek
+        );
         if (weekIndex >= 0 && weekIndex < numWeeks) {
           weeklyTotal[weekIndex]++;
-          const hoursToReview = (reviewedAt.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
+          const hoursToReview =
+            (reviewedAt.getTime() - assignedAt.getTime()) / (1000 * 60 * 60);
           if (hoursToReview <= 4) weeklySlaMet[weekIndex]++;
         }
       }
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    date: getWeekLabel(i),
-    percentage: weeklyTotal[i] > 0 ? Math.round((weeklySlaMet[i] / weeklyTotal[i]) * 100) : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      date: getWeekLabel(i),
+      percentage:
+        weeklyTotal[i] > 0
+          ? Math.round((weeklySlaMet[i] / weeklyTotal[i]) * 100)
+          : 0,
+    }));
 }
 
 export async function fetchReworkRateData({
@@ -533,12 +627,16 @@ export async function fetchReworkRateData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), percentage: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), percentage: 0 }));
   }
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, status, assigned_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, status, assigned_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString());
 
@@ -550,18 +648,26 @@ export async function fetchReworkRateData({
   if (assignments) {
     for (const assignment of assignments) {
       const assignedAt = new Date(assignment.assigned_at);
-      const weekIndex = Math.floor((assignedAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (assignedAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         weeklyTotal[weekIndex]++;
-        if (assignment.status === 'changes_requested') weeklyRework[weekIndex]++;
+        if (assignment.status === 'changes_requested')
+          weeklyRework[weekIndex]++;
       }
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    percentage: weeklyTotal[i] > 0 ? Math.round((weeklyRework[i] / weeklyTotal[i]) * 100) : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      percentage:
+        weeklyTotal[i] > 0
+          ? Math.round((weeklyRework[i] / weeklyTotal[i]) * 100)
+          : 0,
+    }));
 }
 
 export async function fetchApprovalRateData({
@@ -574,12 +680,16 @@ export async function fetchApprovalRateData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), approved: 0, rejected: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), approved: 0, rejected: 0 }));
   }
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, status, assigned_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, status, assigned_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString());
 
@@ -591,19 +701,24 @@ export async function fetchApprovalRateData({
   if (assignments) {
     for (const assignment of assignments) {
       const assignedAt = new Date(assignment.assigned_at);
-      const weekIndex = Math.floor((assignedAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (assignedAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         if (assignment.status === 'approved') weeklyApproved[weekIndex]++;
-        else if (assignment.status === 'changes_requested') weeklyRejected[weekIndex]++;
+        else if (assignment.status === 'changes_requested')
+          weeklyRejected[weekIndex]++;
       }
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    approved: weeklyApproved[i],
-    rejected: weeklyRejected[i],
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      approved: weeklyApproved[i],
+      rejected: weeklyRejected[i],
+    }));
 }
 
 export async function fetchMergeTimeData({
@@ -616,7 +731,9 @@ export async function fetchMergeTimeData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), hours: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), hours: 0 }));
   }
 
   // Get merged PRs with their last approval time
@@ -629,7 +746,9 @@ export async function fetchMergeTimeData({
     .gte('merged_at', startDate.toISOString());
 
   if (!mergedPRs || mergedPRs.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), hours: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), hours: 0 }));
   }
 
   // Get approved assignments for these PRs
@@ -662,9 +781,12 @@ export async function fetchMergeTimeData({
     const lastApproval = prLastApproval.get(pr.id);
     if (lastApproval && pr.merged_at) {
       const mergedAt = new Date(pr.merged_at);
-      const weekIndex = Math.floor((mergedAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (mergedAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
-        const hoursToMerge = (mergedAt.getTime() - lastApproval.getTime()) / (1000 * 60 * 60);
+        const hoursToMerge =
+          (mergedAt.getTime() - lastApproval.getTime()) / (1000 * 60 * 60);
         if (hoursToMerge >= 0) {
           weeklyTotalHours[weekIndex] += hoursToMerge;
           weeklyCounts[weekIndex]++;
@@ -673,10 +795,15 @@ export async function fetchMergeTimeData({
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    hours: weeklyCounts[i] > 0 ? Math.round((weeklyTotalHours[i] / weeklyCounts[i]) * 10) / 10 : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      hours:
+        weeklyCounts[i] > 0
+          ? Math.round((weeklyTotalHours[i] / weeklyCounts[i]) * 10) / 10
+          : 0,
+    }));
 }
 
 export async function fetchReviewDepthData({
@@ -689,19 +816,25 @@ export async function fetchReviewDepthData({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), linesPerPr: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), linesPerPr: 0 }));
   }
 
   // Get PRs that have been reviewed
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewed_at, pull_request:pull_requests!inner (id, repository_id, additions, deletions)`)
+    .select(
+      `id, reviewed_at, pull_request:pull_requests!inner (id, repository_id, additions, deletions)`
+    )
     .in('pull_request.repository_id', repoIds)
     .not('reviewed_at', 'is', null)
     .gte('reviewed_at', startDate.toISOString());
 
   if (!assignments || assignments.length === 0) {
-    return Array(numWeeks).fill(null).map((_, i) => ({ week: getWeekLabel(i), linesPerPr: 0 }));
+    return Array(numWeeks)
+      .fill(null)
+      .map((_, i) => ({ week: getWeekLabel(i), linesPerPr: 0 }));
   }
 
   const msPerWeek = 7 * 24 * 60 * 60 * 1000;
@@ -717,12 +850,14 @@ export async function fetchReviewDepthData({
   for (const assignment of assignments) {
     if (assignment.reviewed_at) {
       const reviewedAt = new Date(assignment.reviewed_at);
-      const weekIndex = Math.floor((reviewedAt.getTime() - startTime) / msPerWeek);
+      const weekIndex = Math.floor(
+        (reviewedAt.getTime() - startTime) / msPerWeek
+      );
       if (weekIndex >= 0 && weekIndex < numWeeks) {
         const pr = assignment.pull_request as any;
         const prId = pr.id;
         const weekSet = seenPRs.get(weekIndex)!;
-        
+
         // Only count each PR once per week
         if (!weekSet.has(prId)) {
           weekSet.add(prId);
@@ -734,17 +869,24 @@ export async function fetchReviewDepthData({
     }
   }
 
-  return Array(numWeeks).fill(null).map((_, i) => ({
-    week: getWeekLabel(i),
-    linesPerPr: weeklyCounts[i] > 0 ? Math.round(weeklyTotalLines[i] / weeklyCounts[i]) : 0,
-  }));
+  return Array(numWeeks)
+    .fill(null)
+    .map((_, i) => ({
+      week: getWeekLabel(i),
+      linesPerPr:
+        weeklyCounts[i] > 0
+          ? Math.round(weeklyTotalLines[i] / weeklyCounts[i])
+          : 0,
+    }));
 }
 
 // =============================================
 // Main Fetch Function
 // =============================================
 
-export async function fetchTrendData(params: TrendServiceParams): Promise<TrendData> {
+export async function fetchTrendData(
+  params: TrendServiceParams
+): Promise<TrendData> {
   const [
     kpis,
     reviewSpeed,
@@ -788,4 +930,3 @@ export async function fetchTrendData(params: TrendServiceParams): Promise<TrendD
     reviewDepth,
   };
 }
-

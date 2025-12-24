@@ -56,7 +56,9 @@ export function FirstResponseChart({ data }: FirstResponseChartProps) {
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>First Response Time Trend</CardTitle>
-        <CardDescription>Time to first review activity per week</CardDescription>
+        <CardDescription>
+          Time to first review activity per week
+        </CardDescription>
       </div>
       <ChartContainer
         config={firstResponseConfig}

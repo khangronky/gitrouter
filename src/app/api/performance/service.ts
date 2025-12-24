@@ -146,7 +146,13 @@ export async function fetchPerformanceKpis({
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   const emptyKpis: PerformanceKpiData = {
-    topReviewer: { name: 'N/A', avgTime: 0, current: 0, previous: 0, sparkline: Array(6).fill(0) },
+    topReviewer: {
+      name: 'N/A',
+      avgTime: 0,
+      current: 0,
+      previous: 0,
+      sparkline: Array(6).fill(0),
+    },
     teamAvgTime: { current: 0, previous: 0, sparkline: Array(6).fill(0) },
     slaCompliance: { current: 0, previous: 0, sparkline: Array(6).fill(0) },
     totalReviews: { current: 0, previous: 0, sparkline: Array(6).fill(0) },
@@ -156,14 +162,18 @@ export async function fetchPerformanceKpis({
 
   const { data: currentAssignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString())
     .not('reviewed_at', 'is', null);
 
   const { data: previousAssignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', previousPeriod.startDate.toISOString())
     .lt('assigned_at', previousPeriod.endDate.toISOString())
@@ -184,35 +194,54 @@ export async function fetchPerformanceKpis({
     periodEnd.setDate(periodEnd.getDate() + periodLength);
 
     const periodAssignments = current.filter(
-      (a) => a.assigned_at >= periodStart.toISOString() && a.assigned_at < periodEnd.toISOString()
+      (a) =>
+        a.assigned_at >= periodStart.toISOString() &&
+        a.assigned_at < periodEnd.toISOString()
     );
 
     const reviewerCounts: Record<string, number> = {};
     periodAssignments.forEach((a) => {
       reviewerCounts[a.reviewer_id] = (reviewerCounts[a.reviewer_id] || 0) + 1;
     });
-    const topReviewerId = Object.entries(reviewerCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const topReviewerId = Object.entries(reviewerCounts).sort(
+      (a, b) => b[1] - a[1]
+    )[0]?.[0];
     sparklineData[0].push(reviewerCounts[topReviewerId || ''] || 0);
 
     const totalTime = periodAssignments.reduce((sum, a) => {
       if (a.reviewed_at) {
-        return sum + (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+        return (
+          sum +
+          (new Date(a.reviewed_at).getTime() -
+            new Date(a.assigned_at).getTime()) /
+            3600000
+        );
       }
       return sum;
     }, 0);
-    sparklineData[1].push(periodAssignments.length > 0 ? totalTime / periodAssignments.length : 0);
+    sparklineData[1].push(
+      periodAssignments.length > 0 ? totalTime / periodAssignments.length : 0
+    );
 
     const slaMet = periodAssignments.filter((a) => {
       if (!a.reviewed_at) return false;
-      const hours = (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+      const hours =
+        (new Date(a.reviewed_at).getTime() -
+          new Date(a.assigned_at).getTime()) /
+        3600000;
       return hours <= 4;
     }).length;
-    sparklineData[2].push(periodAssignments.length > 0 ? (slaMet / periodAssignments.length) * 100 : 0);
+    sparklineData[2].push(
+      periodAssignments.length > 0
+        ? (slaMet / periodAssignments.length) * 100
+        : 0
+    );
     sparklineData[3].push(periodAssignments.length);
   }
 
   // Calculate current period metrics
-  const reviewerCounts: Record<string, { count: number; totalTime: number }> = {};
+  const reviewerCounts: Record<string, { count: number; totalTime: number }> =
+    {};
   current.forEach((a) => {
     if (!a.reviewed_at) return;
     if (!reviewerCounts[a.reviewer_id]) {
@@ -220,10 +249,13 @@ export async function fetchPerformanceKpis({
     }
     reviewerCounts[a.reviewer_id].count++;
     reviewerCounts[a.reviewer_id].totalTime +=
-      (new Date(a.reviewed_at!).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+      (new Date(a.reviewed_at!).getTime() - new Date(a.assigned_at).getTime()) /
+      3600000;
   });
 
-  const topReviewerEntry = Object.entries(reviewerCounts).sort((a, b) => b[1].count - a[1].count)[0];
+  const topReviewerEntry = Object.entries(reviewerCounts).sort(
+    (a, b) => b[1].count - a[1].count
+  )[0];
 
   let topReviewerName = 'N/A';
   if (topReviewerEntry) {
@@ -233,16 +265,26 @@ export async function fetchPerformanceKpis({
       .eq('id', topReviewerEntry[0])
       .single();
     if (reviewer?.user) {
-      topReviewerName = (reviewer.user as any).github_username || (reviewer.user as any).full_name || 'N/A';
+      topReviewerName =
+        (reviewer.user as any).github_username ||
+        (reviewer.user as any).full_name ||
+        'N/A';
     }
   }
 
-  const topReviewerAvgTime = topReviewerEntry && topReviewerEntry[1].count > 0
-    ? topReviewerEntry[1].totalTime / topReviewerEntry[1].count : 0;
+  const topReviewerAvgTime =
+    topReviewerEntry && topReviewerEntry[1].count > 0
+      ? topReviewerEntry[1].totalTime / topReviewerEntry[1].count
+      : 0;
 
   const teamTotalTime = current.reduce((sum, a) => {
     if (a.reviewed_at) {
-      return sum + (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+      return (
+        sum +
+        (new Date(a.reviewed_at).getTime() -
+          new Date(a.assigned_at).getTime()) /
+          3600000
+      );
     }
     return sum;
   }, 0);
@@ -250,43 +292,73 @@ export async function fetchPerformanceKpis({
 
   const slaMet = current.filter((a) => {
     if (!a.reviewed_at) return false;
-    const hours = (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+    const hours =
+      (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) /
+      3600000;
     return hours <= 4;
   }).length;
-  const slaCompliance = current.length > 0 ? (slaMet / current.length) * 100 : 0;
+  const slaCompliance =
+    current.length > 0 ? (slaMet / current.length) * 100 : 0;
 
   const prevTeamTotalTime = previous.reduce((sum, a) => {
     if (a.reviewed_at) {
-      return sum + (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+      return (
+        sum +
+        (new Date(a.reviewed_at).getTime() -
+          new Date(a.assigned_at).getTime()) /
+          3600000
+      );
     }
     return sum;
   }, 0);
-  const prevTeamAvgTime = previous.length > 0 ? prevTeamTotalTime / previous.length : 0;
+  const prevTeamAvgTime =
+    previous.length > 0 ? prevTeamTotalTime / previous.length : 0;
 
   const prevSlaMet = previous.filter((a) => {
     if (!a.reviewed_at) return false;
-    const hours = (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+    const hours =
+      (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) /
+      3600000;
     return hours <= 4;
   }).length;
-  const prevSlaCompliance = previous.length > 0 ? (prevSlaMet / previous.length) * 100 : 0;
+  const prevSlaCompliance =
+    previous.length > 0 ? (prevSlaMet / previous.length) * 100 : 0;
 
   const prevReviewerCounts: Record<string, number> = {};
   previous.forEach((a) => {
-    prevReviewerCounts[a.reviewer_id] = (prevReviewerCounts[a.reviewer_id] || 0) + 1;
+    prevReviewerCounts[a.reviewer_id] =
+      (prevReviewerCounts[a.reviewer_id] || 0) + 1;
   });
-  const prevTopReviewerCount = Math.max(...Object.values(prevReviewerCounts), 0);
+  const prevTopReviewerCount = Math.max(
+    ...Object.values(prevReviewerCounts),
+    0
+  );
 
   return {
     topReviewer: {
-      name: topReviewerName.startsWith('@') ? topReviewerName : `@${topReviewerName}`,
+      name: topReviewerName.startsWith('@')
+        ? topReviewerName
+        : `@${topReviewerName}`,
       avgTime: topReviewerAvgTime,
       current: topReviewerEntry?.[1].count || 0,
       previous: prevTopReviewerCount,
       sparkline: sparklineData[0],
     },
-    teamAvgTime: { current: teamAvgTime, previous: prevTeamAvgTime, sparkline: sparklineData[1] },
-    slaCompliance: { current: slaCompliance, previous: prevSlaCompliance, sparkline: sparklineData[2] },
-    totalReviews: { current: current.length, previous: previous.length, sparkline: sparklineData[3] },
+    teamAvgTime: {
+      current: teamAvgTime,
+      previous: prevTeamAvgTime,
+      sparkline: sparklineData[1],
+    },
+    slaCompliance: {
+      current: slaCompliance,
+      previous: prevSlaCompliance,
+      sparkline: sparklineData[2],
+    },
+    totalReviews: {
+      current: current.length,
+      previous: previous.length,
+      sparkline: sparklineData[3],
+    },
   };
 }
 
@@ -303,14 +375,18 @@ export async function fetchReviewerPerformance({
 
   const { data: currentAssignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString())
     .not('reviewed_at', 'is', null);
 
   const { data: previousAssignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', previousPeriod.startDate.toISOString())
     .lt('assigned_at', previousPeriod.endDate.toISOString())
@@ -319,26 +395,43 @@ export async function fetchReviewerPerformance({
   const current = currentAssignments || [];
   const previous = previousAssignments || [];
 
-  const reviewerStats: Record<string, {
-    reviewerId: string;
-    reviews: Array<{ assigned_at: string; reviewed_at: string }>;
-    prevReviews: Array<{ assigned_at: string; reviewed_at: string }>;
-  }> = {};
+  const reviewerStats: Record<
+    string,
+    {
+      reviewerId: string;
+      reviews: Array<{ assigned_at: string; reviewed_at: string }>;
+      prevReviews: Array<{ assigned_at: string; reviewed_at: string }>;
+    }
+  > = {};
 
   current.forEach((a) => {
     if (!a.reviewed_at) return;
     if (!reviewerStats[a.reviewer_id]) {
-      reviewerStats[a.reviewer_id] = { reviewerId: a.reviewer_id, reviews: [], prevReviews: [] };
+      reviewerStats[a.reviewer_id] = {
+        reviewerId: a.reviewer_id,
+        reviews: [],
+        prevReviews: [],
+      };
     }
-    reviewerStats[a.reviewer_id].reviews.push({ assigned_at: a.assigned_at, reviewed_at: a.reviewed_at });
+    reviewerStats[a.reviewer_id].reviews.push({
+      assigned_at: a.assigned_at,
+      reviewed_at: a.reviewed_at,
+    });
   });
 
   previous.forEach((a) => {
     if (!a.reviewed_at) return;
     if (!reviewerStats[a.reviewer_id]) {
-      reviewerStats[a.reviewer_id] = { reviewerId: a.reviewer_id, reviews: [], prevReviews: [] };
+      reviewerStats[a.reviewer_id] = {
+        reviewerId: a.reviewer_id,
+        reviews: [],
+        prevReviews: [],
+      };
     }
-    reviewerStats[a.reviewer_id].prevReviews.push({ assigned_at: a.assigned_at, reviewed_at: a.reviewed_at });
+    reviewerStats[a.reviewer_id].prevReviews.push({
+      assigned_at: a.assigned_at,
+      reviewed_at: a.reviewed_at,
+    });
   });
 
   const reviewerIds = Object.keys(reviewerStats);
@@ -358,20 +451,38 @@ export async function fetchReviewerPerformance({
     .map((stats) => {
       const reviewerName = reviewerMap.get(stats.reviewerId) || '@Unknown';
       const totalTime = stats.reviews.reduce((sum, r) => {
-        return sum + (new Date(r.reviewed_at).getTime() - new Date(r.assigned_at).getTime()) / 3600000;
+        return (
+          sum +
+          (new Date(r.reviewed_at).getTime() -
+            new Date(r.assigned_at).getTime()) /
+            3600000
+        );
       }, 0);
-      const avgTime = stats.reviews.length > 0 ? totalTime / stats.reviews.length : 0;
+      const avgTime =
+        stats.reviews.length > 0 ? totalTime / stats.reviews.length : 0;
 
       const slaMet = stats.reviews.filter((r) => {
-        const hours = (new Date(r.reviewed_at).getTime() - new Date(r.assigned_at).getTime()) / 3600000;
+        const hours =
+          (new Date(r.reviewed_at).getTime() -
+            new Date(r.assigned_at).getTime()) /
+          3600000;
         return hours <= 4;
       }).length;
-      const sla = stats.reviews.length > 0 ? (slaMet / stats.reviews.length) * 100 : 0;
+      const sla =
+        stats.reviews.length > 0 ? (slaMet / stats.reviews.length) * 100 : 0;
 
       const prevTotalTime = stats.prevReviews.reduce((sum, r) => {
-        return sum + (new Date(r.reviewed_at).getTime() - new Date(r.assigned_at).getTime()) / 3600000;
+        return (
+          sum +
+          (new Date(r.reviewed_at).getTime() -
+            new Date(r.assigned_at).getTime()) /
+            3600000
+        );
       }, 0);
-      const prevAvgTime = stats.prevReviews.length > 0 ? prevTotalTime / stats.prevReviews.length : 0;
+      const prevAvgTime =
+        stats.prevReviews.length > 0
+          ? prevTotalTime / stats.prevReviews.length
+          : 0;
       const trend: 'up' | 'down' = avgTime < prevAvgTime ? 'up' : 'down';
 
       return {
@@ -400,7 +511,9 @@ export async function fetchBottleneckData({
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewed_at, pull_request_id, pull_request:pull_requests!inner (repository_id)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewed_at, pull_request_id, pull_request:pull_requests!inner (repository_id)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString())
     .not('reviewed_at', 'is', null);
@@ -425,7 +538,10 @@ export async function fetchBottleneckData({
   const reviewerMap = new Map<string, string>();
   reviewers?.forEach((r) => {
     const user = r.user as any;
-    reviewerMap.set(r.id, user?.github_username || user?.full_name || 'Unknown');
+    reviewerMap.set(
+      r.id,
+      user?.github_username || user?.full_name || 'Unknown'
+    );
   });
 
   return Object.entries(frequencyMap)
@@ -449,14 +565,19 @@ export async function fetchRepoComparisonData({
 
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id, repositories (full_name))`)
+    .select(
+      `id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id, repositories (full_name))`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString())
     .not('reviewed_at', 'is', null);
 
   if (!assignments || assignments.length === 0) return [];
 
-  const repoStats: Record<string, { name: string; totalTime: number; count: number }> = {};
+  const repoStats: Record<
+    string,
+    { name: string; totalTime: number; count: number }
+  > = {};
 
   assignments.forEach((a) => {
     if (!a.reviewed_at) return;
@@ -467,7 +588,9 @@ export async function fetchRepoComparisonData({
     if (!repoStats[repoId]) {
       repoStats[repoId] = { name: repoName, totalTime: 0, count: 0 };
     }
-    const hours = (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) / 3600000;
+    const hours =
+      (new Date(a.reviewed_at).getTime() - new Date(a.assigned_at).getTime()) /
+      3600000;
     repoStats[repoId].totalTime += hours;
     repoStats[repoId].count++;
   });
@@ -499,7 +622,10 @@ export async function fetchMergeSuccessData({
 
   if (!prs || prs.length === 0) return [];
 
-  const repoStats: Record<string, { name: string; total: number; merged: number }> = {};
+  const repoStats: Record<
+    string,
+    { name: string; total: number; merged: number }
+  > = {};
 
   prs.forEach((pr) => {
     const repoId = pr.repository_id;
@@ -542,7 +668,10 @@ export async function fetchPrSizeByAuthorData({
 
   if (!prs || prs.length === 0) return [];
 
-  const authorStats: Record<string, { small: number; medium: number; large: number }> = {};
+  const authorStats: Record<
+    string,
+    { small: number; medium: number; large: number }
+  > = {};
 
   prs.forEach((pr) => {
     const author = pr.author_login || 'Unknown';
@@ -566,7 +695,9 @@ export async function fetchPrSizeByAuthorData({
       medium: stats.medium,
       large: stats.large,
     }))
-    .sort((a, b) => (b.small + b.medium + b.large) - (a.small + a.medium + a.large))
+    .sort(
+      (a, b) => b.small + b.medium + b.large - (a.small + a.medium + a.large)
+    )
     .slice(0, 8);
 }
 
@@ -593,7 +724,9 @@ export async function fetchReviewThroughputData({
   }
 
   const dayCounts: Record<number, number> = {};
-  dayNames.forEach((_, i) => { dayCounts[i] = 0; });
+  dayNames.forEach((_, i) => {
+    dayCounts[i] = 0;
+  });
 
   assignments.forEach((a) => {
     if (!a.reviewed_at) return;
@@ -601,7 +734,8 @@ export async function fetchReviewThroughputData({
     dayCounts[dayOfWeek] = (dayCounts[dayOfWeek] || 0) + 1;
   });
 
-  const daysInRange = (Date.now() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+  const daysInRange =
+    (Date.now() - startDate.getTime()) / (24 * 60 * 60 * 1000);
   const numWeeks = Math.ceil(daysInRange / 7);
 
   return dayNames.map((day, index) => ({
@@ -674,7 +808,9 @@ export async function fetchTimeToFirstReviewData({
   // Get PRs with their first review assignment
   const { data: assignments } = await supabase
     .from('review_assignments')
-    .select(`id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id, created_at)`)
+    .select(
+      `id, reviewer_id, assigned_at, reviewed_at, pull_request:pull_requests!inner (repository_id, created_at)`
+    )
     .in('pull_request.repository_id', repoIds)
     .gte('assigned_at', startDate.toISOString())
     .not('reviewed_at', 'is', null);
@@ -682,7 +818,8 @@ export async function fetchTimeToFirstReviewData({
   if (!assignments || assignments.length === 0) return [];
 
   // Calculate time from PR creation to first review per reviewer
-  const reviewerStats: Record<string, { totalMinutes: number; count: number }> = {};
+  const reviewerStats: Record<string, { totalMinutes: number; count: number }> =
+    {};
 
   assignments.forEach((a) => {
     if (!a.reviewed_at) return;
@@ -715,7 +852,8 @@ export async function fetchTimeToFirstReviewData({
   return Object.entries(reviewerStats)
     .map(([reviewerId, stats]) => ({
       reviewer: reviewerMap.get(reviewerId) || 'Unknown',
-      minutes: stats.count > 0 ? Math.round(stats.totalMinutes / stats.count) : 0,
+      minutes:
+        stats.count > 0 ? Math.round(stats.totalMinutes / stats.count) : 0,
     }))
     .sort((a, b) => a.minutes - b.minutes) // Sort by fastest first
     .slice(0, 8);

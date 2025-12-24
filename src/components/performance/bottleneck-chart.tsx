@@ -88,7 +88,9 @@ export function BottleneckChart({ data }: BottleneckChartProps) {
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">No bottleneck data yet</p>
+              <p className="text-sm text-muted-foreground">
+                No bottleneck data yet
+              </p>
               <p className="text-xs text-muted-foreground/70">
                 Data will appear when reviews are completed
               </p>
@@ -98,12 +100,16 @@ export function BottleneckChart({ data }: BottleneckChartProps) {
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Highest risk:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-red-600'}`}>
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-red-600'}`}
+        >
           {highest ? `${highest.reviewer} (${highest.frequency} times)` : 'N/A'}
         </span>
         {' | '}
         Lowest:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-green-600'}`}>
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-green-600'}`}
+        >
           {lowest ? `${lowest.reviewer} (${lowest.frequency} times)` : 'N/A'}
         </span>
       </p>

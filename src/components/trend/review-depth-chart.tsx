@@ -41,8 +41,10 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
   const chartData = data.length === 0 ? EMPTY_STATE_DATA : data;
 
   // Calculate statistics
-  const avgLines = isEmpty ? 0 : data.reduce((sum, d) => sum + d.linesPerPr, 0) / data.length;
-  
+  const avgLines = isEmpty
+    ? 0
+    : data.reduce((sum, d) => sum + d.linesPerPr, 0) / data.length;
+
   // Calculate trend
   const firstHalf = isEmpty ? [] : data.slice(0, Math.floor(data.length / 2));
   const secondHalf = isEmpty ? [] : data.slice(Math.floor(data.length / 2));
@@ -52,11 +54,15 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
   const secondAvg = isEmpty
     ? 0
     : secondHalf.reduce((sum, d) => sum + d.linesPerPr, 0) / secondHalf.length;
-  
+
   // For PR size, stable or decreasing is generally better (smaller PRs)
   const trend = isEmpty
     ? null
-    : secondAvg < firstAvg * 0.9 ? 'decreasing' : secondAvg > firstAvg * 1.1 ? 'increasing' : 'stable';
+    : secondAvg < firstAvg * 0.9
+      ? 'decreasing'
+      : secondAvg > firstAvg * 1.1
+        ? 'increasing'
+        : 'stable';
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
@@ -96,8 +102,20 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
             {!isEmpty && <ChartTooltip content={<ChartTooltipContent />} />}
             <defs>
               <linearGradient id="fillLinesPerPr" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isEmpty ? 'var(--muted)' : 'var(--color-linesPerPr)'} stopOpacity={isEmpty ? 0.2 : 0.8} />
-                <stop offset="95%" stopColor={isEmpty ? 'var(--muted)' : 'var(--color-linesPerPr)'} stopOpacity={0.1} />
+                <stop
+                  offset="5%"
+                  stopColor={
+                    isEmpty ? 'var(--muted)' : 'var(--color-linesPerPr)'
+                  }
+                  stopOpacity={isEmpty ? 0.2 : 0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor={
+                    isEmpty ? 'var(--muted)' : 'var(--color-linesPerPr)'
+                  }
+                  stopOpacity={0.1}
+                />
               </linearGradient>
             </defs>
             <Area
@@ -123,8 +141,12 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
         Average:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}>
-          {isEmpty ? 'N/A' : `${Math.round(avgLines).toLocaleString()} lines/PR`}
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
+          {isEmpty
+            ? 'N/A'
+            : `${Math.round(avgLines).toLocaleString()} lines/PR`}
         </span>
         {' | '}
         Trend:{' '}
@@ -133,14 +155,21 @@ export function ReviewDepthChart({ data }: ReviewDepthChartProps) {
         ) : (
           <span
             className={`font-medium ${
-              trend === 'decreasing' ? 'text-green-600' : trend === 'increasing' ? 'text-amber-600' : 'text-foreground'
+              trend === 'decreasing'
+                ? 'text-green-600'
+                : trend === 'increasing'
+                  ? 'text-amber-600'
+                  : 'text-foreground'
             }`}
           >
-            {trend === 'decreasing' ? 'Smaller PRs' : trend === 'increasing' ? 'Larger PRs' : 'Stable'}
+            {trend === 'decreasing'
+              ? 'Smaller PRs'
+              : trend === 'increasing'
+                ? 'Larger PRs'
+                : 'Stable'}
           </span>
         )}
       </p>
     </Card>
   );
 }
-

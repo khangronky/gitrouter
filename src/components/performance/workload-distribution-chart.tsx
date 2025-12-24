@@ -46,7 +46,9 @@ const EMPTY_STATE_DATA = [
   { reviewer: 'No data', reviewCount: 1, percentage: 100 },
 ];
 
-export function WorkloadDistributionChart({ data }: WorkloadDistributionChartProps) {
+export function WorkloadDistributionChart({
+  data,
+}: WorkloadDistributionChartProps) {
   if (!data) {
     return <PerformanceChartSkeleton chartType="pie" />;
   }
@@ -55,9 +57,13 @@ export function WorkloadDistributionChart({ data }: WorkloadDistributionChartPro
   const chartData = isEmpty ? EMPTY_STATE_DATA : data;
 
   // Calculate if workload is balanced (no reviewer has >40% of reviews)
-  const maxPercentage = isEmpty ? 0 : Math.max(...data.map((d) => d.percentage));
+  const maxPercentage = isEmpty
+    ? 0
+    : Math.max(...data.map((d) => d.percentage));
   const isBalanced = maxPercentage <= 40;
-  const totalReviews = isEmpty ? 0 : data.reduce((sum, d) => sum + d.reviewCount, 0);
+  const totalReviews = isEmpty
+    ? 0
+    : data.reduce((sum, d) => sum + d.reviewCount, 0);
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
@@ -84,7 +90,9 @@ export function WorkloadDistributionChart({ data }: WorkloadDistributionChartPro
                 {chartData.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={isEmpty ? 'var(--muted)' : COLORS[index % COLORS.length]}
+                    fill={
+                      isEmpty ? 'var(--muted)' : COLORS[index % COLORS.length]
+                    }
                     opacity={isEmpty ? 0.3 : 1}
                   />
                 ))}
@@ -123,14 +131,18 @@ export function WorkloadDistributionChart({ data }: WorkloadDistributionChartPro
         )}
       </div>
       <p className="mt-4 text-muted-foreground text-sm">
-        Total: <span className="font-medium text-foreground">{totalReviews} reviews</span>
+        Total:{' '}
+        <span className="font-medium text-foreground">
+          {totalReviews} reviews
+        </span>
         {' | '}
         Balance:{' '}
-        <span className={`font-medium ${isEmpty ? 'text-muted-foreground' : isBalanced ? 'text-green-600' : 'text-amber-600'}`}>
+        <span
+          className={`font-medium ${isEmpty ? 'text-muted-foreground' : isBalanced ? 'text-green-600' : 'text-amber-600'}`}
+        >
           {isEmpty ? 'N/A' : isBalanced ? 'Well distributed' : 'Imbalanced'}
         </span>
       </p>
     </Card>
   );
 }
-
