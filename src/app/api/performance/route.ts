@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { trendQuerySchema, type TrendTimeRange } from '@/lib/schema/trend';
+import {
+  performanceQuerySchema,
+  type PerformanceTimeRange,
+} from '@/lib/schema/performance';
 import {
   getAuthenticatedUser,
   requireOrgPermission,
 } from '@/lib/organizations/permissions';
-import { fetchTrendData } from './service';
+import { fetchPerformanceData } from './service';
 
 /**
- * GET /api/trend
- * Fetch trend data for the authenticated user's organization
+ * GET /api/performance
+ * Fetch performance data for the authenticated user's organization
  */
 export async function GET(request: Request) {
   const timestamp = new Date().toISOString();
@@ -24,7 +27,7 @@ export async function GET(request: Request) {
         {
           success: false,
           error: 'Unauthorized',
-          message: 'You must be logged in to access trend data',
+          message: 'You must be logged in to access performance data',
           timestamp,
         },
         { status: 401 }
@@ -39,7 +42,7 @@ export async function GET(request: Request) {
     };
 
     // Validate query parameters
-    const validation = trendQuerySchema.safeParse(queryParams);
+    const validation = performanceQuerySchema.safeParse(queryParams);
     if (!validation.success) {
       return NextResponse.json(
         {
@@ -52,7 +55,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const { timeRange = '6w', organizationId } = validation.data;
+    const { timeRange = '7d', organizationId } = validation.data;
 
     // Resolve organization ID
     let resolvedOrgId = organizationId;
@@ -96,26 +99,26 @@ export async function GET(request: Request) {
       );
     }
 
-    // Fetch trend data
-    const trendData = await fetchTrendData({
+    // Fetch performance data
+    const performanceData = await fetchPerformanceData({
       supabase,
       organizationId: resolvedOrgId,
-      timeRange: timeRange as TrendTimeRange,
+      timeRange: timeRange as PerformanceTimeRange,
     });
 
     return NextResponse.json({
       success: true,
-      data: trendData,
+      data: performanceData,
       timestamp,
       timeRange,
     });
   } catch (error) {
-    console.error('Error in GET /api/trend:', error);
+    console.error('Error in GET /api/performance:', error);
     return NextResponse.json(
       {
         success: false,
         error: 'Internal server error',
-        message: 'An unexpected error occurred while fetching trend data',
+        message: 'An unexpected error occurred while fetching performance data',
         timestamp,
       },
       { status: 500 }

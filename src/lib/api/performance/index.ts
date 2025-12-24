@@ -1,19 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api';
 import type {
-  TrendResponse,
-  TrendQuery,
-  TrendTimeRange,
-} from '@/lib/schema/trend';
+  PerformanceResponse,
+  PerformanceQuery,
+  PerformanceTimeRange,
+} from '@/lib/schema/performance';
 
 // =============================================
 // Query Keys
 // =============================================
 
-export const trendKeys = {
-  all: ['trend'] as const,
-  data: (orgId: string, timeRange: TrendTimeRange) =>
-    [...trendKeys.all, orgId, timeRange] as const,
+export const performanceKeys = {
+  all: ['performance'] as const,
+  data: (orgId: string, timeRange: PerformanceTimeRange) =>
+    [...performanceKeys.all, orgId, timeRange] as const,
 };
 
 // =============================================
@@ -21,9 +21,11 @@ export const trendKeys = {
 // =============================================
 
 /**
- * Fetch trend data from the API
+ * Fetch performance data from the API
  */
-export async function fetchTrend(params?: TrendQuery): Promise<TrendResponse> {
+export async function fetchPerformance(
+  params?: PerformanceQuery
+): Promise<PerformanceResponse> {
   const queryParams = new URLSearchParams();
 
   if (params?.timeRange) {
@@ -34,9 +36,9 @@ export async function fetchTrend(params?: TrendQuery): Promise<TrendResponse> {
   }
 
   const queryString = queryParams.toString();
-  const url = queryString ? `/trend?${queryString}` : '/trend';
+  const url = queryString ? `/performance?${queryString}` : '/performance';
 
-  const response = await apiClient.get<TrendResponse>(url);
+  const response = await apiClient.get<PerformanceResponse>(url);
   return response.data;
 }
 
@@ -45,13 +47,16 @@ export async function fetchTrend(params?: TrendQuery): Promise<TrendResponse> {
 // =============================================
 
 /**
- * Hook to fetch trend data with TanStack Query
+ * Hook to fetch performance data with TanStack Query
  */
-export function useTrendData(orgId: string, timeRange: TrendTimeRange) {
+export function usePerformanceData(
+  orgId: string,
+  timeRange: PerformanceTimeRange
+) {
   return useQuery({
-    queryKey: trendKeys.data(orgId, timeRange),
+    queryKey: performanceKeys.data(orgId, timeRange),
     queryFn: () =>
-      fetchTrend({
+      fetchPerformance({
         organizationId: orgId,
         timeRange,
       }),
@@ -62,4 +67,4 @@ export function useTrendData(orgId: string, timeRange: TrendTimeRange) {
 /**
  * Helper type exports
  */
-export type { TrendResponse, TrendQuery, TrendTimeRange };
+export type { PerformanceResponse, PerformanceQuery, PerformanceTimeRange };

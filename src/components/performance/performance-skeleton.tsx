@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChartSkeletonProps {
-  chartType?: 'line' | 'bar' | 'area' | 'radar';
+  chartType?: 'line' | 'bar' | 'area' | 'radar' | 'pie';
 }
 
 export function PerformanceChartSkeleton({
@@ -59,6 +59,12 @@ export function PerformanceChartSkeleton({
               <Skeleton className="absolute inset-4 rounded-full opacity-30" />
               <Skeleton className="absolute inset-8 rounded-full opacity-40" />
             </div>
+          </div>
+        )}
+        {chartType === 'pie' && (
+          // Pie chart skeleton
+          <div className="relative flex h-full w-full items-center justify-center">
+            <Skeleton className="h-40 w-40 rounded-full" />
           </div>
         )}
       </div>

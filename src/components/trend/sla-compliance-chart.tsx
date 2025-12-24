@@ -99,7 +99,11 @@ export function SlaComplianceChart({ data }: SlaComplianceChartProps) {
             y={80}
             stroke="var(--muted-foreground)"
             strokeDasharray="5 5"
-            label={{ value: '80% target', position: 'right', fill: 'var(--muted-foreground)' }}
+            label={{
+              value: '80% target',
+              position: 'right',
+              fill: 'var(--muted-foreground)',
+            }}
           />
           <Line
             type="monotone"

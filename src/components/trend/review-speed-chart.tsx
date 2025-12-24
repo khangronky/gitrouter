@@ -60,8 +60,7 @@ export function ReviewSpeedChart({ data }: ReviewSpeedChartProps) {
   const trend = secondAvg < firstAvg ? 'improving' : 'declining';
 
   // Calculate average for reference line
-  const avgValue =
-    data.reduce((sum, d) => sum + d.hours, 0) / data.length;
+  const avgValue = data.reduce((sum, d) => sum + d.hours, 0) / data.length;
 
   return (
     <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">

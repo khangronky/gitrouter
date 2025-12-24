@@ -51,7 +51,10 @@ export function PrVolumeChart({ data }: PrVolumeChartProps) {
         <CardTitle>PR Volume Trend</CardTitle>
         <CardDescription>Number of PRs created per week</CardDescription>
       </div>
-      <ChartContainer config={prVolumeConfig} className="h-[200px] w-full flex-1">
+      <ChartContainer
+        config={prVolumeConfig}
+        className="h-[200px] w-full flex-1"
+      >
         <AreaChart
           data={data}
           margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
