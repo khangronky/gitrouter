@@ -19,7 +19,10 @@ export function GitHubStep({ onNext, onBack, orgId }: GitHubStepProps) {
 
   const handleConnect = async () => {
     try {
-      const result = await getInstallUrl.mutateAsync({ orgId, onboarding: true });
+      const result = await getInstallUrl.mutateAsync({
+        orgId,
+        onboarding: true,
+      });
       if (result.url) {
         window.location.href = result.url;
       }
@@ -100,4 +103,3 @@ export function GitHubStep({ onNext, onBack, orgId }: GitHubStepProps) {
     </div>
   );
 }
-

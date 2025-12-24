@@ -1,6 +1,12 @@
 'use client';
 
-import { Check, Loader2, ArrowLeft, ArrowRight, TicketCheck } from 'lucide-react';
+import {
+  Check,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  TicketCheck,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useJiraIntegration, useGetJiraOAuthUrl } from '@/lib/api/jira';
 import { toast } from 'sonner';
@@ -64,7 +70,8 @@ export function JiraStep({ onNext, onBack, orgId }: JiraStepProps) {
         <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
           <Check className="size-5 text-green-500" />
           <span className="text-sm font-medium text-green-700 dark:text-green-400">
-            Jira connected: {jiraData.integration?.site_name || jiraData.integration?.site_url}
+            Jira connected:{' '}
+            {jiraData.integration?.site_name || jiraData.integration?.site_url}
           </span>
         </div>
       )}
@@ -100,4 +107,3 @@ export function JiraStep({ onNext, onBack, orgId }: JiraStepProps) {
     </div>
   );
 }
-

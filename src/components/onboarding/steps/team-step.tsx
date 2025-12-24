@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, ArrowLeft, ArrowRight, Loader2, Plus, X, Check } from 'lucide-react';
+import {
+  Users,
+  ArrowLeft,
+  ArrowRight,
+  Loader2,
+  Plus,
+  X,
+  Check,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -59,7 +67,9 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
   };
 
   const handleRemoveFromList = (emailToRemove: string) => {
-    setPendingInvites(pendingInvites.filter((invite) => invite.email !== emailToRemove));
+    setPendingInvites(
+      pendingInvites.filter((invite) => invite.email !== emailToRemove)
+    );
   };
 
   const handleSendInvites = async () => {
@@ -89,7 +99,9 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
     if (newSentInvites.length > 0) {
       setSentInvites([...sentInvites, ...newSentInvites]);
       setPendingInvites(
-        pendingInvites.filter((invite) => !newSentInvites.includes(invite.email))
+        pendingInvites.filter(
+          (invite) => !newSentInvites.includes(invite.email)
+        )
       );
       toast.success(`Added ${newSentInvites.length} team member(s)`);
     }
@@ -100,7 +112,10 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
 
     setIsSending(false);
 
-    if (pendingInvites.length === 0 || newSentInvites.length === pendingInvites.length) {
+    if (
+      pendingInvites.length === 0 ||
+      newSentInvites.length === pendingInvites.length
+    ) {
       onNext();
     }
   };
@@ -140,7 +155,10 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
           </div>
           <div className="w-28 space-y-2">
             <Label>Role</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as 'member' | 'admin')}>
+            <Select
+              value={role}
+              onValueChange={(v) => setRole(v as 'member' | 'admin')}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -151,7 +169,12 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
             </Select>
           </div>
           <div className="flex items-end">
-            <Button type="button" variant="outline" size="icon" onClick={handleAddToList}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleAddToList}
+            >
               <Plus className="size-4" />
             </Button>
           </div>
@@ -192,7 +215,11 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
             <Label>Added Members</Label>
             <div className="flex flex-wrap gap-2">
               {sentInvites.map((email) => (
-                <Badge key={email} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={email}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   <Check className="size-3 text-green-500" />
                   {email}
                 </Badge>
@@ -202,8 +229,8 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
         )}
 
         <p className="text-xs text-muted-foreground">
-          Note: Users must have an account to be added. They&apos;ll need to sign up first
-          if they don&apos;t have one.
+          Note: Users must have an account to be added. They&apos;ll need to
+          sign up first if they don&apos;t have one.
         </p>
       </div>
 
@@ -222,7 +249,8 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
             ) : pendingInvites.length > 0 ? (
               <>
                 <Users className="size-4 mr-2" />
-                Add {pendingInvites.length} Member{pendingInvites.length > 1 ? 's' : ''}
+                Add {pendingInvites.length} Member
+                {pendingInvites.length > 1 ? 's' : ''}
               </>
             ) : (
               <>
@@ -236,5 +264,3 @@ export function TeamStep({ onNext, onBack, orgId }: TeamStepProps) {
     </div>
   );
 }
-
-

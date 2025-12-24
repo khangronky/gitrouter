@@ -67,12 +67,12 @@ export function useGetSlackOAuthUrl() {
       // Support both string (orgId only) and object (with onboarding flag)
       const orgId = typeof params === 'string' ? params : params.orgId;
       const onboarding = typeof params === 'string' ? false : params.onboarding;
-      
+
       const queryParams = new URLSearchParams({ org_id: orgId });
       if (onboarding) {
         queryParams.set('onboarding', 'true');
       }
-      
+
       const response = await fetcher<{ url: string }>(
         `/slack/oauth?${queryParams.toString()}`
       );

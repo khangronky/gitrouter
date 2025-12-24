@@ -1,6 +1,13 @@
 'use client';
 
-import { Check, ArrowLeft, Rocket, LayoutDashboard, Settings, BookOpen } from 'lucide-react';
+import {
+  Check,
+  ArrowLeft,
+  Rocket,
+  LayoutDashboard,
+  Settings,
+  BookOpen,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGitHubInstallation } from '@/lib/api/github';
 import { useSlackIntegration } from '@/lib/api/slack';
@@ -39,7 +46,8 @@ export function CompletionStep({ onComplete, onBack }: CompletionStepProps) {
         </div>
         <h2 className="text-2xl font-bold">You&apos;re All Set!</h2>
         <p className="text-muted-foreground">
-          Great job! Your workspace is ready. Here&apos;s what you&apos;ve set up:
+          Great job! Your workspace is ready. Here&apos;s what you&apos;ve set
+          up:
         </p>
       </div>
 
@@ -47,10 +55,7 @@ export function CompletionStep({ onComplete, onBack }: CompletionStepProps) {
         <h3 className="font-medium text-sm mb-3">Setup Summary</h3>
         <div className="space-y-2">
           {setupItems.map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-2 text-sm"
-            >
+            <div key={item.label} className="flex items-center gap-2 text-sm">
               <div
                 className={`size-5 rounded-full flex items-center justify-center ${
                   item.isComplete
@@ -123,5 +128,3 @@ export function CompletionStep({ onComplete, onBack }: CompletionStepProps) {
     </div>
   );
 }
-
-

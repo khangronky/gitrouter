@@ -74,7 +74,9 @@ export async function GET(request: Request) {
     ].join(' ');
 
     // Encode state with org_id and onboarding flag
-    const stateData: { org_id: string; onboarding?: boolean } = { org_id: orgId };
+    const stateData: { org_id: string; onboarding?: boolean } = {
+      org_id: orgId,
+    };
     if (onboarding) {
       stateData.onboarding = true;
     }
