@@ -22,6 +22,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const orgId = searchParams.get('org_id');
+    const onboarding = searchParams.get('onboarding') === 'true';
 
     if (!orgId) {
       return NextResponse.json(
@@ -56,10 +57,12 @@ export async function GET(request: Request) {
       'groups:read',
     ].join(',');
 
-    // Encode state with org_id
-    const state = Buffer.from(JSON.stringify({ org_id: orgId })).toString(
-      'base64'
-    );
+    // Encode state with org_id and onboarding flag
+    const stateData: { org_id: string; onboarding?: boolean } = { org_id: orgId };
+    if (onboarding) {
+      stateData.onboarding = true;
+    }
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
 
     // Get redirect URI
     const redirectUri = `${getBaseUrl(request)}/api/slack/oauth/callback`;

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { AppSidebar } from '@/components/side-bar/app-sidebar';
 import NavHeader from '@/components/side-bar/nav-header';
+import { OnboardingDialog } from '@/components/onboarding';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { createClient } from '@/lib/supabase/server';
 import UserProvider from '@/providers/user-provider';
@@ -24,6 +25,7 @@ export default async function MainLayout({
 
   return (
     <UserProvider>
+      <OnboardingDialog />
       <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar />
         <SidebarInset className="bg-muted max-h-svh overflow-hidden">

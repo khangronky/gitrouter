@@ -56,14 +56,28 @@ export function useAvailableRepositories(orgId: string) {
 // Mutations
 // =============================================
 
+interface GetInstallUrlParams {
+  orgId: string;
+  onboarding?: boolean;
+}
+
 /**
  * Get GitHub App installation URL
  */
 export function useGetInstallUrl() {
   return useMutation({
-    mutationFn: async (orgId: string) => {
+    mutationFn: async (params: string | GetInstallUrlParams) => {
+      // Support both string (orgId only) and object (with onboarding flag)
+      const orgId = typeof params === 'string' ? params : params.orgId;
+      const onboarding = typeof params === 'string' ? false : params.onboarding;
+      
+      const queryParams = new URLSearchParams({ org_id: orgId });
+      if (onboarding) {
+        queryParams.set('onboarding', 'true');
+      }
+      
       const response = await fetcher<{ url: string }>(
-        `/github/install?org_id=${orgId}`
+        `/github/install?${queryParams.toString()}`
       );
       return response;
     },

@@ -18,6 +18,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const orgId = searchParams.get('org_id');
+    const onboarding = searchParams.get('onboarding') === 'true';
 
     if (!orgId) {
       return NextResponse.json(
@@ -67,10 +68,12 @@ export async function GET(request: Request) {
       );
     }
 
-    // Create state parameter with org_id for callback
-    const state = Buffer.from(JSON.stringify({ org_id: orgId })).toString(
-      'base64'
-    );
+    // Create state parameter with org_id and onboarding flag for callback
+    const stateData: { org_id: string; onboarding?: boolean } = { org_id: orgId };
+    if (onboarding) {
+      stateData.onboarding = true;
+    }
+    const state = Buffer.from(JSON.stringify(stateData)).toString('base64');
 
     // Build GitHub App installation URL
     const installUrl = `https://github.com/apps/${appSlug}/installations/new?state=${state}`;
