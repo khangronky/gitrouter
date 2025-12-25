@@ -1,4 +1,3 @@
-
 import { BentoGrid } from '@/components/landing/bento-grid';
 import { BentoCell } from '@/components/landing/bento-cell';
 import { Hero } from '@/components/landing/hero';
@@ -108,7 +107,7 @@ export default function LandingPage() {
       </BentoGrid>
 
       <AboutSection />
-      
+
       <CTASection />
     </>
   );

@@ -43,7 +43,9 @@ export function SlackCell() {
           <div className="flex h-6 w-6 items-center justify-center rounded bg-[#4A154B] transition-transform duration-200 hover:scale-110">
             <IconBrandSlack className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xs font-medium text-landing-text">GitRouter</span>
+          <span className="text-xs font-medium text-landing-text">
+            GitRouter
+          </span>
           <span className="text-xs text-landing-text-muted">now</span>
 
           {/* Notification dot with ping */}
@@ -63,7 +65,9 @@ export function SlackCell() {
           </span>
         </div>
         <div className="mt-1 text-xs text-landing-text-muted">
-          <span className="text-blue-600 dark:text-blue-400">{currentMessage.mention}</span>{' '}
+          <span className="text-blue-600 dark:text-blue-400">
+            {currentMessage.mention}
+          </span>{' '}
           requested for review
         </div>
       </div>

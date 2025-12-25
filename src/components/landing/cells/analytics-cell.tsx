@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { IconTrendingUp, IconTrendingDown, IconRefresh } from '@tabler/icons-react';
+import {
+  IconTrendingUp,
+  IconTrendingDown,
+  IconRefresh,
+} from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
 const INITIAL_DATA = [
@@ -46,7 +50,15 @@ const generateStats = () => ({
   trendValue: Math.floor(Math.random() * 15 + 5),
 });
 
-function AnimatedNumber({ value, suffix = '', duration = 500 }: { value: number; suffix?: string; duration?: number }) {
+function AnimatedNumber({
+  value,
+  suffix = '',
+  duration = 500,
+}: {
+  value: number;
+  suffix?: string;
+  duration?: number;
+}) {
   const [displayValue, setDisplayValue] = useState(0);
   const startTimeRef = useRef<number | null>(null);
   const startValueRef = useRef(0);
@@ -57,9 +69,13 @@ function AnimatedNumber({ value, suffix = '', duration = 500 }: { value: number;
 
     const animate = (timestamp: number) => {
       if (!startTimeRef.current) startTimeRef.current = timestamp;
-      const progress = Math.min((timestamp - startTimeRef.current) / duration, 1);
+      const progress = Math.min(
+        (timestamp - startTimeRef.current) / duration,
+        1
+      );
       const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      const current = startValueRef.current + (value - startValueRef.current) * eased;
+      const current =
+        startValueRef.current + (value - startValueRef.current) * eased;
       setDisplayValue(current);
 
       if (progress < 1) {
@@ -70,11 +86,17 @@ function AnimatedNumber({ value, suffix = '', duration = 500 }: { value: number;
     requestAnimationFrame(animate);
   }, [value, duration]);
 
-  const formatted = suffix === '%' || suffix === 'h' 
-    ? displayValue.toFixed(suffix === 'h' ? 1 : 0) 
-    : Math.floor(displayValue);
+  const formatted =
+    suffix === '%' || suffix === 'h'
+      ? displayValue.toFixed(suffix === 'h' ? 1 : 0)
+      : Math.floor(displayValue);
 
-  return <>{formatted}{suffix}</>;
+  return (
+    <>
+      {formatted}
+      {suffix}
+    </>
+  );
 }
 
 export function AnalyticsCell() {
@@ -110,12 +132,14 @@ export function AnalyticsCell() {
       {/* Header with refresh */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={cn(
-            "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]",
-            stats.trend === 'up' 
-              ? "bg-green-500/20 text-green-600 dark:text-green-400" 
-              : "bg-red-500/20 text-red-600 dark:text-red-400"
-          )}>
+          <div
+            className={cn(
+              'flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]',
+              stats.trend === 'up'
+                ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                : 'bg-red-500/20 text-red-600 dark:text-red-400'
+            )}
+          >
             {stats.trend === 'up' ? (
               <IconTrendingUp className="h-3 w-3" />
             ) : (
@@ -128,7 +152,9 @@ export function AnalyticsCell() {
           onClick={refresh}
           className="rounded-full p-1.5 text-landing-text-muted transition-all hover:bg-landing-skeleton-strong hover:text-landing-text/60"
         >
-          <IconRefresh className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
+          <IconRefresh
+            className={cn('h-3.5 w-3.5', isRefreshing && 'animate-spin')}
+          />
         </button>
       </div>
 
@@ -144,13 +170,17 @@ export function AnalyticsCell() {
           <div className="text-xl font-bold text-green-600 dark:text-green-400 tabular-nums">
             <AnimatedNumber value={stats.sla} suffix="%" />
           </div>
-          <div className="text-[10px] text-landing-text-muted">SLA Compliance</div>
+          <div className="text-[10px] text-landing-text-muted">
+            SLA Compliance
+          </div>
         </div>
         <div className="rounded-lg bg-landing-skeleton p-2.5 transition-all hover:bg-landing-skeleton-strong">
           <div className="text-xl font-bold text-landing-text tabular-nums">
             <AnimatedNumber value={stats.prs} />
           </div>
-          <div className="text-[10px] text-landing-text-muted">PRs This Week</div>
+          <div className="text-[10px] text-landing-text-muted">
+            PRs This Week
+          </div>
         </div>
       </div>
 
@@ -171,8 +201,10 @@ export function AnalyticsCell() {
                 {/* Tooltip */}
                 <div
                   className={cn(
-                    "absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-black shadow-lg transition-all duration-200",
-                    isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"
+                    'absolute -top-5 left-1/2 -translate-x-1/2 rounded bg-white/90 px-1.5 py-0.5 text-[9px] font-medium text-black shadow-lg transition-all duration-200',
+                    isHovered
+                      ? 'opacity-100 translate-y-0'
+                      : 'opacity-0 translate-y-1 pointer-events-none'
                   )}
                 >
                   {item.value}h
@@ -181,23 +213,24 @@ export function AnalyticsCell() {
                 {/* Bar */}
                 <div
                   className={cn(
-                    "w-full rounded-sm transition-all cursor-pointer",
+                    'w-full rounded-sm transition-all cursor-pointer',
                     isHovered
-                      ? "bg-gradient-to-t from-white to-white/80 shadow-[0_0_12px_rgba(255,255,255,0.3)]"
-                      : "bg-gradient-to-t from-landing-accent to-landing-accent-light"
+                      ? 'bg-gradient-to-t from-white to-white/80 shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                      : 'bg-gradient-to-t from-landing-accent to-landing-accent-light'
                   )}
                   style={{
                     height: isLoaded ? `${heightPercent}%` : '0%',
                     minHeight: isLoaded ? '4px' : '0px',
                     transitionDuration: `${300 + i * 50}ms`,
-                    transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transitionTimingFunction:
+                      'cubic-bezier(0.34, 1.56, 0.64, 1)',
                   }}
                 />
               </div>
               <span
                 className={cn(
-                  "text-[9px] transition-colors duration-200",
-                  isHovered ? "text-landing-text" : "text-landing-text-muted"
+                  'text-[9px] transition-colors duration-200',
+                  isHovered ? 'text-landing-text' : 'text-landing-text-muted'
                 )}
               >
                 {item.day}

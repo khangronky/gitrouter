@@ -141,7 +141,9 @@ export function RulesCell() {
             <IconGripVertical
               className={cn(
                 'h-4 w-4 shrink-0 transition-colors',
-                isDragging ? 'text-landing-accent' : 'text-landing-text-muted group-hover/rule:text-landing-text/50'
+                isDragging
+                  ? 'text-landing-accent'
+                  : 'text-landing-text-muted group-hover/rule:text-landing-text/50'
               )}
             />
 
@@ -149,7 +151,9 @@ export function RulesCell() {
             <div
               className={cn(
                 'rounded-md p-1.5 shrink-0 transition-colors',
-                isActive ? rule.color : 'bg-landing-skeleton-strong text-landing-text-muted'
+                isActive
+                  ? rule.color
+                  : 'bg-landing-skeleton-strong text-landing-text-muted'
               )}
             >
               <rule.icon className="h-3.5 w-3.5" />
@@ -159,7 +163,9 @@ export function RulesCell() {
             <code
               className={cn(
                 'flex-1 text-[11px] font-mono transition-colors truncate',
-                isActive ? 'text-landing-text/80' : 'text-landing-text-muted line-through'
+                isActive
+                  ? 'text-landing-text/80'
+                  : 'text-landing-text-muted line-through'
               )}
             >
               {rule.pattern}
@@ -169,7 +175,9 @@ export function RulesCell() {
             <span
               className={cn(
                 'shrink-0 rounded-full px-2 py-0.5 text-[10px] transition-colors',
-                isActive ? 'bg-landing-skeleton-strong text-landing-text/70' : 'bg-landing-skeleton text-landing-text-muted'
+                isActive
+                  ? 'bg-landing-skeleton-strong text-landing-text/70'
+                  : 'bg-landing-skeleton text-landing-text-muted'
               )}
             >
               {rule.team}
