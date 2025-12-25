@@ -91,10 +91,12 @@ src/app/(main)/
 │   └── page.tsx                     # Dashboard with KPIs, charts, metrics
 │
 ├── pull-requests/                   # PR management
-│   ├── page.tsx                     # PR list view
 │   ├── client.tsx                   # Client component for PR table
 │   ├── columns.tsx                  # Table column definitions
 │   └── pull-request-table.tsx       # PR table component
+│
+├── performance/                     # Performance analytics
+│   └── page.tsx                     # Performance metrics page with charts and KPIs
 │
 ├── rules-builder/                   # Routing rules configuration
 │   ├── page.tsx                     # Rules list and management
@@ -174,7 +176,7 @@ src/app/api/
 │       │   └── test/route.ts       # Test Slack connection
 │       ├── jira/                    # Jira integration config
 │       │   ├── route.ts            # GET/PATCH/DELETE Jira
-│       │   ├── projects/route.ts   # List Jira projects
+│       │   ├── projects/route.ts    # List Jira projects
 │       │   ├── statuses/route.ts   # List Jira statuses
 │       │   └── test/route.ts       # Test Jira connection
 │       ├── notification-settings/route.ts  # Notification preferences
@@ -208,6 +210,22 @@ src/components/
 │   ├── section-title.tsx            # Section headers
 │   ├── stale-pull-requests.tsx     # Stale PRs list
 │   └── workload-chart.tsx           # Reviewer workload chart
+│
+├── performance/                     # Performance analytics components
+│   ├── index.ts                    # Component exports
+│   ├── utils.ts                    # Performance utility functions
+│   ├── performance-skeleton.tsx    # Loading skeleton components
+│   ├── performance-kpi-row.tsx    # KPI metrics row
+│   ├── reviewer-performance-table.tsx  # Reviewer performance table
+│   ├── repo-comparison-chart.tsx   # Repository comparison chart
+│   ├── team-speed-chart.tsx        # Team speed metrics chart
+│   ├── review-throughput-chart.tsx # Review throughput chart
+│   ├── review-quality-chart.tsx    # Review quality metrics chart
+│   ├── pr-size-by-author-chart.tsx # PR size by author chart
+│   ├── response-by-hour-chart.tsx  # Response time by hour chart
+│   ├── merge-success-chart.tsx     # Merge success rate chart
+│   ├── comments-distribution-chart.tsx  # Comments distribution chart
+│   └── bottleneck-chart.tsx        # Bottleneck analysis chart
 │
 ├── settings/                        # Settings page components
 │   ├── account-settings.tsx        # User account settings
@@ -347,6 +365,7 @@ src/
 - **`src/lib/routing/engine.ts`**: Core routing algorithm - evaluates rules and assigns reviewers
 - **`src/lib/escalation/processor.ts`**: Escalation logic - sends reminders/alerts for stale PRs
 - **`src/lib/dashboard/service.ts`**: Dashboard data aggregation - KPIs, charts, metrics
+- **`src/app/(main)/performance/page.tsx`**: Performance analytics page - displays team and repository metrics with charts
 
 ### Database Schema
 
@@ -390,6 +409,12 @@ Key tables (from migrations):
    - Aggregates PR metrics
    - Calculates KPIs, latency, workload, bottlenecks
    - Returns data for frontend visualization
+
+5. **Performance Analytics** → `src/app/(main)/performance/page.tsx`
+   - Displays team and repository performance metrics
+   - Shows reviewer performance, review quality, bottlenecks
+   - Provides time range filtering (7d, 30d, 3m)
+   - Visualizes trends and comparisons
 
 ## Technology Stack
 
