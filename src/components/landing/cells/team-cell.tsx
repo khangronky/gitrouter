@@ -124,13 +124,13 @@ export function TeamCell() {
       {/* Org Tree */}
       <div className="flex flex-col items-center gap-3">
         {/* Organization */}
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 transition-all duration-200 hover:border-white/20 hover:bg-white/10 cursor-pointer">
+        <div className="flex items-center gap-2 rounded-lg border border-landing-border bg-landing-skeleton px-3 py-2 transition-all duration-200 hover:border-landing-text/20 hover:bg-landing-skeleton-strong cursor-pointer">
           <IconBuilding className="h-4 w-4 text-landing-accent-light" />
-          <span className="text-sm font-medium text-white">Acme Corp</span>
+          <span className="text-sm font-medium text-landing-text">Acme Corp</span>
         </div>
 
         {/* Connector */}
-        <div className="h-3 w-px bg-white/20" />
+        <div className="h-3 w-px bg-landing-border" />
 
         {/* Teams */}
         <div className="flex gap-6">
@@ -149,25 +149,25 @@ export function TeamCell() {
                     'flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 transition-all duration-200',
                     isSelected
                       ? 'border-landing-accent/50 bg-landing-accent/10'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
+                      : 'border-landing-border bg-landing-skeleton hover:border-landing-text/20'
                   )}
                 >
                   <IconUsers
                     className={cn(
                       'h-3 w-3 transition-colors duration-200',
-                      isSelected ? 'text-landing-accent-light' : 'text-white/60'
+                      isSelected ? 'text-landing-accent-light' : 'text-landing-text-muted'
                     )}
                   />
                   <span
                     className={cn(
                       'text-xs transition-colors duration-200',
-                      isSelected ? 'text-white' : 'text-white/70'
+                      isSelected ? 'text-landing-text' : 'text-landing-text/70'
                     )}
                   >
                     {team.name}
                   </span>
                   {isSelected && (
-                    <IconCheck className="ml-1 h-3 w-3 text-green-400" />
+                    <IconCheck className="ml-1 h-3 w-3 text-green-600 dark:text-green-400" />
                   )}
                 </div>
 
@@ -217,7 +217,7 @@ export function TeamCell() {
                         {isHovered && !member.isRemoving ? (
                           <IconMinus className="h-3.5 w-3.5 text-red-400" />
                         ) : (
-                          <IconUser className="h-3.5 w-3.5 text-white/40" />
+                          <IconUser className="h-3.5 w-3.5 text-landing-text-muted" />
                         )}
                       </div>
                     );
@@ -228,11 +228,11 @@ export function TeamCell() {
                     onClick={(e) => addMember(team.id, e)}
                     className={cn(
                       'flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-dashed transition-all duration-200 hover:scale-110',
-                      'border-white/20 hover:border-green-500/50 hover:bg-green-500/10',
-                      isSelected && 'border-landing-accent/50 hover:border-green-500/50'
+                      'border-landing-border hover:border-green-600 dark:hover:border-green-500/50 hover:bg-green-500/10',
+                      isSelected && 'border-landing-accent/50 hover:border-green-600 dark:hover:border-green-500/50'
                     )}
                   >
-                    <IconPlus className="h-3 w-3 text-white/30 transition-colors hover:text-green-400" />
+                    <IconPlus className="h-3 w-3 text-landing-text-muted transition-colors hover:text-green-600 dark:hover:text-green-400" />
                   </div>
                 </div>
               </div>
@@ -240,7 +240,7 @@ export function TeamCell() {
           })}
         </div>
       </div>
-      <p className="mt-3 text-center text-[10px] text-white/30">
+      <p className="mt-3 text-center text-[10px] text-landing-text-muted">
         Click + to add • Hover & click to remove
       </p>
 

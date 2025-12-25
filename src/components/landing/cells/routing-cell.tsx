@@ -58,12 +58,12 @@ export function RoutingCell() {
           )}>
             <IconGitPullRequest className="h-6 w-6 text-landing-accent-light" />
           </div>
-          <span className="text-[10px] text-white/40">PR</span>
+          <span className="text-[10px] text-landing-text-muted">PR</span>
         </div>
 
         {/* Connector 1 - Left line */}
         <div className="flex-1 flex items-center min-w-[40px]">
-          <div className="flex-1 h-[2px] bg-white/10 rounded-full overflow-hidden">
+          <div className="flex-1 h-[2px] bg-landing-skeleton-strong rounded-full overflow-hidden">
             <div 
               className={cn(
                 "h-full bg-landing-accent rounded-full transition-all duration-400 ease-out",
@@ -74,7 +74,7 @@ export function RoutingCell() {
           <IconChevronRight 
             className={cn(
               "h-4 w-4 -ml-1 transition-all duration-300",
-              leftLineActive ? "text-landing-accent opacity-100" : "text-white/20 opacity-50"
+              leftLineActive ? "text-landing-accent opacity-100" : "text-landing-text-muted opacity-50"
             )} 
           />
         </div>
@@ -83,17 +83,17 @@ export function RoutingCell() {
         <div className="flex flex-col items-center gap-2 shrink-0">
           <div className={cn(
             "rounded-lg border bg-landing-card-hover px-3 py-2 transition-all duration-200",
-            leftLineActive ? "border-landing-accent/50 shadow-md shadow-landing-accent/10" : "border-white/10"
+            leftLineActive ? "border-landing-accent/50 shadow-md shadow-landing-accent/10" : "border-landing-border"
           )}>
-            <div className="text-[10px] font-semibold text-white/80 mb-1 text-center">Rules</div>
+            <div className="text-[10px] font-semibold text-landing-text/80 mb-1 text-center">Rules</div>
             <div className="flex gap-1">
               <span className={cn(
                 "rounded px-1 py-0.5 text-[8px] transition-colors",
-                leftLineActive ? "bg-blue-500/40 text-blue-300" : "bg-blue-500/20 text-blue-400"
+                leftLineActive ? "bg-blue-500/40 text-blue-700 dark:text-blue-300" : "bg-blue-500/20 text-blue-600 dark:text-blue-400"
               )}>files</span>
               <span className={cn(
                 "rounded px-1 py-0.5 text-[8px] transition-colors",
-                leftLineActive ? "bg-green-500/40 text-green-300" : "bg-green-500/20 text-green-400"
+                leftLineActive ? "bg-green-500/40 text-green-700 dark:text-green-300" : "bg-green-500/20 text-green-600 dark:text-green-400"
               )}>branch</span>
             </div>
           </div>
@@ -101,7 +101,7 @@ export function RoutingCell() {
 
         {/* Connector 2 - Right line (green) */}
         <div className="flex-1 flex items-center min-w-[40px]">
-          <div className="flex-1 h-[2px] bg-white/10 rounded-full overflow-hidden">
+          <div className="flex-1 h-[2px] bg-landing-skeleton-strong rounded-full overflow-hidden">
             <div 
               className={cn(
                 "h-full bg-green-500 rounded-full transition-all duration-400 ease-out",
@@ -112,7 +112,7 @@ export function RoutingCell() {
           <IconChevronRight 
             className={cn(
               "h-4 w-4 -ml-1 transition-all duration-300",
-              rightLineActive ? "text-green-500 opacity-100" : "text-white/20 opacity-50"
+              rightLineActive ? "text-green-500 opacity-100" : "text-landing-text-muted opacity-50"
             )}
           />
         </div>
@@ -128,7 +128,7 @@ export function RoutingCell() {
                   "transition-all duration-200",
                   isComplete 
                     ? "bg-green-500/20 ring-1 ring-green-500/50" 
-                    : "bg-landing-card-hover ring-1 ring-white/10"
+                    : "bg-landing-card-hover ring-1 ring-landing-border"
                 )}
                 style={{ 
                   transform: isComplete ? `translateY(-${3 - i}px)` : 'translateY(0)',
@@ -136,16 +136,16 @@ export function RoutingCell() {
                 }}
               >
                 {isComplete ? (
-                  <IconCheck className="h-4 w-4 text-green-400" />
+                  <IconCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
                 ) : (
-                  <IconUser className="h-4 w-4 text-white/50" />
+                  <IconUser className="h-4 w-4 text-landing-text-muted" />
                 )}
               </div>
             ))}
           </div>
           <span className={cn(
             "text-[10px] transition-colors duration-200",
-            isComplete ? "text-green-400" : "text-white/40"
+            isComplete ? "text-green-600 dark:text-green-400" : "text-landing-text-muted"
           )}>
             {isComplete ? "Assigned!" : "Reviewers"}
           </span>

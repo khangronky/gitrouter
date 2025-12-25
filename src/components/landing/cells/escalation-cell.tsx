@@ -57,7 +57,7 @@ export function EscalationCell() {
       {/* Timeline */}
       <div className="relative">
         {/* Progress bar background */}
-        <div className="absolute left-6 top-3 h-0.5 w-[calc(100%-48px)] bg-white/10 rounded-full overflow-hidden">
+        <div className="absolute left-6 top-3 h-0.5 w-[calc(100%-48px)] bg-landing-skeleton-strong rounded-full overflow-hidden">
           {/* Animated progress */}
           <div
             className={cn(
@@ -83,14 +83,14 @@ export function EscalationCell() {
                     "flex h-6 w-6 items-center justify-center rounded-full transition-all duration-300",
                     isActive
                       ? cn(step.color, isCurrent && `shadow-lg ${step.glowColor}`)
-                      : "border border-white/20 bg-landing-card",
+                      : "border border-landing-border bg-landing-card",
                     isCurrent && "scale-125"
                   )}
                 >
                   <step.icon
                     className={cn(
                       "h-3 w-3 transition-all duration-300",
-                      isActive ? "text-white" : "text-white/40"
+                      isActive ? "text-white" : "text-landing-text-muted"
                     )}
                   />
                 </div>
@@ -98,7 +98,7 @@ export function EscalationCell() {
                   <div
                     className={cn(
                       "text-xs font-medium transition-all duration-300",
-                      isActive ? "text-white" : "text-white/40",
+                      isActive ? "text-landing-text" : "text-landing-text-muted",
                       isCurrent && "scale-110"
                     )}
                   >
@@ -106,7 +106,7 @@ export function EscalationCell() {
                   </div>
                   <div className={cn(
                     "text-[10px] transition-colors duration-300",
-                    isCurrent ? "text-white/60" : "text-white/30"
+                    isCurrent ? "text-landing-text/60" : "text-landing-text-muted"
                   )}>
                     {step.label}
                   </div>
@@ -118,11 +118,11 @@ export function EscalationCell() {
       </div>
       
       <div className="flex items-center justify-center gap-2 mt-4">
-        <p className="text-[10px] text-white/30">Click to advance timeline</p>
+        <p className="text-[10px] text-landing-text-muted">Click to advance timeline</p>
         {activeStep > 0 && (
           <button 
             onClick={reset}
-            className="text-[10px] text-white/30 hover:text-white/50 flex items-center gap-1"
+            className="text-[10px] text-landing-text-muted hover:text-landing-text/50 flex items-center gap-1"
           >
             <IconRotate className="h-3 w-3" />
             Reset

@@ -1,6 +1,9 @@
 
 import { BentoGrid } from '@/components/landing/bento-grid';
 import { BentoCell } from '@/components/landing/bento-cell';
+import { Hero } from '@/components/landing/hero';
+import { AboutSection } from '@/components/landing/about-section';
+import { CTASection } from '@/components/landing/cta-section';
 
 import {
   RoutingCell,
@@ -16,7 +19,7 @@ import {
 export default function LandingPage() {
   return (
     <>
-  
+      <Hero />
 
       <BentoGrid>
         {/* Row 1 */}
@@ -104,8 +107,9 @@ export default function LandingPage() {
         </BentoCell>
       </BentoGrid>
 
-   
+      <AboutSection />
+      
+      <CTASection />
     </>
   );
 }
-

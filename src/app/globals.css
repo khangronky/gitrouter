@@ -122,15 +122,34 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Landing page specific variables */
+/* Landing page specific variables - Light mode */
 :root {
+  --landing-bg: #ffffff;
+  --landing-card: #f5f5f5;
+  --landing-card-hover: #ebebeb;
+  --landing-border: rgba(0, 0, 0, 0.1);
+  --landing-glow: rgba(121, 34, 31, 0.1);
+  --landing-accent: #79221f;
+  --landing-accent-light: #a13330;
+  --landing-text: #1a1a1a;
+  --landing-text-muted: #666666;
+  --landing-skeleton: rgba(0, 0, 0, 0.08);
+  --landing-skeleton-strong: rgba(0, 0, 0, 0.12);
+}
+
+/* Landing page specific variables - Dark mode */
+.dark {
   --landing-bg: #0a0a0a;
   --landing-card: #141414;
   --landing-card-hover: #1a1a1a;
-  --landing-border: rgba(121, 34, 31, 0.3);
+  --landing-border: rgba(255, 255, 255, 0.1);
   --landing-glow: rgba(121, 34, 31, 0.15);
   --landing-accent: #79221f;
   --landing-accent-light: #a13330;
+  --landing-text: #ffffff;
+  --landing-text-muted: rgba(255, 255, 255, 0.6);
+  --landing-skeleton: rgba(255, 255, 255, 0.05);
+  --landing-skeleton-strong: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
@@ -141,6 +160,10 @@
   --color-landing-glow: var(--landing-glow);
   --color-landing-accent: var(--landing-accent);
   --color-landing-accent-light: var(--landing-accent-light);
+  --color-landing-text: var(--landing-text);
+  --color-landing-text-muted: var(--landing-text-muted);
+  --color-landing-skeleton: var(--landing-skeleton);
+  --color-landing-skeleton-strong: var(--landing-skeleton-strong);
 }
 
 @layer base {

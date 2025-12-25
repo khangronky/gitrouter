@@ -23,9 +23,9 @@ const branches = [
 ];
 
 const statuses = [
-  { label: 'Merged', color: 'bg-green-500/20 text-green-400', icon: IconGitMerge },
-  { label: 'Open', color: 'bg-yellow-500/20 text-yellow-400', icon: IconGitPullRequest },
-  { label: 'Merged', color: 'bg-green-500/20 text-green-400', icon: IconGitMerge },
+  { label: 'Merged', color: 'bg-green-500/20 text-green-600 dark:text-green-400', icon: IconGitMerge },
+  { label: 'Open', color: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400', icon: IconGitPullRequest },
+  { label: 'Merged', color: 'bg-green-500/20 text-green-600 dark:text-green-400', icon: IconGitMerge },
 ];
 
 const getRandomItem = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -64,17 +64,17 @@ export function GitHubCell() {
     <div className="flex h-full flex-col justify-center">
       {/* Mini PR Card */}
       <div 
-        className="rounded-lg border border-white/10 bg-white/5 p-3 cursor-pointer transition-all duration-200 hover:border-white/20 hover:bg-white/10 active:scale-[0.98]"
+        className="rounded-lg border border-landing-border bg-landing-skeleton p-3 cursor-pointer transition-all duration-200 hover:border-landing-text/20 hover:bg-landing-skeleton-strong active:scale-[0.98]"
         onClick={randomize}
       >
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <IconGitPullRequest className={cn(
               "h-4 w-4 shrink-0 transition-colors duration-300",
-              prData.status.label === 'Merged' ? "text-green-400" : "text-yellow-400"
+              prData.status.label === 'Merged' ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-400"
             )} />
             <span className={cn(
-              "text-sm font-medium text-white truncate transition-opacity duration-300",
+              "text-sm font-medium text-landing-text truncate transition-opacity duration-300",
               isSpinning && "opacity-0"
             )}>
               {prData.title}
@@ -86,11 +86,11 @@ export function GitHubCell() {
               isSpinning && "rotate-180"
             )}
           >
-            <IconRefresh className="h-3.5 w-3.5 text-white/30" />
+            <IconRefresh className="h-3.5 w-3.5 text-landing-text-muted" />
           </div>
         </div>
         <div className={cn(
-          "mb-3 flex items-center gap-3 text-xs text-white/40 transition-opacity duration-300",
+          "mb-3 flex items-center gap-3 text-xs text-landing-text-muted transition-opacity duration-300",
           isSpinning && "opacity-0"
         )}>
           <span>#{prData.number}</span>
@@ -106,13 +106,13 @@ export function GitHubCell() {
             <StatusIcon className="h-3 w-3" />
             <span className="text-xs">{prData.status.label}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-white/40">
-            <span className="text-green-400">+{prData.additions}</span>
-            <span className="text-red-400">-{prData.deletions}</span>
+          <div className="flex items-center gap-1 text-xs text-landing-text-muted">
+            <span className="text-green-600 dark:text-green-400">+{prData.additions}</span>
+            <span className="text-red-600 dark:text-red-400">-{prData.deletions}</span>
           </div>
         </div>
       </div>
-      <p className="text-[10px] text-white/30 text-center mt-2">Click to randomize</p>
+      <p className="text-[10px] text-landing-text-muted text-center mt-2">Click to randomize</p>
     </div>
   );
 }

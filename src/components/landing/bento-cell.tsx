@@ -30,7 +30,7 @@ export function BentoCell({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-white/10 bg-landing-card p-6 transition-all duration-300 hover:border-landing-border hover:bg-landing-card-hover',
+        'group relative overflow-hidden rounded-2xl border border-landing-border bg-landing-card p-6 transition-all duration-300 hover:border-landing-accent/30 hover:bg-landing-card-hover',
         'opacity-0 animate-slide-in-up',
         sizeClasses[size],
         className
@@ -45,9 +45,9 @@ export function BentoCell({
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <h3 className="text-lg font-semibold text-landing-text">{title}</h3>
           {description && (
-            <p className="mt-1 text-sm text-white/50">{description}</p>
+            <p className="mt-1 text-sm text-landing-text-muted">{description}</p>
           )}
         </div>
         <div className="flex-1">{children}</div>

@@ -107,8 +107,8 @@ export function AnalyticsCell() {
           <div className={cn(
             "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]",
             stats.trend === 'up' 
-              ? "bg-green-500/20 text-green-400" 
-              : "bg-red-500/20 text-red-400"
+              ? "bg-green-500/20 text-green-600 dark:text-green-400" 
+              : "bg-red-500/20 text-red-600 dark:text-red-400"
           )}>
             {stats.trend === 'up' ? (
               <IconTrendingUp className="h-3 w-3" />
@@ -120,7 +120,7 @@ export function AnalyticsCell() {
         </div>
         <button
           onClick={refresh}
-          className="rounded-full p-1.5 text-white/30 transition-all hover:bg-white/10 hover:text-white/60"
+          className="rounded-full p-1.5 text-landing-text-muted transition-all hover:bg-landing-skeleton-strong hover:text-landing-text/60"
         >
           <IconRefresh className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
         </button>
@@ -128,28 +128,28 @@ export function AnalyticsCell() {
 
       {/* Stats Row */}
       <div className="mb-4 grid grid-cols-3 gap-3">
-        <div className="rounded-lg bg-white/5 p-2.5 transition-all hover:bg-white/10">
-          <div className="text-xl font-bold text-white tabular-nums">
+        <div className="rounded-lg bg-landing-skeleton p-2.5 transition-all hover:bg-landing-skeleton-strong">
+          <div className="text-xl font-bold text-landing-text tabular-nums">
             <AnimatedNumber value={stats.reviewTime} suffix="h" />
           </div>
-          <div className="text-[10px] text-white/40">Review Time</div>
+          <div className="text-[10px] text-landing-text-muted">Review Time</div>
         </div>
-        <div className="rounded-lg bg-white/5 p-2.5 transition-all hover:bg-white/10">
-          <div className="text-xl font-bold text-green-400 tabular-nums">
+        <div className="rounded-lg bg-landing-skeleton p-2.5 transition-all hover:bg-landing-skeleton-strong">
+          <div className="text-xl font-bold text-green-600 dark:text-green-400 tabular-nums">
             <AnimatedNumber value={stats.sla} suffix="%" />
           </div>
-          <div className="text-[10px] text-white/40">SLA Compliance</div>
+          <div className="text-[10px] text-landing-text-muted">SLA Compliance</div>
         </div>
-        <div className="rounded-lg bg-white/5 p-2.5 transition-all hover:bg-white/10">
-          <div className="text-xl font-bold text-white tabular-nums">
+        <div className="rounded-lg bg-landing-skeleton p-2.5 transition-all hover:bg-landing-skeleton-strong">
+          <div className="text-xl font-bold text-landing-text tabular-nums">
             <AnimatedNumber value={stats.prs} />
           </div>
-          <div className="text-[10px] text-white/40">PRs This Week</div>
+          <div className="text-[10px] text-landing-text-muted">PRs This Week</div>
         </div>
       </div>
 
       {/* Chart */}
-      <div className="flex flex-1 items-end gap-1.5 rounded-lg bg-white/[0.02] p-2">
+      <div className="flex flex-1 items-end gap-1.5 rounded-lg bg-landing-skeleton p-2">
         {data.map((item, i) => {
           const heightPercent = (item.value / maxValue) * 100;
           const isHovered = hoveredBar === i;
@@ -191,7 +191,7 @@ export function AnalyticsCell() {
               <span
                 className={cn(
                   "text-[9px] transition-colors duration-200",
-                  isHovered ? "text-white" : "text-white/30"
+                  isHovered ? "text-landing-text" : "text-landing-text-muted"
                 )}
               >
                 {item.day}
@@ -207,7 +207,7 @@ export function AnalyticsCell() {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
         </span>
-        <span className="text-[9px] text-white/30">Live data</span>
+        <span className="text-[9px] text-landing-text-muted">Live data</span>
       </div>
     </div>
   );

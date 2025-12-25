@@ -25,40 +25,40 @@ const initialRules: Rule[] = [
     icon: IconFolder,
     pattern: 'src/frontend/*',
     team: 'Frontend',
-    color: 'bg-blue-500/20 text-blue-400',
-    activeColor: 'bg-blue-500/40 text-blue-300',
+    color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
+    activeColor: 'bg-blue-500/40 text-blue-700 dark:text-blue-300',
   },
   {
     id: 2,
     icon: IconGitBranch,
     pattern: 'hotfix/*',
     team: 'Senior',
-    color: 'bg-orange-500/20 text-orange-400',
-    activeColor: 'bg-orange-500/40 text-orange-300',
+    color: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
+    activeColor: 'bg-orange-500/40 text-orange-700 dark:text-orange-300',
   },
   {
     id: 3,
     icon: IconFolder,
     pattern: 'src/api/*',
     team: 'Backend',
-    color: 'bg-green-500/20 text-green-400',
-    activeColor: 'bg-green-500/40 text-green-300',
+    color: 'bg-green-500/20 text-green-600 dark:text-green-400',
+    activeColor: 'bg-green-500/40 text-green-700 dark:text-green-300',
   },
   {
     id: 4,
     icon: IconFolder,
     pattern: 'src/deploy/*',
     team: 'CI/CD',
-    color: 'bg-purple-500/20 text-purple-400',
-    activeColor: 'bg-purple-500/40 text-purple-300',
+    color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
+    activeColor: 'bg-purple-500/40 text-purple-700 dark:text-purple-300',
   },
   {
     id: 5,
     icon: IconGitBranch,
     pattern: 'deploy/*',
     team: 'CI/CD',
-    color: 'bg-purple-500/20 text-purple-400',
-    activeColor: 'bg-purple-500/40 text-purple-300',
+    color: 'bg-purple-500/20 text-purple-600 dark:text-purple-400',
+    activeColor: 'bg-purple-500/40 text-purple-700 dark:text-purple-300',
   },
 ];
 
@@ -131,8 +131,8 @@ export function RulesCell() {
             className={cn(
               'group/rule flex items-center gap-2 rounded-lg border p-2.5 transition-all duration-150 cursor-grab active:cursor-grabbing',
               isActive
-                ? 'border-white/10 bg-white/5 hover:border-white/20'
-                : 'border-white/5 bg-white/[0.02] opacity-50',
+                ? 'border-landing-border bg-landing-skeleton hover:border-landing-text/20'
+                : 'border-landing-border/50 bg-landing-skeleton/50 opacity-50',
               isDragging && 'opacity-50 scale-95',
               isDragOver && 'border-landing-accent/50 bg-landing-accent/5'
             )}
@@ -141,7 +141,7 @@ export function RulesCell() {
             <IconGripVertical
               className={cn(
                 'h-4 w-4 shrink-0 transition-colors',
-                isDragging ? 'text-landing-accent' : 'text-white/30 group-hover/rule:text-white/50'
+                isDragging ? 'text-landing-accent' : 'text-landing-text-muted group-hover/rule:text-landing-text/50'
               )}
             />
 
@@ -149,7 +149,7 @@ export function RulesCell() {
             <div
               className={cn(
                 'rounded-md p-1.5 shrink-0 transition-colors',
-                isActive ? rule.color : 'bg-white/10 text-white/30'
+                isActive ? rule.color : 'bg-landing-skeleton-strong text-landing-text-muted'
               )}
             >
               <rule.icon className="h-3.5 w-3.5" />
@@ -159,7 +159,7 @@ export function RulesCell() {
             <code
               className={cn(
                 'flex-1 text-[11px] font-mono transition-colors truncate',
-                isActive ? 'text-white/80' : 'text-white/40 line-through'
+                isActive ? 'text-landing-text/80' : 'text-landing-text-muted line-through'
               )}
             >
               {rule.pattern}
@@ -169,7 +169,7 @@ export function RulesCell() {
             <span
               className={cn(
                 'shrink-0 rounded-full px-2 py-0.5 text-[10px] transition-colors',
-                isActive ? 'bg-white/10 text-white/70' : 'bg-white/5 text-white/30'
+                isActive ? 'bg-landing-skeleton-strong text-landing-text/70' : 'bg-landing-skeleton text-landing-text-muted'
               )}
             >
               {rule.team}
@@ -186,7 +186,7 @@ export function RulesCell() {
               )}
             >
               {isActive ? (
-                <IconCheck className="h-3 w-3 text-green-400" />
+                <IconCheck className="h-3 w-3 text-green-600 dark:text-green-400" />
               ) : (
                 <IconX className="h-3 w-3 text-red-400" />
               )}
@@ -194,7 +194,7 @@ export function RulesCell() {
           </div>
         );
       })}
-      <p className="text-[10px] text-white/30 text-center mt-1">
+      <p className="text-[10px] text-landing-text-muted text-center mt-1">
         Drag to reorder • Click toggle to enable/disable
       </p>
     </div>

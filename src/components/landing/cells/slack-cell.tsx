@@ -34,7 +34,7 @@ export function SlackCell() {
       {/* Slack Message */}
       <div
         className={cn(
-          'cursor-pointer rounded-lg border border-white/10 bg-white/5 p-3 transition-all duration-300 hover:border-white/20 hover:bg-white/10',
+          'cursor-pointer rounded-lg border border-landing-border bg-landing-skeleton p-3 transition-all duration-300 hover:border-landing-text/20 hover:bg-landing-skeleton-strong',
           isVisible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
         )}
         onClick={cycleMessage}
@@ -43,8 +43,8 @@ export function SlackCell() {
           <div className="flex h-6 w-6 items-center justify-center rounded bg-[#4A154B] transition-transform duration-200 hover:scale-110">
             <IconBrandSlack className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xs font-medium text-white">GitRouter</span>
-          <span className="text-xs text-white/30">now</span>
+          <span className="text-xs font-medium text-landing-text">GitRouter</span>
+          <span className="text-xs text-landing-text-muted">now</span>
 
           {/* Notification dot with ping */}
           <div className="relative ml-auto flex h-2 w-2">
@@ -56,18 +56,18 @@ export function SlackCell() {
             )}
           </div>
         </div>
-        <div className="text-sm text-white/70 truncate">
+        <div className="text-sm text-landing-text/70 truncate">
           New PR assigned:{' '}
-          <span className="text-blue-400 hover:underline">
+          <span className="text-blue-600 dark:text-blue-400 hover:underline">
             {currentMessage.title}
           </span>
         </div>
-        <div className="mt-1 text-xs text-white/40">
-          <span className="text-blue-400">{currentMessage.mention}</span>{' '}
+        <div className="mt-1 text-xs text-landing-text-muted">
+          <span className="text-blue-600 dark:text-blue-400">{currentMessage.mention}</span>{' '}
           requested for review
         </div>
       </div>
-      <p className="mt-2 text-center text-[10px] text-white/30">
+      <p className="mt-2 text-center text-[10px] text-landing-text-muted">
         Click for new notification
       </p>
     </div>
