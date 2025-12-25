@@ -1,6 +1,90 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { IconPlayerPlay } from '@tabler/icons-react';
+import { IconGitPullRequest, IconPlayerPlay } from '@tabler/icons-react';
+import {
+  ChartColumnIncreasing,
+  ChartLine,
+  Factory,
+  LifeBuoy,
+  List,
+  Settings,
+} from 'lucide-react';
+import { KpiRow } from '@/components/dashboard/kpi-row';
+import { LatencyChart } from '@/components/dashboard/latency-chart';
+import { WorkloadChart } from '@/components/dashboard/workload-chart';
+import { BottlenecksTable } from '@/components/dashboard/bottlenecks-table';
+import { StalePullRequests } from '@/components/dashboard/stale-pull-requests';
+import { RecentActivity } from '@/components/dashboard/recent-activity';
+
+// Dummy data for the dashboard preview
+const dummyKpis = {
+  totalPRs: { value: 47, delta: 12, note: 'from last period' },
+  pending: { value: 8, delta: -15, note: 'from last period' },
+  sla: { value: 0.94, delta: 5, note: 'from last period' },
+  approved: { value: 39, delta: 18, note: 'from last period' },
+};
+
+const dummyLatencySeries = [
+  { day: 'Mon', hours: 3.2 },
+  { day: 'Tue', hours: 4.8 },
+  { day: 'Wed', hours: 2.9 },
+  { day: 'Thu', hours: 5.1 },
+  { day: 'Fri', hours: 3.5 },
+  { day: 'Sat', hours: 1.8 },
+  { day: 'Sun', hours: 2.4 },
+];
+
+const dummyReviewerWorkload = [
+  { name: 'Alice', assigned: 8, capacity: 10 },
+  { name: 'Bob', assigned: 6, capacity: 10 },
+  { name: 'Charlie', assigned: 4, capacity: 8 },
+  { name: 'Diana', assigned: 3, capacity: 6 },
+];
+
+const dummyBottlenecks = [
+  { repo: 'frontend-app', avg: '6.2h', pending: 5, sla: '78%' },
+  { repo: 'api-service', avg: '4.1h', pending: 3, sla: '92%' },
+  { repo: 'shared-libs', avg: '8.5h', pending: 7, sla: '65%' },
+  { repo: 'infra-ops', avg: '10.2h', pending: 10, sla: '58%' },
+  { repo: 'docs', avg: '2.3h', pending: 2, sla: '85%' },
+  { repo: 'security', avg: '3.7h', pending: 4, sla: '72%' },
+  { repo: 'monitoring', avg: '5.6h', pending: 6, sla: '68%' },
+  { repo: 'testing', avg: '7.1h', pending: 8, sla: '63%' },
+  { repo: 'deployment', avg: '9.3h', pending: 12, sla: '59%' },
+  { repo: 'performance', avg: '11.4h', pending: 14, sla: '55%' },
+  { repo: 'ux', avg: '13.5h', pending: 16, sla: '51%' },
+  { repo: 'documentation', avg: '15.6h', pending: 18, sla: '47%' },
+];
+
+const dummyStalePRs = [
+  { id: 1234, title: 'Add user authentication flow', age: '1d 4h' },
+  { id: 1189, title: 'Fix pagination in dashboard', age: '18h' },
+  { id: 1156, title: 'Update API rate limiting', age: '12h' },
+];
+
+const dummyRecentActivity = [
+  {
+    time: '2m ago',
+    id: 1298,
+    author: '@sarah',
+    snippet: 'Implement dark mode toggle',
+    assigned: ['@alice', '@bob'],
+  },
+  {
+    time: '15m ago',
+    id: 1297,
+    author: '@mike',
+    snippet: 'Add export to CSV feature',
+    assigned: ['@charlie'],
+  },
+  {
+    time: '1h ago',
+    id: 1295,
+    author: '@emma',
+    snippet: 'Refactor notification system',
+    assigned: ['@diana', '@alice'],
+  },
+];
 
 // Decorative floating shapes component
 function FloatingShapes() {
@@ -107,6 +191,142 @@ function FloatingShapes() {
   );
 }
 
+// Static Sidebar Preview (mimics the real sidebar without hooks/context)
+function SidebarPreview() {
+  const navItems = [
+    { icon: ChartColumnIncreasing, label: 'Dashboard', active: true },
+    { icon: List, label: 'List', header: 'Pull Requests' },
+    { icon: Factory, label: 'Rules Builder', header: 'Rules' },
+    { icon: ChartColumnIncreasing, label: 'Trend', header: 'Analytics' },
+    { icon: ChartLine, label: 'Performance' },
+  ];
+
+  const bottomItems = [
+    { icon: Settings, label: 'Settings' },
+    { icon: LifeBuoy, label: 'Support' },
+  ];
+
+  return (
+    <div className="w-16 flex-shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col h-full">
+      {/* Logo / Workspace */}
+      <div className="px-2 pb-2 pt-4">
+        <div className="h-10 w-10 rounded-lg bg-primary-500 flex items-center justify-center mx-auto">
+           <IconGitPullRequest className="h-5 w-5 text-white" />
+         </div>
+      </div>
+
+      {/* Main nav */}
+      <div className="flex-1 py-2">
+        {navItems.map((item, i) => (
+          <div key={i} className="px-2 py-0.5">
+            <div
+              className={`h-10 w-10 rounded-md flex items-center justify-center mx-auto transition-colors ${
+                item.active
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50'
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom nav */}
+      <div className="py-2 border-t border-sidebar-border">
+        {bottomItems.map((item, i) => (
+          <div key={i} className="px-2 py-0.5">
+            <div className="h-10 w-10 rounded-md flex items-center justify-center mx-auto text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors">
+              <item.icon className="h-5 w-5" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* User avatar */}
+      <div className="p-2 border-t border-sidebar-border">
+        <div className="h-10 w-10 rounded-lg bg-primary mx-auto flex items-center justify-center">
+          <span className="text-primary-foreground font-semibold text-sm">JD</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Dashboard Preview Component with actual UI components
+function DashboardPreview() {
+  // Content renders at 1700px, scales down to fit container
+  // Actual rendered width: 1700 * 0.62 = 1054px
+  const scale = 0.62;
+  const contentWidth = 1725;
+  const contentHeight = 1100;
+  
+  return (
+    <div 
+      className="relative w-full overflow-hidden bg-background rounded-b-xl"
+      style={{ height: `${contentHeight * scale}px` }}
+    >
+      {/* Scaled container */}
+      <div
+        className="absolute top-0 left-0 origin-top-left"
+        style={{
+          width: `${contentWidth}px`,
+          height: `${contentHeight}px`,
+          transform: `scale(${scale})`,
+        }}
+      >
+        <div className="flex h-full">
+          {/* Sidebar */}
+          <SidebarPreview />
+
+          {/* Main content area */}
+          <div className="flex-1 p-4 space-y-4 select-none overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+                <p className="text-sm text-muted-foreground">
+                  Showing data for the last 7 days
+                </p>
+              </div>
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
+                <div className="h-8 px-3 rounded-md text-sm flex items-center text-muted-foreground">
+                  Last 3 months
+                </div>
+                <div className="h-8 px-3 rounded-md text-sm flex items-center text-muted-foreground">
+                  Last 30 days
+                </div>
+                <div className="h-8 px-3 rounded-md bg-background text-sm flex items-center text-foreground font-medium shadow-sm">
+                  Last 7 days
+                </div>
+              </div>
+            </div>
+
+            {/* KPI Row */}
+            <KpiRow kpis={dummyKpis} />
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-3 gap-4">
+              <LatencyChart latencySeries={dummyLatencySeries} className="col-span-2" />
+              <WorkloadChart reviewerWorkload={dummyReviewerWorkload} />
+            </div>
+
+            {/* Bottom Row */}
+            <div className="grid grid-cols-4 gap-4">
+              <BottlenecksTable bottlenecks={dummyBottlenecks} className="col-span-2" />
+              <StalePullRequests stalePRs={dummyStalePRs} className="col-span-1" />
+              <RecentActivity recentActivity={dummyRecentActivity} className="col-span-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom fade gradient - pointer-events-none so it doesn't block interactions */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+    </div>
+  );
+}
+
 export function Hero() {
   return (
     <section className="relative min-h-screen overflow-hidden pt-24 pb-12">
@@ -119,7 +339,7 @@ export function Hero() {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 mx-auto max-w-5xl px-6 pt-16 md:pt-24">
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-16 md:pt-24">
         {/* Headline */}
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-landing-text sm:text-5xl md:text-6xl lg:text-7xl">
@@ -158,192 +378,29 @@ export function Hero() {
         </div>
 
         {/* Product Preview */}
-        <div className="mt-16 md:mt-24">
-          <div className="relative mx-auto max-w-4xl">
+        <div className="mt-16 md:mt-24 pb-8">
+          <div className="relative mx-auto max-w-7xl p-4">
             {/* Glow effect behind the preview */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-landing-accent/20 via-landing-accent/10 to-landing-accent/20 blur-3xl opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-r from-landing-accent/20 via-landing-accent/10 to-landing-accent/20 blur-3xl opacity-50" />
 
             {/* Preview container */}
-            <div className="relative overflow-hidden rounded-xl border border-landing-border bg-landing-card shadow-2xl">
+            <div className="relative overflow-hidden rounded-xl border border-border shadow-2xl">
               {/* Browser chrome */}
-              <div className="flex items-center gap-2 border-b border-landing-border bg-landing-card px-4 py-3">
+              <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-3">
                 <div className="flex gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-red-500/60" />
-                  <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
-                  <div className="h-3 w-3 rounded-full bg-green-500/60" />
+                  <div className="h-3 w-3 rounded-full bg-red-500/80" />
+                  <div className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                  <div className="h-3 w-3 rounded-full bg-green-500/80" />
                 </div>
                 <div className="ml-4 flex-1">
-                  <div className="mx-auto max-w-md rounded-md bg-white/5 px-4 py-1 text-center text-xs text-white/40">
-                    app.gitrouter.io
+                  <div className="mx-auto max-w-md rounded-md bg-background/50 px-4 py-1 text-center text-xs text-muted-foreground border border-border">
+                    gitrouter.vercel.app
                   </div>
                 </div>
               </div>
 
-              {/* Dashboard preview content - matches actual dashboard layout */}
-              <div className="flex">
-                {/* Sidebar skeleton */}
-                <div className="hidden md:flex w-48 flex-col border-r border-landing-border bg-landing-skeleton p-3">
-                  {/* Workspace switcher */}
-                  <div className="mb-4 h-9 w-full rounded-lg bg-landing-skeleton-strong" />
-
-                  {/* Nav items */}
-                  <div className="space-y-1">
-                    <div className="h-8 w-full rounded-md bg-landing-accent/20" />{' '}
-                    {/* Active item */}
-                    <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
-                    <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
-                    <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
-                    <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
-                  </div>
-
-                  {/* Bottom nav */}
-                  <div className="mt-auto space-y-1 pt-4">
-                    <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
-                    <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
-                  </div>
-
-                  {/* User avatar */}
-                  <div className="mt-3 flex items-center gap-2 pt-3 border-t border-landing-border">
-                    <div className="h-8 w-8 rounded-full bg-landing-skeleton-strong" />
-                    <div className="flex-1 space-y-1">
-                      <div className="h-3 w-20 rounded bg-landing-skeleton-strong" />
-                      <div className="h-2 w-16 rounded bg-landing-skeleton" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main content area */}
-                <div className="flex-1 p-4 space-y-4">
-                  {/* Header with title and time range toggle */}
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="h-6 w-24 rounded bg-landing-skeleton-strong" />
-                      <div className="h-3 w-40 rounded bg-landing-skeleton" />
-                    </div>
-                    <div className="flex gap-1">
-                      <div className="h-7 w-20 rounded-md bg-landing-skeleton" />
-                      <div className="h-7 w-20 rounded-md bg-landing-skeleton" />
-                      <div className="h-7 w-20 rounded-md bg-landing-accent/30" />
-                    </div>
-                  </div>
-
-                  {/* KPI Row - 4 cards */}
-                  <div className="grid grid-cols-4 gap-3">
-                    {['Total PRs', 'Pending', 'SLA', 'Approved'].map((_, i) => (
-                      <div
-                        key={i}
-                        className="rounded-lg border border-landing-border bg-landing-skeleton p-3"
-                      >
-                        <div className="h-3 w-16 rounded bg-landing-skeleton-strong mb-2" />
-                        <div className="h-6 w-12 rounded bg-landing-skeleton-strong" />
-                        <div className="mt-1 flex items-center gap-1">
-                          <div
-                            className={`h-3 w-8 rounded ${i % 2 === 0 ? 'bg-green-500/30' : 'bg-red-500/30'}`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Charts Row - Latency (2/3) + Workload (1/3) */}
-                  <div className="grid grid-cols-3 gap-3">
-                    {/* Latency Chart */}
-                    <div className="col-span-2 rounded-lg border border-landing-border bg-landing-skeleton p-3">
-                      <div className="h-4 w-28 rounded bg-landing-skeleton-strong mb-3" />
-                      <div className="flex items-end gap-1 h-20">
-                        {[40, 60, 45, 80, 55, 70, 50].map((h, i) => (
-                          <div
-                            key={i}
-                            className="flex-1 rounded-t bg-gradient-to-t from-landing-accent/40 to-landing-accent/20"
-                            style={{ height: `${h}%` }}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex justify-between mt-2">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(
-                          (d) => (
-                            <div
-                              key={d}
-                              className="h-2 w-6 rounded bg-landing-skeleton"
-                            />
-                          )
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Workload Chart */}
-                    <div className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
-                      <div className="h-4 w-24 rounded bg-landing-skeleton-strong mb-3" />
-                      <div className="space-y-2">
-                        {[75, 60, 45, 30].map((w, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <div className="h-5 w-5 rounded-full bg-landing-skeleton-strong" />
-                            <div className="flex-1 h-3 rounded-full bg-landing-skeleton-strong overflow-hidden">
-                              <div
-                                className="h-full bg-gradient-to-r from-landing-accent/60 to-landing-accent/30 rounded-full"
-                                style={{ width: `${w}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bottom Row - Bottlenecks (2/4) + Stale PRs (1/4) + Activity (1/4) */}
-                  <div className="grid grid-cols-4 gap-3">
-                    {/* Bottlenecks Table */}
-                    <div className="col-span-2 rounded-lg border border-landing-border bg-landing-skeleton p-3">
-                      <div className="h-4 w-20 rounded bg-landing-skeleton-strong mb-3" />
-                      <div className="space-y-2">
-                        {[1, 2, 3].map((i) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-2 py-1 border-b border-landing-border"
-                          >
-                            <div className="h-4 w-24 rounded bg-landing-skeleton-strong" />
-                            <div className="flex-1" />
-                            <div className="h-4 w-8 rounded bg-orange-500/30" />
-                            <div className="h-4 w-12 rounded bg-landing-skeleton" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Stale PRs */}
-                    <div className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
-                      <div className="h-4 w-16 rounded bg-landing-skeleton-strong mb-3" />
-                      <div className="space-y-2">
-                        {[1, 2].map((i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded bg-yellow-500/20" />
-                            <div className="flex-1 space-y-1">
-                              <div className="h-3 w-full rounded bg-landing-skeleton-strong" />
-                              <div className="h-2 w-2/3 rounded bg-landing-skeleton" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
-                      <div className="h-4 w-16 rounded bg-landing-skeleton-strong mb-3" />
-                      <div className="space-y-2">
-                        {[1, 2].map((i) => (
-                          <div key={i} className="flex items-start gap-2">
-                            <div className="h-5 w-5 rounded-full bg-blue-500/20" />
-                            <div className="flex-1 space-y-1">
-                              <div className="h-3 w-full rounded bg-landing-skeleton-strong" />
-                              <div className="h-2 w-1/2 rounded bg-landing-skeleton" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Dashboard preview */}
+              <DashboardPreview />
             </div>
           </div>
         </div>
