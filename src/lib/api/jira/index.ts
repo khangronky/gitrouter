@@ -73,14 +73,28 @@ export function useJiraStatuses(orgId: string, projectKey?: string) {
 // Mutations
 // =============================================
 
+interface GetJiraOAuthUrlParams {
+  orgId: string;
+  onboarding?: boolean;
+}
+
 /**
  * Get Jira OAuth URL
  */
 export function useGetJiraOAuthUrl() {
   return useMutation({
-    mutationFn: async (orgId: string) => {
+    mutationFn: async (params: string | GetJiraOAuthUrlParams) => {
+      // Support both string (orgId only) and object (with onboarding flag)
+      const orgId = typeof params === 'string' ? params : params.orgId;
+      const onboarding = typeof params === 'string' ? false : params.onboarding;
+
+      const queryParams = new URLSearchParams({ org_id: orgId });
+      if (onboarding) {
+        queryParams.set('onboarding', 'true');
+      }
+
       const response = await fetcher<{ url: string }>(
-        `/jira/oauth?org_id=${orgId}`
+        `/jira/oauth?${queryParams.toString()}`
       );
       return response;
     },

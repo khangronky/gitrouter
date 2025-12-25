@@ -27,7 +27,7 @@ export default function UserProvider({ children }: { children: ReactNode }) {
 
       const { data: userData } = await supabase
         .from('users')
-        .select('id, email')
+        .select('id, email, full_name, onboarding_completed')
         .eq('id', user.id)
         .single();
 
@@ -37,16 +37,19 @@ export default function UserProvider({ children }: { children: ReactNode }) {
 
       // Extract name from email (before @) as fallback
       const emailName = userData.email.split('@')[0];
-      const displayName = emailName
-        .split(/[._-]/)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
+      const displayName =
+        userData.full_name ||
+        emailName
+          .split(/[._-]/)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ');
 
       return {
         id: userData.id,
         email: userData.email,
         name: displayName,
         avatar: '',
+        onboarding_completed: userData.onboarding_completed ?? false,
       };
     },
     retry: false,

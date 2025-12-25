@@ -20,7 +20,7 @@ export async function GET() {
     const { data: user, error } = await adminSupabase
       .from('users')
       .select(
-        'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, created_at'
+        'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, onboarding_completed, created_at'
       )
       .eq('id', auth.userId)
       .single();
@@ -76,7 +76,7 @@ export async function PATCH(request: Request) {
       .update(validation.data)
       .eq('id', auth.userId)
       .select(
-        'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, created_at'
+        'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, onboarding_completed, created_at'
       )
       .single();
 

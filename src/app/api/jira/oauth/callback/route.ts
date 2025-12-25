@@ -63,10 +63,12 @@ export async function GET(request: Request) {
 
     // Decode state
     let orgId: string | null = null;
+    let fromOnboarding = false;
     if (stateBase64) {
       try {
         const state = JSON.parse(Buffer.from(stateBase64, 'base64').toString());
         orgId = state.org_id;
+        fromOnboarding = state.onboarding === true;
       } catch {
         console.error('Failed to decode state');
       }
@@ -220,6 +222,16 @@ export async function GET(request: Request) {
     } catch (error) {
       console.error('Failed to capture Jira user info:', error);
       // Don't fail the OAuth flow - just log the error
+    }
+
+    // Redirect based on whether user came from onboarding
+    if (fromOnboarding) {
+      return NextResponse.redirect(
+        new URL(
+          `/dashboard?onboarding_step=first-rule&success=jira_connected`,
+          request.url
+        )
+      );
     }
 
     return NextResponse.redirect(
