@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { dashboardQuerySchema, type TimeRange } from '@/lib/schema/dashboard';
+import { trendQuerySchema, type TrendTimeRange } from '@/lib/schema/trend';
 import {
   getAuthenticatedUser,
   requireOrgPermission,
 } from '@/lib/organizations/permissions';
-import { fetchDashboardData } from './service';
+import { fetchTrendData } from './service';
 
 /**
- * GET /api/dashboard
- * Fetch dashboard data for the authenticated user's organization
+ * GET /api/trend
+ * Fetch trend data for the authenticated user's organization
  */
 export async function GET(request: Request) {
   const timestamp = new Date().toISOString();
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
         {
           success: false,
           error: 'Unauthorized',
-          message: 'You must be logged in to access the dashboard',
+          message: 'You must be logged in to access trend data',
           timestamp,
         },
         { status: 401 }
@@ -36,11 +36,10 @@ export async function GET(request: Request) {
     const queryParams = {
       timeRange: url.searchParams.get('timeRange') || undefined,
       organizationId: url.searchParams.get('organizationId') || undefined,
-      repositoryId: url.searchParams.get('repositoryId') || undefined,
     };
 
     // Validate query parameters
-    const validation = dashboardQuerySchema.safeParse(queryParams);
+    const validation = trendQuerySchema.safeParse(queryParams);
     if (!validation.success) {
       return NextResponse.json(
         {
@@ -53,12 +52,11 @@ export async function GET(request: Request) {
       );
     }
 
-    const { timeRange = '7d', organizationId, repositoryId } = validation.data;
+    const { timeRange = '6w', organizationId } = validation.data;
 
     // Resolve organization ID
     let resolvedOrgId = organizationId;
     if (!resolvedOrgId) {
-      // Get user's first organization as default
       const { data: memberships, error: membershipError } = await supabase
         .from('organization_members')
         .select('organization_id')
@@ -98,50 +96,26 @@ export async function GET(request: Request) {
       );
     }
 
-    // If repositoryId is provided, verify it belongs to the organization
-    if (repositoryId) {
-      const { data: repo, error: repoError } = await supabase
-        .from('repositories')
-        .select('id, organization_id')
-        .eq('id', repositoryId)
-        .eq('organization_id', resolvedOrgId)
-        .single();
-
-      if (repoError || !repo) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Repository not found',
-            message:
-              'The specified repository does not exist or does not belong to your organization',
-            timestamp,
-          },
-          { status: 404 }
-        );
-      }
-    }
-
-    // Fetch dashboard data
-    const dashboardData = await fetchDashboardData({
+    // Fetch trend data
+    const trendData = await fetchTrendData({
       supabase,
       organizationId: resolvedOrgId,
-      repositoryId,
-      timeRange: timeRange as TimeRange,
+      timeRange: timeRange as TrendTimeRange,
     });
 
     return NextResponse.json({
       success: true,
-      data: dashboardData,
+      data: trendData,
       timestamp,
       timeRange,
     });
   } catch (error) {
-    console.error('Error in GET /api/dashboard:', error);
+    console.error('Error in GET /api/trend:', error);
     return NextResponse.json(
       {
         success: false,
         error: 'Internal server error',
-        message: 'An unexpected error occurred while fetching dashboard data',
+        message: 'An unexpected error occurred while fetching trend data',
         timestamp,
       },
       { status: 500 }
