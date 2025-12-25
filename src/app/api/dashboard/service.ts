@@ -720,3 +720,4 @@ export async function fetchDashboardData(params: DashboardServiceParams) {
     timeRange: params.timeRange,
   };
 }
+

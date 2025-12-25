@@ -63,3 +63,4 @@ export function useTrendData(orgId: string, timeRange: TrendTimeRange) {
  * Helper type exports
  */
 export type { TrendResponse, TrendQuery, TrendTimeRange };
+
