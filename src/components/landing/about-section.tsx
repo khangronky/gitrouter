@@ -7,6 +7,8 @@ import {
   IconBrandGithub,
   IconBrandSlack,
   IconTool,
+  IconArrowRight,
+  IconGitPullRequest,
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
@@ -29,16 +31,6 @@ const values = [
     description:
       'GitHub + Slack + Jira in one seamless experience. No more context switching.',
   },
-];
-
-const integrations = [
-  {
-    icon: IconBrandGithub,
-    name: 'GitHub',
-    description: 'One-click installation',
-  },
-  { icon: IconBrandSlack, name: 'Slack', description: 'Instant notifications' },
-  { icon: IconTool, name: 'Jira', description: 'Bidirectional sync' },
 ];
 
 export function AboutSection() {
@@ -91,29 +83,120 @@ export function AboutSection() {
 
         {/* Integrations showcase */}
         <div className="text-center">
-          <h3 className="text-xl font-semibold text-landing-text mb-6">
+          <h3 className="text-2xl md:text-3xl font-bold text-landing-text mb-3">
             Works Where Your Team Already Lives
           </h3>
-          <div className="flex flex-wrap justify-center gap-6">
-            {integrations.map((integration, i) => (
+          <p className="text-landing-text-muted mb-10 text-lg">
+            Connect once, automate forever
+          </p>
+
+          {/* Integration Flow */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-0">
+            {/* GitHub - Source */}
+            <div className="group relative">
               <div
-                key={i}
                 className={cn(
-                  'flex items-center gap-3 px-6 py-3 rounded-xl border border-landing-border bg-landing-card',
-                  'transition-all duration-200 hover:border-landing-accent/30 hover:scale-105'
+                  'flex flex-col items-center gap-3 px-8 py-6 rounded-2xl border-2 border-landing-border bg-landing-card',
+                  'transition-all duration-300 hover:border-landing-accent/50 hover:bg-landing-card-hover hover:scale-105'
                 )}
               >
-                <integration.icon className="h-6 w-6 text-landing-text" />
-                <div className="text-left">
-                  <div className="font-medium text-landing-text">
-                    {integration.name}
+                <div className="h-14 w-14 rounded-xl bg-[#24292e] flex items-center justify-center">
+                  <IconBrandGithub className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold text-landing-text text-lg">
+                    GitHub
                   </div>
-                  <div className="text-xs text-landing-text-muted">
-                    {integration.description}
+                  <div className="text-sm text-landing-text-muted">
+                    PR Created
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Arrow 1 */}
+            <div className="hidden md:flex items-center px-2">
+              <div className="w-8 h-px bg-primary-500" />
+              <IconArrowRight className="h-5 w-5 text-primary-500 -ml-1" />
+            </div>
+            <div className="md:hidden py-2">
+              <IconArrowRight className="h-5 w-5 text-primary-500 rotate-90" />
+            </div>
+
+            {/* GitRouter - Center */}
+            <div className="group relative">
+              <div
+                className={cn(
+                  'flex flex-col items-center gap-3 px-10 py-7 rounded-2xl border-2 border-landing-accent/30 bg-gradient-to-br from-landing-accent/10 to-landing-accent/5',
+                  'transition-all duration-300 hover:border-landing-accent/60 hover:scale-105',
+                  'ring-4 ring-landing-accent/10'
+                )}
+              >
+                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-landing-accent to-landing-accent-light flex items-center justify-center shadow-lg shadow-landing-accent/30">
+                  <IconGitPullRequest className="h-9 w-9 text-white" />
+                </div>
+                <div>
+                  <div className="font-bold text-landing-text text-xl">
+                    GitRouter
+                  </div>
+                  <div className="text-sm text-landing-text-muted">
+                    Routes & Assigns
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Arrow 2 */}
+            <div className="hidden md:flex items-center px-2">
+              <div className="w-8 h-px bg-primary-500" />
+              <IconArrowRight className="h-5 w-5 text-primary-500 -ml-1" />
+            </div>
+            <div className="md:hidden py-2">
+              <IconArrowRight className="h-5 w-5 text-primary-500 rotate-90" />
+            </div>
+
+            {/* Outputs - Slack & Jira */}
+            <div className="flex flex-col gap-3">
+              {/* Slack */}
+              <div className="group relative">
+                <div
+                  className={cn(
+                    'flex items-center gap-3 px-6 py-4 rounded-xl border-2 border-landing-border bg-landing-card',
+                    'transition-all duration-300 hover:border-landing-accent/50 hover:bg-landing-card-hover hover:scale-105'
+                  )}
+                >
+                  <div className="h-10 w-10 rounded-lg bg-[#4A154B] flex items-center justify-center">
+                    <IconBrandSlack className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-landing-text">Slack</div>
+                    <div className="text-xs text-landing-text-muted">
+                      Instant notifications
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Jira */}
+              <div className="group relative">
+                <div
+                  className={cn(
+                    'flex items-center gap-3 px-6 py-4 rounded-xl border-2 border-landing-border bg-landing-card',
+                    'transition-all duration-300 hover:border-landing-accent/50 hover:bg-landing-card-hover hover:scale-105'
+                  )}
+                >
+                  <div className="h-10 w-10 rounded-lg bg-[#0052CC] flex items-center justify-center">
+                    <IconTool className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-landing-text">Jira</div>
+                    <div className="text-xs text-landing-text-muted">
+                      Bidirectional sync
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -129,16 +129,16 @@ export function NavBar() {
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-8 md:flex">
             <Link
+              href="#intro"
+              className="text-sm text-landing-text-muted transition-colors hover:text-landing-text"
+            >
+              About
+            </Link>
+            <Link
               href="#features"
               className="text-sm text-landing-text-muted transition-colors hover:text-landing-text"
             >
               Features
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm text-landing-text-muted transition-colors hover:text-landing-text"
-            >
-              Pricing
             </Link>
             <Link
               href="#docs"
