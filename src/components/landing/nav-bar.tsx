@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { IconGitPullRequest, IconMenu2, IconX, IconSun, IconMoon } from '@tabler/icons-react';
+import {
+  IconGitPullRequest,
+  IconMenu2,
+  IconX,
+  IconSun,
+  IconMoon,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 
 export function NavBar() {
@@ -137,4 +143,3 @@ export function NavBar() {
     </nav>
   );
 }
-

@@ -47,7 +47,9 @@ export function BentoCell({
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-landing-text">{title}</h3>
           {description && (
-            <p className="mt-1 text-sm text-landing-text-muted">{description}</p>
+            <p className="mt-1 text-sm text-landing-text-muted">
+              {description}
+            </p>
           )}
         </div>
         <div className="flex-1">{children}</div>
@@ -55,4 +57,3 @@ export function BentoCell({
     </div>
   );
 }
-

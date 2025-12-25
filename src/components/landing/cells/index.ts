@@ -6,4 +6,3 @@ export { SlackCell } from './slack-cell';
 export { JiraCell } from './jira-cell';
 export { EscalationCell } from './escalation-cell';
 export { TeamCell } from './team-cell';
-

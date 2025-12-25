@@ -17,21 +17,24 @@ function FloatingShapes() {
             </div>
           </div>
           {/* Small triangle */}
-          <div 
+          <div
             className="absolute -bottom-8 -left-4 w-0 h-0 animate-float"
-            style={{ 
+            style={{
               animationDelay: '0.5s',
               borderLeft: '8px solid transparent',
               borderRight: '8px solid transparent',
-              borderBottom: '14px solid #f472b6'
+              borderBottom: '14px solid #f472b6',
             }}
           />
         </div>
       </div>
-      
+
       <div className="absolute left-8 bottom-48 md:left-16 lg:left-32">
         {/* Orange character with cap */}
-        <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center animate-float shadow-lg shadow-orange-500/30" style={{ animationDelay: '1s' }}>
+        <div
+          className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center animate-float shadow-lg shadow-orange-500/30"
+          style={{ animationDelay: '1s' }}
+        >
           <div className="flex gap-1.5">
             <div className="w-2 h-2 bg-white rounded-full" />
             <div className="w-2 h-2 bg-white rounded-full" />
@@ -40,7 +43,7 @@ function FloatingShapes() {
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-full" />
         </div>
         {/* Small blue diamond */}
-        <div 
+        <div
           className="absolute -right-6 top-2 w-3 h-3 bg-blue-400 rotate-45 animate-float"
           style={{ animationDelay: '1.5s' }}
         />
@@ -57,7 +60,10 @@ function FloatingShapes() {
                 <div className="w-1.5 h-1.5 bg-white rounded-full" />
               </div>
             </div>
-            <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center animate-float shadow-lg shadow-red-500/30 z-20" style={{ animationDelay: '0.3s' }}>
+            <div
+              className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center animate-float shadow-lg shadow-red-500/30 z-20"
+              style={{ animationDelay: '0.3s' }}
+            >
               <div className="flex gap-1.5">
                 <div className="w-2 h-2 bg-white rounded-full" />
                 <div className="w-2 h-2 bg-white rounded-full" />
@@ -67,7 +73,7 @@ function FloatingShapes() {
             </div>
           </div>
           {/* Pink circle */}
-          <div 
+          <div
             className="absolute -bottom-4 right-0 w-4 h-4 bg-pink-500 rounded-full animate-float"
             style={{ animationDelay: '0.8s' }}
           />
@@ -77,7 +83,10 @@ function FloatingShapes() {
       <div className="absolute right-8 bottom-56 md:right-20 lg:right-40">
         {/* Another character group */}
         <div className="relative">
-          <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center animate-float shadow-lg shadow-amber-500/30" style={{ animationDelay: '0.6s' }}>
+          <div
+            className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center animate-float shadow-lg shadow-amber-500/30"
+            style={{ animationDelay: '0.6s' }}
+          >
             <div className="flex gap-1.5">
               <div className="w-2 h-2 bg-white rounded-full" />
               <div className="w-2 h-2 bg-white rounded-full" />
@@ -88,7 +97,7 @@ function FloatingShapes() {
             </div>
           </div>
           {/* Diamond shape */}
-          <div 
+          <div
             className="absolute -left-4 bottom-0 w-4 h-4 bg-cyan-400 rotate-45 animate-float"
             style={{ animationDelay: '1.2s' }}
           />
@@ -98,13 +107,12 @@ function FloatingShapes() {
   );
 }
 
-
 export function Hero() {
   return (
     <section className="relative min-h-screen overflow-hidden pt-24 pb-12">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-landing-bg via-landing-bg to-transparent" />
-      
+
       {/* Floating decorative shapes */}
       <div className="hidden md:block">
         <FloatingShapes />
@@ -119,10 +127,11 @@ export function Hero() {
             <br />
             <span className="text-landing-text/90">Assigning Reviewers</span>
           </h1>
-          
+
           {/* Subtitle */}
           <p className="mx-auto mt-6 max-w-2xl text-lg text-landing-text-muted md:text-xl">
-            Automatically route pull requests to the right reviewers, track review bottlenecks, and keep your team shipping faster.
+            Automatically route pull requests to the right reviewers, track
+            review bottlenecks, and keep your team shipping faster.
           </p>
 
           {/* CTA Buttons */}
@@ -153,7 +162,7 @@ export function Hero() {
           <div className="relative mx-auto max-w-4xl">
             {/* Glow effect behind the preview */}
             <div className="absolute -inset-4 bg-gradient-to-r from-landing-accent/20 via-landing-accent/10 to-landing-accent/20 blur-3xl opacity-50" />
-            
+
             {/* Preview container */}
             <div className="relative overflow-hidden rounded-xl border border-landing-border bg-landing-card shadow-2xl">
               {/* Browser chrome */}
@@ -169,29 +178,30 @@ export function Hero() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Dashboard preview content - matches actual dashboard layout */}
               <div className="flex">
                 {/* Sidebar skeleton */}
                 <div className="hidden md:flex w-48 flex-col border-r border-landing-border bg-landing-skeleton p-3">
                   {/* Workspace switcher */}
                   <div className="mb-4 h-9 w-full rounded-lg bg-landing-skeleton-strong" />
-                  
+
                   {/* Nav items */}
                   <div className="space-y-1">
-                    <div className="h-8 w-full rounded-md bg-landing-accent/20" /> {/* Active item */}
+                    <div className="h-8 w-full rounded-md bg-landing-accent/20" />{' '}
+                    {/* Active item */}
                     <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
                     <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
                     <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
                     <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
                   </div>
-                  
+
                   {/* Bottom nav */}
                   <div className="mt-auto space-y-1 pt-4">
                     <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
                     <div className="h-8 w-full rounded-md bg-landing-skeleton-strong" />
                   </div>
-                  
+
                   {/* User avatar */}
                   <div className="mt-3 flex items-center gap-2 pt-3 border-t border-landing-border">
                     <div className="h-8 w-8 rounded-full bg-landing-skeleton-strong" />
@@ -201,7 +211,7 @@ export function Hero() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Main content area */}
                 <div className="flex-1 p-4 space-y-4">
                   {/* Header with title and time range toggle */}
@@ -220,11 +230,16 @@ export function Hero() {
                   {/* KPI Row - 4 cards */}
                   <div className="grid grid-cols-4 gap-3">
                     {['Total PRs', 'Pending', 'SLA', 'Approved'].map((_, i) => (
-                      <div key={i} className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
+                      <div
+                        key={i}
+                        className="rounded-lg border border-landing-border bg-landing-skeleton p-3"
+                      >
                         <div className="h-3 w-16 rounded bg-landing-skeleton-strong mb-2" />
                         <div className="h-6 w-12 rounded bg-landing-skeleton-strong" />
                         <div className="mt-1 flex items-center gap-1">
-                          <div className={`h-3 w-8 rounded ${i % 2 === 0 ? 'bg-green-500/30' : 'bg-red-500/30'}`} />
+                          <div
+                            className={`h-3 w-8 rounded ${i % 2 === 0 ? 'bg-green-500/30' : 'bg-red-500/30'}`}
+                          />
                         </div>
                       </div>
                     ))}
@@ -237,20 +252,25 @@ export function Hero() {
                       <div className="h-4 w-28 rounded bg-landing-skeleton-strong mb-3" />
                       <div className="flex items-end gap-1 h-20">
                         {[40, 60, 45, 80, 55, 70, 50].map((h, i) => (
-                          <div 
-                            key={i} 
+                          <div
+                            key={i}
                             className="flex-1 rounded-t bg-gradient-to-t from-landing-accent/40 to-landing-accent/20"
                             style={{ height: `${h}%` }}
                           />
                         ))}
                       </div>
                       <div className="flex justify-between mt-2">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-                          <div key={d} className="h-2 w-6 rounded bg-landing-skeleton" />
-                        ))}
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(
+                          (d) => (
+                            <div
+                              key={d}
+                              className="h-2 w-6 rounded bg-landing-skeleton"
+                            />
+                          )
+                        )}
                       </div>
                     </div>
-                    
+
                     {/* Workload Chart */}
                     <div className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
                       <div className="h-4 w-24 rounded bg-landing-skeleton-strong mb-3" />
@@ -259,7 +279,7 @@ export function Hero() {
                           <div key={i} className="flex items-center gap-2">
                             <div className="h-5 w-5 rounded-full bg-landing-skeleton-strong" />
                             <div className="flex-1 h-3 rounded-full bg-landing-skeleton-strong overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-gradient-to-r from-landing-accent/60 to-landing-accent/30 rounded-full"
                                 style={{ width: `${w}%` }}
                               />
@@ -277,7 +297,10 @@ export function Hero() {
                       <div className="h-4 w-20 rounded bg-landing-skeleton-strong mb-3" />
                       <div className="space-y-2">
                         {[1, 2, 3].map((i) => (
-                          <div key={i} className="flex items-center gap-2 py-1 border-b border-landing-border">
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 py-1 border-b border-landing-border"
+                          >
                             <div className="h-4 w-24 rounded bg-landing-skeleton-strong" />
                             <div className="flex-1" />
                             <div className="h-4 w-8 rounded bg-orange-500/30" />
@@ -286,7 +309,7 @@ export function Hero() {
                         ))}
                       </div>
                     </div>
-                    
+
                     {/* Stale PRs */}
                     <div className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
                       <div className="h-4 w-16 rounded bg-landing-skeleton-strong mb-3" />
@@ -302,7 +325,7 @@ export function Hero() {
                         ))}
                       </div>
                     </div>
-                    
+
                     {/* Recent Activity */}
                     <div className="rounded-lg border border-landing-border bg-landing-skeleton p-3">
                       <div className="h-4 w-16 rounded bg-landing-skeleton-strong mb-3" />

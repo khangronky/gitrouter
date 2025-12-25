@@ -1,7 +1,14 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { IconBuilding, IconUser, IconUsers, IconPlus, IconMinus, IconCheck } from '@tabler/icons-react';
+import {
+  IconBuilding,
+  IconUser,
+  IconUsers,
+  IconPlus,
+  IconMinus,
+  IconCheck,
+} from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
 interface Member {
@@ -20,8 +27,24 @@ interface Particle {
 
 export function TeamCell() {
   const [teams, setTeams] = useState([
-    { id: 'frontend', name: 'Frontend', members: [{ id: 1, isNew: false, isRemoving: false }, { id: 2, isNew: false, isRemoving: false }, { id: 3, isNew: false, isRemoving: false }] as Member[] },
-    { id: 'backend', name: 'Backend', members: [{ id: 4, isNew: false, isRemoving: false }, { id: 5, isNew: false, isRemoving: false }, { id: 6, isNew: false, isRemoving: false }] as Member[] },
+    {
+      id: 'frontend',
+      name: 'Frontend',
+      members: [
+        { id: 1, isNew: false, isRemoving: false },
+        { id: 2, isNew: false, isRemoving: false },
+        { id: 3, isNew: false, isRemoving: false },
+      ] as Member[],
+    },
+    {
+      id: 'backend',
+      name: 'Backend',
+      members: [
+        { id: 4, isNew: false, isRemoving: false },
+        { id: 5, isNew: false, isRemoving: false },
+        { id: 6, isNew: false, isRemoving: false },
+      ] as Member[],
+    },
   ]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [hoveredMember, setHoveredMember] = useState<string | null>(null);
@@ -32,12 +55,18 @@ export function TeamCell() {
   const addMember = (teamId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const newMemberId = nextMemberIdRef.current++;
-    
+
     // Add to the beginning with isNew flag for animation
     setTeams((prev) =>
       prev.map((team) =>
         team.id === teamId
-          ? { ...team, members: [{ id: newMemberId, isNew: true, isRemoving: false }, ...team.members] }
+          ? {
+              ...team,
+              members: [
+                { id: newMemberId, isNew: true, isRemoving: false },
+                ...team.members,
+              ],
+            }
           : team
       )
     );
@@ -59,10 +88,14 @@ export function TeamCell() {
     }, 300);
   };
 
-  const createParticles = (teamId: string, rect: DOMRect, containerRect: DOMRect) => {
+  const createParticles = (
+    teamId: string,
+    rect: DOMRect,
+    containerRect: DOMRect
+  ) => {
     const centerX = rect.left - containerRect.left + rect.width / 2;
     const centerY = rect.top - containerRect.top + rect.height / 2;
-    
+
     // Create 8 particles in different directions
     const newParticles: Particle[] = [];
     for (let i = 0; i < 8; i++) {
@@ -70,29 +103,39 @@ export function TeamCell() {
         id: nextParticleIdRef.current++,
         x: centerX,
         y: centerY,
-        angle: (i * 45) + (Math.random() * 20 - 10), // Spread evenly with some randomness
+        angle: i * 45 + (Math.random() * 20 - 10), // Spread evenly with some randomness
         teamId,
       });
     }
-    
+
     setParticles((prev) => [...prev, ...newParticles]);
-    
+
     // Remove particles after animation
     setTimeout(() => {
-      setParticles((prev) => prev.filter((p) => !newParticles.find((np) => np.id === p.id)));
+      setParticles((prev) =>
+        prev.filter((p) => !newParticles.find((np) => np.id === p.id))
+      );
     }, 500);
   };
 
-  const removeMember = (teamId: string, memberId: number, e: React.MouseEvent) => {
+  const removeMember = (
+    teamId: string,
+    memberId: number,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
-    
+
     // Get position for particles
     const target = e.currentTarget as HTMLElement;
     const container = target.closest('[data-team-container]') as HTMLElement;
     if (container) {
-      createParticles(teamId, target.getBoundingClientRect(), container.getBoundingClientRect());
+      createParticles(
+        teamId,
+        target.getBoundingClientRect(),
+        container.getBoundingClientRect()
+      );
     }
-    
+
     // Set isRemoving flag to trigger pop animation
     setTeams((prev) =>
       prev.map((team) =>
@@ -112,7 +155,10 @@ export function TeamCell() {
       setTeams((prev) =>
         prev.map((team) =>
           team.id === teamId
-            ? { ...team, members: team.members.filter((m) => m.id !== memberId) }
+            ? {
+                ...team,
+                members: team.members.filter((m) => m.id !== memberId),
+              }
             : team
         )
       );
@@ -126,7 +172,9 @@ export function TeamCell() {
         {/* Organization */}
         <div className="flex items-center gap-2 rounded-lg border border-landing-border bg-landing-skeleton px-3 py-2 transition-all duration-200 hover:border-landing-text/20 hover:bg-landing-skeleton-strong cursor-pointer">
           <IconBuilding className="h-4 w-4 text-landing-accent-light" />
-          <span className="text-sm font-medium text-landing-text">Acme Corp</span>
+          <span className="text-sm font-medium text-landing-text">
+            Acme Corp
+          </span>
         </div>
 
         {/* Connector */}
@@ -137,7 +185,7 @@ export function TeamCell() {
           {teams.map((team) => {
             const isSelected = selectedTeam === team.id;
             const teamParticles = particles.filter((p) => p.teamId === team.id);
-            
+
             return (
               <div
                 key={team.id}
@@ -155,7 +203,9 @@ export function TeamCell() {
                   <IconUsers
                     className={cn(
                       'h-3 w-3 transition-colors duration-200',
-                      isSelected ? 'text-landing-accent-light' : 'text-landing-text-muted'
+                      isSelected
+                        ? 'text-landing-accent-light'
+                        : 'text-landing-text-muted'
                     )}
                   />
                   <span
@@ -185,7 +235,7 @@ export function TeamCell() {
                       }}
                     />
                   ))}
-                  
+
                   {team.members.map((member) => {
                     const memberKey = `${team.id}-${member.id}`;
                     const isHovered = hoveredMember === memberKey;
@@ -196,15 +246,28 @@ export function TeamCell() {
                         className={cn(
                           'flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-landing-bg',
                           'bg-landing-card-hover',
-                          isHovered && !member.isRemoving && 'z-10 scale-110 bg-red-500/20 ring-2 ring-red-500/50',
-                          isSelected && !isHovered && !member.isNew && !member.isRemoving && 'ring-1 ring-landing-accent/30',
+                          isHovered &&
+                            !member.isRemoving &&
+                            'z-10 scale-110 bg-red-500/20 ring-2 ring-red-500/50',
+                          isSelected &&
+                            !isHovered &&
+                            !member.isNew &&
+                            !member.isRemoving &&
+                            'ring-1 ring-landing-accent/30',
                           member.isNew && 'z-20',
                           member.isRemoving && 'z-20',
-                          !member.isNew && !member.isRemoving && 'transition-all duration-200 hover:scale-105'
+                          !member.isNew &&
+                            !member.isRemoving &&
+                            'transition-all duration-200 hover:scale-105'
                         )}
-                        onMouseEnter={() => !member.isRemoving && setHoveredMember(memberKey)}
+                        onMouseEnter={() =>
+                          !member.isRemoving && setHoveredMember(memberKey)
+                        }
                         onMouseLeave={() => setHoveredMember(null)}
-                        onClick={(e) => !member.isRemoving && removeMember(team.id, member.id, e)}
+                        onClick={(e) =>
+                          !member.isRemoving &&
+                          removeMember(team.id, member.id, e)
+                        }
                         style={{
                           ...(member.isNew && {
                             animation: 'slideInLeft 0.3s ease-out forwards',
@@ -222,14 +285,15 @@ export function TeamCell() {
                       </div>
                     );
                   })}
-                  
+
                   {/* Add member button */}
                   <div
                     onClick={(e) => addMember(team.id, e)}
                     className={cn(
                       'flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 border-dashed transition-all duration-200 hover:scale-110',
                       'border-landing-border hover:border-green-600 dark:hover:border-green-500/50 hover:bg-green-500/10',
-                      isSelected && 'border-landing-accent/50 hover:border-green-600 dark:hover:border-green-500/50'
+                      isSelected &&
+                        'border-landing-accent/50 hover:border-green-600 dark:hover:border-green-500/50'
                     )}
                   >
                     <IconPlus className="h-3 w-3 text-landing-text-muted transition-colors hover:text-green-600 dark:hover:text-green-400" />
