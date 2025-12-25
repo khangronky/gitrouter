@@ -14,11 +14,17 @@ const INITIAL_DATA = [
   { day: 'Sun', value: 20 },
 ];
 
-const INITIAL_STATS = {
+const INITIAL_STATS: {
+  reviewTime: number;
+  sla: number;
+  prs: number;
+  trend: 'up' | 'down';
+  trendValue: number;
+} = {
   reviewTime: 2.5,
   sla: 92,
   prs: 147,
-  trend: 'up' as const,
+  trend: 'up',
   trendValue: 11,
 };
 
