@@ -211,8 +211,8 @@ function SidebarPreview() {
       {/* Logo / Workspace */}
       <div className="px-2 pb-2 pt-4">
         <div className="h-10 w-10 rounded-lg bg-primary-500 flex items-center justify-center mx-auto">
-           <IconGitPullRequest className="h-5 w-5 text-white" />
-         </div>
+          <IconGitPullRequest className="h-5 w-5 text-white" />
+        </div>
       </div>
 
       {/* Main nav */}
@@ -246,7 +246,9 @@ function SidebarPreview() {
       {/* User avatar */}
       <div className="p-2 border-t border-sidebar-border">
         <div className="h-10 w-10 rounded-lg bg-primary mx-auto flex items-center justify-center">
-          <span className="text-primary-foreground font-semibold text-sm">JD</span>
+          <span className="text-primary-foreground font-semibold text-sm">
+            JD
+          </span>
         </div>
       </div>
     </div>
@@ -260,9 +262,9 @@ function DashboardPreview() {
   const scale = 0.62;
   const contentWidth = 1725;
   const contentHeight = 1100;
-  
+
   return (
-    <div 
+    <div
       className="relative w-full overflow-hidden bg-background rounded-b-xl"
       style={{ height: `${contentHeight * scale}px` }}
     >
@@ -284,7 +286,9 @@ function DashboardPreview() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-foreground">Dashboard</h2>
+                <h2 className="text-2xl font-bold text-foreground">
+                  Dashboard
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   Showing data for the last 7 days
                 </p>
@@ -307,15 +311,27 @@ function DashboardPreview() {
 
             {/* Charts Row */}
             <div className="grid grid-cols-3 gap-4">
-              <LatencyChart latencySeries={dummyLatencySeries} className="col-span-2" />
+              <LatencyChart
+                latencySeries={dummyLatencySeries}
+                className="col-span-2"
+              />
               <WorkloadChart reviewerWorkload={dummyReviewerWorkload} />
             </div>
 
             {/* Bottom Row */}
             <div className="grid grid-cols-4 gap-4">
-              <BottlenecksTable bottlenecks={dummyBottlenecks} className="col-span-2" />
-              <StalePullRequests stalePRs={dummyStalePRs} className="col-span-1" />
-              <RecentActivity recentActivity={dummyRecentActivity} className="col-span-1" />
+              <BottlenecksTable
+                bottlenecks={dummyBottlenecks}
+                className="col-span-2"
+              />
+              <StalePullRequests
+                stalePRs={dummyStalePRs}
+                className="col-span-1"
+              />
+              <RecentActivity
+                recentActivity={dummyRecentActivity}
+                className="col-span-1"
+              />
             </div>
           </div>
         </div>

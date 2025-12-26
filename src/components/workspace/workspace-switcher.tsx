@@ -139,14 +139,15 @@ export function WorkspaceSwitcher() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="gap-2 p-2"
-                onClick={() => window.location.href = '/'}
+                onClick={() => (window.location.href = '/')}
               >
                 <div className="flex size-6 items-center justify-center rounded-md border border-dashed bg-background">
                   <Home className="size-3" />
                 </div>
                 <span className="text-muted-foreground font-medium">
-                  Go to Home</span>
-                  </DropdownMenuItem>
+                  Go to Home
+                </span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
@@ -156,7 +157,6 @@ export function WorkspaceSwitcher() {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
-    
     </>
   );
 }
