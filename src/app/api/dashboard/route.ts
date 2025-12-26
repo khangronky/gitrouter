@@ -5,7 +5,7 @@ import {
   getAuthenticatedUser,
   requireOrgPermission,
 } from '@/lib/organizations/permissions';
-import { fetchDashboardData } from '@/lib/dashboard';
+import { fetchDashboardData } from './service';
 
 /**
  * GET /api/dashboard

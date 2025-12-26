@@ -39,12 +39,14 @@ export async function GET(request: Request) {
       );
     }
 
-    // Decode state to get org_id
+    // Decode state to get org_id and onboarding flag
     let orgId: string | null = null;
+    let fromOnboarding = false;
     if (stateBase64) {
       try {
         const state = JSON.parse(Buffer.from(stateBase64, 'base64').toString());
         orgId = state.org_id;
+        fromOnboarding = state.onboarding === true;
       } catch {
         console.error('Failed to decode state');
       }
@@ -225,6 +227,16 @@ export async function GET(request: Request) {
         console.error('Failed to link GitHub account to user:', error);
         // Don't fail the installation - just log the error
       }
+    }
+
+    // Redirect based on whether user came from onboarding
+    if (fromOnboarding) {
+      return NextResponse.redirect(
+        new URL(
+          `/dashboard?onboarding_step=slack&success=github_installed`,
+          request.url
+        )
+      );
     }
 
     // Redirect to settings page to add repositories

@@ -18,7 +18,7 @@ const DEFAULT_REVIEWER_CAPACITY = 40;
 // SLA threshold in hours (PRs reviewed within this time count as meeting SLA)
 const SLA_THRESHOLD_HOURS = 24;
 
-interface DashboardServiceParams {
+export interface DashboardServiceParams {
   supabase: TypedSupabaseClient;
   organizationId: string;
   repositoryId?: string;

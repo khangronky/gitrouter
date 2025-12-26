@@ -6,8 +6,10 @@ import {
   ApprovalRateChart,
   CycleTimeChart,
   FirstResponseChart,
+  MergeTimeChart,
   PrSizeChart,
   PrVolumeChart,
+  ReviewDepthChart,
   ReviewSpeedChart,
   ReworkRateChart,
   SlaComplianceChart,
@@ -18,22 +20,30 @@ import { TrendSkeleton } from '@/components/trend/trend-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
-
-type TimeRange = '6w' | '12w' | '6m';
+import { useTrendData } from '@/lib/api/trend';
+import type { TrendTimeRange } from '@/lib/schema/trend';
 
 export default function TrendPage() {
   const { currentOrgId, isLoading: orgLoading } = useCurrentOrganization();
-  const [timeRange, setTimeRange] = useState<TimeRange>('6w');
+  const [timeRange, setTimeRange] = useState<TrendTimeRange>('6w');
+
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useTrendData(currentOrgId || '', timeRange);
 
   const handleTimeRangeChange = (value: string) => {
     if (value) {
-      setTimeRange(value as TimeRange);
+      setTimeRange(value as TrendTimeRange);
     }
   };
 
-  if (orgLoading || !currentOrgId) {
+  if (orgLoading || !currentOrgId || isLoading) {
     return <TrendSkeleton />;
   }
+
+  const trendData = response?.data;
 
   return (
     <section className="space-y-6 p-4">
@@ -60,8 +70,18 @@ export default function TrendPage() {
         </ToggleGroup>
       </div>
 
+      {error && (
+        <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+          <p className="text-sm text-destructive">
+            {error instanceof Error
+              ? error.message
+              : 'Failed to fetch trend data'}
+          </p>
+        </div>
+      )}
+
       {/* Summary KPIs */}
-      <TrendKpiRow timeRange={timeRange} organizationId={currentOrgId} />
+      <TrendKpiRow data={trendData?.kpis} />
 
       {/* Tabbed Charts */}
       <Tabs defaultValue="speed" className="w-full">
@@ -87,29 +107,34 @@ export default function TrendPage() {
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <ReviewSpeedChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <ReviewSpeedChart data={trendData?.reviewSpeed} />
             </div>
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <CycleTimeChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <CycleTimeChart data={trendData?.cycleTime} />
             </div>
           </div>
-          <div
-            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
-          >
-            <FirstResponseChart
-              timeRange={timeRange}
-              organizationId={currentOrgId}
-            />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+              style={{
+                animationDelay: '150ms',
+                animationFillMode: 'backwards',
+              }}
+            >
+              <FirstResponseChart data={trendData?.firstResponse} />
+            </div>
+            <div
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+              style={{
+                animationDelay: '225ms',
+                animationFillMode: 'backwards',
+              }}
+            >
+              <MergeTimeChart data={trendData?.mergeTime} />
+            </div>
           </div>
         </TabsContent>
 
@@ -120,26 +145,20 @@ export default function TrendPage() {
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <PrVolumeChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <PrVolumeChart data={trendData?.prVolume} />
             </div>
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <WorkloadBalanceChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <WorkloadBalanceChart data={trendData?.workloadBalance} />
             </div>
           </div>
           <div
             className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
             style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
           >
-            <PrSizeChart timeRange={timeRange} organizationId={currentOrgId} />
+            <PrSizeChart data={trendData?.prSize} />
           </div>
         </TabsContent>
 
@@ -150,29 +169,34 @@ export default function TrendPage() {
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '0ms' }}
             >
-              <SlaComplianceChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <SlaComplianceChart data={trendData?.slaCompliance} />
             </div>
             <div
               className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
               style={{ animationDelay: '75ms', animationFillMode: 'backwards' }}
             >
-              <ReworkRateChart
-                timeRange={timeRange}
-                organizationId={currentOrgId}
-              />
+              <ReworkRateChart data={trendData?.reworkRate} />
             </div>
           </div>
-          <div
-            className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
-            style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
-          >
-            <ApprovalRateChart
-              timeRange={timeRange}
-              organizationId={currentOrgId}
-            />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+              style={{
+                animationDelay: '150ms',
+                animationFillMode: 'backwards',
+              }}
+            >
+              <ApprovalRateChart data={trendData?.approvalRate} />
+            </div>
+            <div
+              className="fade-in-50 slide-in-from-bottom-2 animate-in duration-300"
+              style={{
+                animationDelay: '225ms',
+                animationFillMode: 'backwards',
+              }}
+            >
+              <ReviewDepthChart data={trendData?.reviewDepth} />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

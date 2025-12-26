@@ -642,6 +642,8 @@ export type Database = {
           id: string;
           jira_account_id: string | null;
           jira_email: string | null;
+          onboarding_completed: boolean;
+          onboarding_completed_at: string | null;
           slack_user_id: string | null;
           slack_username: string | null;
           username: string | null;
@@ -655,6 +657,8 @@ export type Database = {
           id?: string;
           jira_account_id?: string | null;
           jira_email?: string | null;
+          onboarding_completed?: boolean;
+          onboarding_completed_at?: string | null;
           slack_user_id?: string | null;
           slack_username?: string | null;
           username?: string | null;
@@ -668,6 +672,8 @@ export type Database = {
           id?: string;
           jira_account_id?: string | null;
           jira_email?: string | null;
+          onboarding_completed?: boolean;
+          onboarding_completed_at?: string | null;
           slack_user_id?: string | null;
           slack_username?: string | null;
           username?: string | null;

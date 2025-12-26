@@ -10,4 +10,6 @@ export interface User {
   slack_username?: string | null;
   jira_account_id?: string | null;
   jira_email?: string | null;
+  // Onboarding status
+  onboarding_completed?: boolean;
 }
