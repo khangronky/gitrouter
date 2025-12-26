@@ -5,6 +5,16 @@ import { updateSession } from './lib/supabase/proxy';
 export async function proxy(request: NextRequest) {
   const { res, user } = await updateSession(request);
 
+  // If the auth middleware returned a redirect response, return it
+  if (res.headers.has('Location')) {
+    return res;
+  }
+
+  // Skip locale handling for API routes
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    return res;
+  }
+
   // Determine if the current path is public
   const isPublicPath =
     request.nextUrl.pathname === '/' ||
