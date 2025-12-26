@@ -18,9 +18,7 @@ export function IntroSection() {
           <div className="mt-8 md:mt-10 space-y-6">
             <p className="text-xl md:text-2xl text-landing-text-muted leading-relaxed font-light">
               We built this because every engineering team deserves to{' '}
-              <span className="text-landing-text font-medium">
-                ship faster
-              </span>{' '}
+              <span className="text-landing-text font-medium">ship faster</span>{' '}
               without the overhead of coordinating reviewers. No more Slack
               messages asking "who can review this?" No more pull requests
               sitting idle for days.
@@ -60,4 +58,3 @@ export function IntroSection() {
     </section>
   );
 }
-
