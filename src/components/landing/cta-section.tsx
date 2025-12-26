@@ -35,7 +35,7 @@ export function CTASection() {
               href="/register"
               className="group inline-flex items-center gap-2 px-8 py-4 bg-landing-accent text-white font-semibold rounded-xl transition-all duration-200 hover:bg-landing-accent-light hover:scale-105 shadow-lg shadow-landing-accent/25"
             >
-              Get Started Free
+              Sign Up Now
               <IconArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
 

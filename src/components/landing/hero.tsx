@@ -372,7 +372,7 @@ export function Hero() {
               size="lg"
               className="bg-landing-accent hover:bg-landing-accent-light shadow-lg shadow-landing-accent/25"
             >
-              <Link href="/register">Get Started Free</Link>
+              <Link href="/register">Sign Up Now</Link>
             </Button>
           </div>
         </div>
