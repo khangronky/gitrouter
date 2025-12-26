@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, ChevronsUpDown, Plus, Building2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Plus, Building2, Home } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -135,6 +135,17 @@ export function WorkspaceSwitcher() {
                 </div>
                 <span className="text-muted-foreground font-medium">
                   Create workspace
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2 p-2"
+                onClick={() => (window.location.href = '/')}
+              >
+                <div className="flex size-6 items-center justify-center rounded-md border border-dashed bg-background">
+                  <Home className="size-3" />
+                </div>
+                <span className="text-muted-foreground font-medium">
+                  Go to Home
                 </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
