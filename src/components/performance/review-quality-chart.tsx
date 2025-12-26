@@ -1,9 +1,9 @@
 'use client';
 
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -32,9 +32,13 @@ const reviewQualityConfig = {
   },
 } satisfies ChartConfig;
 
+/**
+ * NOTE: This chart is not implemented yet.
+ * It is a placeholder for the actual chart that will be implemented in the future.
+ */
 export function ReviewQualityChart() {
   return (
-    <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
+    <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>Review Quality Score</CardTitle>
         <CardDescription>

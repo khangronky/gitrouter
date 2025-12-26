@@ -1,24 +1,27 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { createClient } from '@/lib/supabase/client';
+import { TrendChartSkeleton } from './trend-skeleton';
+import {
+  getDateRangeFromTimeRange,
+  getOrgRepositoryIds,
+  type TrendChartProps,
+  verifyOrgAccess,
+} from './utils';
 
-const prVolumeData = [
-  { date: 'Dec 1', count: 8 },
-  { date: 'Dec 2', count: 12 },
-  { date: 'Dec 3', count: 15 },
-  { date: 'Dec 4', count: 10 },
-  { date: 'Dec 5', count: 14 },
-  { date: 'Dec 6', count: 18 },
-  { date: 'Dec 7', count: 11 },
-  { date: 'Dec 8', count: 13 },
-];
+interface PrVolumeData {
+  date: string;
+  count: number;
+}
 
 const prVolumeConfig = {
   count: {
@@ -27,9 +30,76 @@ const prVolumeConfig = {
   },
 } satisfies ChartConfig;
 
-export function PrVolumeChart() {
+async function fetchPrVolumeData(
+  timeRange: TrendChartProps['timeRange'],
+  organizationId: string
+): Promise<PrVolumeData[]> {
+  await verifyOrgAccess(organizationId);
+
+  const supabase = createClient();
+  const startDate = getDateRangeFromTimeRange(timeRange);
+  const repoIds = await getOrgRepositoryIds(organizationId);
+
+  if (repoIds.length === 0) {
+    return [];
+  }
+
+  // Get all PRs in time range
+  const { data: prs } = await supabase
+    .from('pull_requests')
+    .select('id, created_at')
+    .in('repository_id', repoIds)
+    .gte('created_at', startDate.toISOString())
+    .order('created_at', { ascending: true });
+
+  if (!prs || prs.length === 0) {
+    return [];
+  }
+
+  // Group by day
+  const dailyCounts: Record<string, number> = {};
+
+  for (const pr of prs) {
+    const date = new Date(pr.created_at);
+    const dateKey = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+    dailyCounts[dateKey] = (dailyCounts[dateKey] || 0) + 1;
+  }
+
+  // Convert to array
+  return Object.entries(dailyCounts).map(([date, count]) => ({
+    date,
+    count,
+  }));
+}
+
+export function PrVolumeChart({ timeRange, organizationId }: TrendChartProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['pr-volume-chart', timeRange, organizationId],
+    queryFn: () => fetchPrVolumeData(timeRange, organizationId),
+    enabled: !!organizationId,
+  });
+
+  const timeRangeLabel =
+    timeRange === '6w'
+      ? '6 weeks'
+      : timeRange === '12w'
+        ? '12 weeks'
+        : '6 months';
+
+  if (isLoading || !data) {
+    return <TrendChartSkeleton chartType="area" />;
+  }
+
+  // Calculate stats
+  const totalPRs = data.reduce((sum, d) => sum + d.count, 0);
+  const avgPerDay = data.length > 0 ? Math.round(totalPRs / data.length) : 0;
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
+
   return (
-    <Card className="p-4 flex flex-col transition-all duration-200 hover:shadow-md">
+    <Card className="flex flex-col p-4 transition-all duration-200 hover:shadow-md">
       <div className="flex flex-col gap-1">
         <CardTitle>PR Volume Trend</CardTitle>
         <CardDescription>
@@ -41,7 +111,7 @@ export function PrVolumeChart() {
         className="h-[200px] w-full flex-1"
       >
         <AreaChart
-          data={prVolumeData}
+          data={data}
           margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
         >
           <defs>
@@ -68,13 +138,14 @@ export function PrVolumeChart() {
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            className="text-xs text-muted-foreground"
+            className="text-muted-foreground text-xs"
           />
           <YAxis
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            className="text-xs text-muted-foreground"
+            className="text-muted-foreground text-xs"
+            domain={[0, Math.ceil(maxCount * 1.1)]}
           />
           <ChartTooltip content={<ChartTooltipContent indicator="line" />} />
           <Area
@@ -86,11 +157,12 @@ export function PrVolumeChart() {
           />
         </AreaChart>
       </ChartContainer>
-      <p className="text-muted-foreground text-sm mt-4">
-        Average PRs/day: <span className="text-foreground font-medium">12</span>
+      <p className="mt-4 text-muted-foreground text-sm">
+        Average PRs/day:{' '}
+        <span className="font-medium text-foreground">{avgPerDay}</span>
         {' | '}
-        Total this month:{' '}
-        <span className="text-foreground font-medium">360</span>
+        Total in {timeRangeLabel}:{' '}
+        <span className="font-medium text-foreground">{totalPRs}</span>
       </p>
     </Card>
   );
