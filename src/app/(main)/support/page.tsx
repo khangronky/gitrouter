@@ -182,7 +182,7 @@ const faqs = [
       'Team members are automatically synced from your GitHub organization as collaborators. Go to Settings > Team Members to view and manage your team. You can then assign them as reviewers in your routing rules or manually on individual PRs.',
   },
   {
-    question: 'What\'s the difference between Trend and Performance pages?',
+    question: "What's the difference between Trend and Performance pages?",
     answer:
       'The Trend page shows how your metrics change over time (weekly/monthly trends for review speed, PR volume, etc.). The Performance page provides deeper analysis including repository comparisons, individual reviewer metrics, and identifies specific areas for improvement.',
   },
@@ -306,7 +306,9 @@ export default function SupportPage() {
   };
 
   // Calculate completed count
-  const completedCount = steps.filter((step) => isStepCompleted(step.id)).length;
+  const completedCount = steps.filter((step) =>
+    isStepCompleted(step.id)
+  ).length;
   const totalSteps = steps.length;
   const isDataLoading = githubLoading || rulesLoading;
 
@@ -335,7 +337,8 @@ export default function SupportPage() {
             <div className="flex items-center justify-between mb-2">
               <CardTitle className="text-xl">Getting Started</CardTitle>
               <span className="text-sm text-muted-foreground">
-                {isHydrated && !isDataLoading ? completedCount : 0}/{totalSteps} completed
+                {isHydrated && !isDataLoading ? completedCount : 0}/{totalSteps}{' '}
+                completed
               </span>
             </div>
             <CardDescription className="text-base mb-4">
@@ -355,7 +358,8 @@ export default function SupportPage() {
 
             <ol className="space-y-4">
               {steps.map((step, index) => {
-                const completed = isHydrated && !isDataLoading && isStepCompleted(step.id);
+                const completed =
+                  isHydrated && !isDataLoading && isStepCompleted(step.id);
                 return (
                   <li key={step.id} className="flex items-start gap-3">
                     <StepIndicator
