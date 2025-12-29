@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/sync-prs",
-      "schedule": "0 */12 * * *"
+      "schedule": "0 0 * * *"
     }
   ],
   "git": {
