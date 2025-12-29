@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: build-app
+    name: Unit and Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
