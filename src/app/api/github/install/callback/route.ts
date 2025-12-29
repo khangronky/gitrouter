@@ -146,7 +146,10 @@ export async function GET(request: Request) {
         );
       }
       // Already linked to this org (or just restored)
-      if (!existingInstallation.deleted_at && existingInstallation.organization_id === orgId) {
+      if (
+        !existingInstallation.deleted_at &&
+        existingInstallation.organization_id === orgId
+      ) {
         return NextResponse.redirect(
           new URL(`/dashboard?success=installation_exists`, request.url)
         );
