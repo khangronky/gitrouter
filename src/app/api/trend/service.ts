@@ -1,58 +1,32 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
 import type {
-  TrendTimeRange,
-  TrendKpiData,
-  ReviewSpeedData,
+  ApprovalRateData,
   CycleTimeData,
   FirstResponseData,
-  PrVolumeData,
-  WorkloadBalanceData,
-  PrSizeData,
-  SlaComplianceData,
-  ReworkRateData,
-  ApprovalRateData,
   MergeTimeData,
+  PrSizeData,
+  PrVolumeData,
   ReviewDepthData,
+  ReviewSpeedData,
+  ReworkRateData,
+  SlaComplianceData,
   TrendData,
+  TrendKpiData,
+  TrendTimeRange,
+  WorkloadBalanceData,
 } from '@/lib/schema/trend';
+import type { Database } from '@/types/supabase';
+import {
+  getTrendDateRange,
+  getWeekLabel,
+  getWeeksFromTimeRange,
+} from '@/utils/date';
 
 type TypedSupabaseClient = SupabaseClient<Database>;
 
 // =============================================
 // Helper Functions
 // =============================================
-
-function getDateRangeFromTimeRange(timeRange: TrendTimeRange): Date {
-  const startDate = new Date();
-  switch (timeRange) {
-    case '6w':
-      startDate.setDate(startDate.getDate() - 42);
-      break;
-    case '12w':
-      startDate.setDate(startDate.getDate() - 84);
-      break;
-    case '6m':
-      startDate.setMonth(startDate.getMonth() - 6);
-      break;
-  }
-  return startDate;
-}
-
-function getWeeksFromTimeRange(timeRange: TrendTimeRange): number {
-  switch (timeRange) {
-    case '6w':
-      return 6;
-    case '12w':
-      return 12;
-    case '6m':
-      return 26;
-  }
-}
-
-function getWeekLabel(weekIndex: number): string {
-  return `Week ${weekIndex + 1}`;
-}
 
 async function getOrgRepositoryIds(
   supabase: TypedSupabaseClient,
@@ -84,7 +58,7 @@ export async function fetchTrendKpis({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<TrendKpiData> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -230,7 +204,7 @@ export async function fetchReviewSpeedData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<ReviewSpeedData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -288,7 +262,7 @@ export async function fetchCycleTimeData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<CycleTimeData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -345,7 +319,7 @@ export async function fetchFirstResponseData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<FirstResponseData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -404,7 +378,7 @@ export async function fetchPrVolumeData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<PrVolumeData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -446,7 +420,7 @@ export async function fetchWorkloadBalanceData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<WorkloadBalanceData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -507,7 +481,7 @@ export async function fetchPrSizeData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<PrSizeData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -564,7 +538,7 @@ export async function fetchSlaComplianceData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<SlaComplianceData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -622,7 +596,7 @@ export async function fetchReworkRateData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<ReworkRateData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -675,7 +649,7 @@ export async function fetchApprovalRateData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<ApprovalRateData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -726,7 +700,7 @@ export async function fetchMergeTimeData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<MergeTimeData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -811,7 +785,7 @@ export async function fetchReviewDepthData({
   organizationId,
   timeRange,
 }: TrendServiceParams): Promise<ReviewDepthData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getTrendDateRange(timeRange);
   const numWeeks = getWeeksFromTimeRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 

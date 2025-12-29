@@ -1,63 +1,30 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
 import type {
-  PerformanceTimeRange,
-  PerformanceKpiData,
-  ReviewerPerformance,
   BottleneckData,
-  RepoComparisonData,
   MergeSuccessData,
-  PrSizeByAuthorData,
-  ReviewThroughputData,
-  WorkloadDistributionData,
-  TimeToFirstReviewData,
   PerformanceData,
+  PerformanceKpiData,
+  PerformanceTimeRange,
+  PrSizeByAuthorData,
+  RepoComparisonData,
+  ReviewerPerformance,
+  ReviewThroughputData,
+  TimeToFirstReviewData,
+  WorkloadDistributionData,
 } from '@/lib/schema/performance';
+import type { Database } from '@/types/supabase';
+import { calculateBottleneckFrequency } from '@/utils/analytics';
+import {
+  getPreviousPeriodRange,
+  getStartDate,
+  getTimeRangeInDays,
+} from '@/utils/date';
 
 type TypedSupabaseClient = SupabaseClient<Database>;
 
 // =============================================
 // Helper Functions
 // =============================================
-
-function getDateRangeFromTimeRange(timeRange: PerformanceTimeRange): Date {
-  const startDate = new Date();
-  switch (timeRange) {
-    case '7d':
-      startDate.setDate(startDate.getDate() - 7);
-      break;
-    case '30d':
-      startDate.setDate(startDate.getDate() - 30);
-      break;
-    case '3m':
-      startDate.setMonth(startDate.getMonth() - 3);
-      break;
-  }
-  return startDate;
-}
-
-function getTimeRangeInDays(timeRange: PerformanceTimeRange): number {
-  switch (timeRange) {
-    case '7d':
-      return 7;
-    case '30d':
-      return 30;
-    case '3m':
-      return 90;
-  }
-}
-
-function getPreviousPeriodRange(timeRange: PerformanceTimeRange): {
-  startDate: Date;
-  endDate: Date;
-} {
-  const currentStart = getDateRangeFromTimeRange(timeRange);
-  const currentEnd = new Date();
-  const periodLength = currentEnd.getTime() - currentStart.getTime();
-  const endDate = new Date(currentStart);
-  const startDate = new Date(currentStart.getTime() - periodLength);
-  return { startDate, endDate };
-}
 
 async function getOrgRepositoryIds(
   supabase: TypedSupabaseClient,
@@ -68,58 +35,6 @@ async function getOrgRepositoryIds(
     .select('id')
     .eq('organization_id', organizationId);
   return repos?.map((r) => r.id) || [];
-}
-
-function calculateBottleneckFrequency(
-  assignments: Array<{
-    reviewer_id: string;
-    assigned_at: string;
-    reviewed_at: string | null;
-    pull_request_id: string;
-  }>
-): Record<string, number> {
-  const prAssignments = new Map<
-    string,
-    Array<{
-      reviewer_id: string;
-      assigned_at: string;
-      reviewed_at: string | null;
-    }>
-  >();
-
-  for (const assignment of assignments) {
-    if (!assignment.reviewed_at) continue;
-    const prId = assignment.pull_request_id;
-    if (!prAssignments.has(prId)) {
-      prAssignments.set(prId, []);
-    }
-    prAssignments.get(prId)!.push({
-      reviewer_id: assignment.reviewer_id,
-      assigned_at: assignment.assigned_at,
-      reviewed_at: assignment.reviewed_at,
-    });
-  }
-
-  const bottleneckCounts: Record<string, number> = {};
-  for (const [_, reviews] of prAssignments.entries()) {
-    if (reviews.length === 0) continue;
-    let maxTime = 0;
-    let bottleneckReviewer: string | null = null;
-    for (const review of reviews) {
-      const reviewTime =
-        new Date(review.reviewed_at!).getTime() -
-        new Date(review.assigned_at).getTime();
-      if (reviewTime > maxTime) {
-        maxTime = reviewTime;
-        bottleneckReviewer = review.reviewer_id;
-      }
-    }
-    if (bottleneckReviewer) {
-      bottleneckCounts[bottleneckReviewer] =
-        (bottleneckCounts[bottleneckReviewer] || 0) + 1;
-    }
-  }
-  return bottleneckCounts;
 }
 
 // =============================================
@@ -141,7 +56,7 @@ export async function fetchPerformanceKpis({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<PerformanceKpiData> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const previousPeriod = getPreviousPeriodRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -367,7 +282,7 @@ export async function fetchReviewerPerformance({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<ReviewerPerformance[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const previousPeriod = getPreviousPeriodRange(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
@@ -504,7 +419,7 @@ export async function fetchBottleneckData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<BottleneckData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) return [];
@@ -558,7 +473,7 @@ export async function fetchRepoComparisonData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<RepoComparisonData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) return [];
@@ -609,7 +524,7 @@ export async function fetchMergeSuccessData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<MergeSuccessData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) return [];
@@ -655,7 +570,7 @@ export async function fetchPrSizeByAuthorData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<PrSizeByAuthorData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) return [];
@@ -706,7 +621,7 @@ export async function fetchReviewThroughputData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<ReviewThroughputData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -749,7 +664,7 @@ export async function fetchWorkloadDistributionData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<WorkloadDistributionData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) return [];
@@ -800,7 +715,7 @@ export async function fetchTimeToFirstReviewData({
   organizationId,
   timeRange,
 }: PerformanceServiceParams): Promise<TimeToFirstReviewData[]> {
-  const startDate = getDateRangeFromTimeRange(timeRange);
+  const startDate = getStartDate(timeRange);
   const repoIds = await getOrgRepositoryIds(supabase, organizationId);
 
   if (repoIds.length === 0) return [];
