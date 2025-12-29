@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { syncRepositoryPullRequests } from '@/lib/github/sync';
 import { requireOrgPermission } from '@/lib/organizations/permissions';
 import { addRepositorySchema } from '@/lib/schema/repository';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -129,7 +130,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Check if org has a GitHub installation
     const { data: installation, error: installError } = await supabase
       .from('github_installations')
-      .select('id')
+      .select('id, installation_id')
       .eq('organization_id', id)
       .is('deleted_at', null)
       .single();
@@ -189,6 +190,19 @@ export async function POST(request: Request, { params }: RouteParams) {
           );
         }
 
+        // Trigger PR sync for restored repository (non-blocking)
+        // Use admin client for sync (needs INSERT permission on pull_requests)
+        createAdminClient().then((adminSupabase) => {
+          syncRepositoryPullRequests(adminSupabase, {
+            id: restoredRepo.id,
+            full_name: restoredRepo.full_name,
+            github_installation_id: restoredRepo.github_installation_id,
+            installation_id: installation.installation_id,
+          }).catch((error) => {
+            console.error('PR sync for restored repo failed:', error);
+          });
+        });
+
         return NextResponse.json({ repository: restoredRepo }, { status: 201 });
       }
 
@@ -244,6 +258,19 @@ export async function POST(request: Request, { params }: RouteParams) {
         { status: 500 }
       );
     }
+
+    // Trigger initial PR sync in the background (non-blocking)
+    // Use admin client for sync (needs INSERT permission on pull_requests)
+    createAdminClient().then((adminSupabase) => {
+      syncRepositoryPullRequests(adminSupabase, {
+        id: repository.id,
+        full_name: repository.full_name,
+        github_installation_id: repository.github_installation_id,
+        installation_id: installation.installation_id,
+      }).catch((error) => {
+        console.error('Initial PR sync failed:', error);
+      });
+    });
 
     return NextResponse.json({ repository }, { status: 201 });
   } catch (error) {

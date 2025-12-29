@@ -227,7 +227,7 @@ export function PullRequestTable({
                 variant="outline"
                 role="combobox"
                 aria-expanded={repoOpen}
-                className="w-[180px] justify-between cursor-pointer"
+                className="w-[180px] justify-between cursor-pointer truncate"
               >
                 {repositoryFilter === 'all' ? 'All Repos' : repositoryFilter}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

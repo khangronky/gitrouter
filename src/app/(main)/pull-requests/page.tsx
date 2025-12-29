@@ -16,6 +16,13 @@ type PullRequest = {
 export default async function PullRequestsPage() {
   const supabase = await createClient();
 
+  // First, let's check raw PR count (for debugging)
+  const { count: totalCount } = await supabase
+    .from('pull_requests')
+    .select('*', { count: 'exact', head: true });
+  
+  console.log('📊 Total PRs in database:', totalCount);
+
   // Fetch pull requests with joins to get repository and reviewer information
   const { data: pullRequests, error } = await supabase
     .from('pull_requests')
@@ -27,7 +34,7 @@ export default async function PullRequestsPage() {
       status,
       created_at,
       html_url,
-      repositories!inner (
+      repositories (
         full_name
       ),
       review_assignments (
@@ -41,6 +48,8 @@ export default async function PullRequestsPage() {
     `
     )
     .order('created_at', { ascending: false });
+
+  console.log('📊 PRs fetched:', pullRequests?.length, 'Error:', error);
 
   if (error) {
     console.error('Error fetching pull requests:', error);
@@ -58,9 +67,9 @@ export default async function PullRequestsPage() {
     );
   }
 
-  // Transform the data to match the expected format
+  // Transform the data to match the expected format (filter out PRs without repos)
   const transformedPRs: PullRequest[] =
-    pullRequests?.map((pr) => {
+    pullRequests?.filter((pr) => pr.repositories?.full_name).map((pr) => {
       let reviewerName: string | null = null;
 
       if (pr.review_assignments && pr.review_assignments.length > 0) {
