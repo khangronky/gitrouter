@@ -49,6 +49,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       )
       .eq('id', repoId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !repository) {
@@ -112,6 +113,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       .select('id')
       .eq('id', repoId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError || !existingRepo) {
@@ -200,6 +202,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       .select('id, full_name')
       .eq('id', repoId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError || !existingRepo) {
@@ -209,14 +212,14 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // Delete repository (cascades to PRs, rules, etc.)
+    // Soft delete repository
     const { error } = await supabase
       .from('repositories')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', repoId);
 
     if (error) {
-      console.error('Error deleting repository:', error);
+      console.error('Error soft-deleting repository:', error);
       return NextResponse.json(
         { error: 'Failed to delete repository' },
         { status: 500 }

@@ -38,6 +38,7 @@ export async function routePullRequest(
     .select('*')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
+    .is('deleted_at', null)
     .or(`repository_id.is.null,repository_id.eq.${context.repository_id}`)
     .order('priority', { ascending: true });
 
@@ -118,6 +119,7 @@ async function createFallbackResult(
     .from('repositories')
     .select('default_reviewer_id')
     .eq('id', context.repository_id)
+    .is('deleted_at', null)
     .single();
 
   if (repo?.default_reviewer_id) {
@@ -143,6 +145,7 @@ async function createFallbackResult(
     .from('organizations')
     .select('default_reviewer_id')
     .eq('id', organizationId)
+    .is('deleted_at', null)
     .single();
 
   if (org?.default_reviewer_id) {

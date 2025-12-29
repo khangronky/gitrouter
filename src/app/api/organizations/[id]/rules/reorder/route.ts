@@ -42,7 +42,8 @@ export async function POST(request: Request, { params }: RouteParams) {
       .from('routing_rules')
       .select('id')
       .in('id', rule_ids)
-      .eq('organization_id', id);
+      .eq('organization_id', id)
+      .is('deleted_at', null);
 
     if (fetchError) {
       return NextResponse.json(
@@ -73,6 +74,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       .from('routing_rules')
       .select('id, name, priority')
       .in('id', rule_ids)
+      .is('deleted_at', null)
       .order('priority', { ascending: true });
 
     if (refetchError) {

@@ -28,6 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       .from('organizations')
       .select('*')
       .eq('id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !org) {
@@ -37,11 +38,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // Get member count
+    // Get member count (only non-deleted members)
     const { count } = await supabase
       .from('organization_members')
       .select('*', { count: 'exact', head: true })
-      .eq('organization_id', id);
+      .eq('organization_id', id)
+      .is('deleted_at', null);
 
     return NextResponse.json({
       organization: {
@@ -139,14 +141,15 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // Delete organization (cascades to members, repos, etc.)
+    // Soft delete organization
     const { error } = await supabase
       .from('organizations')
-      .delete()
-      .eq('id', id);
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .is('deleted_at', null);
 
     if (error) {
-      console.error('Error deleting organization:', error);
+      console.error('Error soft-deleting organization:', error);
       return NextResponse.json(
         { error: 'Failed to delete organization' },
         { status: 500 }

@@ -16,6 +16,13 @@ type PullRequest = {
 export default async function PullRequestsPage() {
   const supabase = await createClient();
 
+  // First, let's check raw PR count (for debugging)
+  const { count: totalCount } = await supabase
+    .from('pull_requests')
+    .select('*', { count: 'exact', head: true });
+
+  console.log('📊 Total PRs in database:', totalCount);
+
   // Fetch pull requests with joins to get repository and reviewer information
   const { data: pullRequests, error } = await supabase
     .from('pull_requests')
@@ -27,7 +34,7 @@ export default async function PullRequestsPage() {
       status,
       created_at,
       html_url,
-      repositories!inner (
+      repositories (
         full_name
       ),
       review_assignments (
@@ -41,6 +48,8 @@ export default async function PullRequestsPage() {
     `
     )
     .order('created_at', { ascending: false });
+
+  console.log('📊 PRs fetched:', pullRequests?.length, 'Error:', error);
 
   if (error) {
     console.error('Error fetching pull requests:', error);
@@ -58,42 +67,44 @@ export default async function PullRequestsPage() {
     );
   }
 
-  // Transform the data to match the expected format
+  // Transform the data to match the expected format (filter out PRs without repos)
   const transformedPRs: PullRequest[] =
-    pullRequests?.map((pr) => {
-      let reviewerName: string | null = null;
+    pullRequests
+      ?.filter((pr) => pr.repositories?.full_name)
+      .map((pr) => {
+        let reviewerName: string | null = null;
 
-      if (pr.review_assignments && pr.review_assignments.length > 0) {
-        const reviewer = pr.review_assignments[0]?.reviewer as {
-          user: {
-            full_name: string | null;
-            github_username: string | null;
+        if (pr.review_assignments && pr.review_assignments.length > 0) {
+          const reviewer = pr.review_assignments[0]?.reviewer as {
+            user: {
+              full_name: string | null;
+              github_username: string | null;
+            } | null;
           } | null;
-        } | null;
 
-        if (reviewer?.user) {
-          // Prefer github_username, fall back to full_name
-          reviewerName = reviewer.user.github_username
-            ? `@${reviewer.user.github_username}`
-            : reviewer.user.full_name;
+          if (reviewer?.user) {
+            // Prefer github_username, fall back to full_name
+            reviewerName = reviewer.user.github_username
+              ? `@${reviewer.user.github_username}`
+              : reviewer.user.full_name;
+          }
         }
-      }
 
-      return {
-        id: pr.id,
-        title: pr.title,
-        author: pr.author_login,
-        reviewer: reviewerName,
-        status: pr.status,
-        created: new Date(pr.created_at).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-        }),
-        repository: pr.repositories?.full_name || 'Unknown',
-        html_url: pr.html_url,
-      };
-    }) || [];
+        return {
+          id: pr.id,
+          title: pr.title,
+          author: pr.author_login,
+          reviewer: reviewerName,
+          status: pr.status,
+          created: new Date(pr.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          }),
+          repository: pr.repositories?.full_name || 'Unknown',
+          html_url: pr.html_url,
+        };
+      }) || [];
 
   return <PullRequestsClient pullRequests={transformedPRs} />;
 }

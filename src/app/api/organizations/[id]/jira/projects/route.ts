@@ -38,6 +38,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       .from('jira_integrations')
       .select('cloud_id, access_token, refresh_token, token_expires_at')
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !integration) {

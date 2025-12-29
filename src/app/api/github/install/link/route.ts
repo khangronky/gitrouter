@@ -84,11 +84,12 @@ export async function POST(request: Request) {
     // Use admin client to bypass RLS
     const adminSupabase = await createAdminClient();
 
-    // Check if installation is already linked to another org
+    // Check if installation is already linked to another org (only active ones)
     const { data: existingInstallation } = await adminSupabase
       .from('github_installations')
       .select('id, organization_id')
       .eq('installation_id', installationId)
+      .is('deleted_at', null)
       .single();
 
     if (existingInstallation) {
@@ -108,21 +109,22 @@ export async function POST(request: Request) {
       });
     }
 
-    // Check if org already has an installation
+    // Check if org already has an installation (including soft-deleted)
     const { data: orgInstallation } = await adminSupabase
       .from('github_installations')
-      .select('id')
+      .select('id, deleted_at')
       .eq('organization_id', orgId)
       .single();
 
     if (orgInstallation) {
-      // Update existing record
+      // Update existing record and restore if soft-deleted
       const { error: updateError } = await adminSupabase
         .from('github_installations')
         .update({
           installation_id: installationId,
           account_login: accountLogin,
           account_type: accountType,
+          deleted_at: null, // Restore if soft-deleted
           updated_at: new Date().toISOString(),
         })
         .eq('organization_id', orgId);

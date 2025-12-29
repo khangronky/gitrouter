@@ -39,6 +39,7 @@ export async function GET(request: Request) {
       .from('github_installations')
       .select('installation_id')
       .eq('organization_id', orgId)
+      .is('deleted_at', null)
       .single();
 
     if (installError || !installation) {
@@ -48,11 +49,12 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get already added repositories
+    // Get already added repositories (exclude soft-deleted)
     const { data: addedRepos } = await supabase
       .from('repositories')
       .select('github_repo_id')
-      .eq('organization_id', orgId);
+      .eq('organization_id', orgId)
+      .is('deleted_at', null);
 
     const addedRepoIds = new Set(
       addedRepos?.map((r) => r.github_repo_id) || []

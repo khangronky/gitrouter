@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Download, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -16,6 +16,7 @@ import {
   useRepositories,
   useUpdateRepository,
   useRemoveRepository,
+  useSyncPRs,
 } from '@/lib/api/repositories';
 import { useAvailableRepositories } from '@/lib/api/github';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +32,7 @@ export function RepositorySettings({ orgId }: RepositorySettingsProps) {
 
   const { data: reposData, isLoading, refetch } = useRepositories(orgId);
   const { refetch: refetchAvailable } = useAvailableRepositories(orgId);
+  const syncPRs = useSyncPRs(orgId);
 
   const handleSync = async () => {
     try {
@@ -39,6 +41,18 @@ export function RepositorySettings({ orgId }: RepositorySettingsProps) {
       toast.success('Repositories synced');
     } catch {
       toast.error('Failed to sync repositories');
+    }
+  };
+
+  const handleSyncPRs = async () => {
+    try {
+      const result = await syncPRs.mutateAsync();
+      const { summary } = result;
+      toast.success(
+        `Synced ${summary.prsProcessed} PRs (${summary.prsInserted} new, ${summary.prsUpdated} updated) from ${summary.repositoriesSucceeded} repositories`
+      );
+    } catch {
+      toast.error('Failed to sync pull requests');
     }
   };
 
@@ -79,6 +93,14 @@ export function RepositorySettings({ orgId }: RepositorySettingsProps) {
         <Button variant="outline" onClick={handleSync}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Sync Repositories
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleSyncPRs}
+          disabled={syncPRs.isPending || !reposData?.repositories?.length}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          {syncPRs.isPending ? 'Syncing PRs...' : 'Sync Pull Requests'}
         </Button>
         <Button variant="outline" onClick={() => setShowAddDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />

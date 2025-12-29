@@ -242,6 +242,7 @@ async function handlePullRequestEvent(
     `
     )
     .eq('github_repo_id', repository.id)
+    .is('deleted_at', null)
     .single();
   console.log(
     `✅ [A] Repository lookup done (${Date.now() - repoStartTime}ms, total: ${Date.now() - startTime}ms)`
@@ -690,11 +691,12 @@ async function handleInstallationEvent(
   const { action, installation } = payload;
 
   if (action === 'deleted') {
-    // Remove installation from our database
+    // Soft delete installation from our database
     await supabase
       .from('github_installations')
-      .delete()
-      .eq('installation_id', installation.id);
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('installation_id', installation.id)
+      .is('deleted_at', null);
 
     return NextResponse.json({ message: 'Installation removed' });
   }
