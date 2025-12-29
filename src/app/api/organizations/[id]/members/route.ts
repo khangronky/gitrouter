@@ -47,6 +47,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       `
       )
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -138,15 +139,54 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Use admin client for the rest of operations
     const adminSupabase = await createAdminClient();
 
-    // Check if already a member
+    // Check if already a member (including soft-deleted for restore)
     const { data: existing } = await adminSupabase
       .from('organization_members')
-      .select('id')
+      .select('id, deleted_at')
       .eq('organization_id', id)
       .eq('user_id', user_id)
       .single();
 
     if (existing) {
+      // If soft-deleted, restore the membership
+      if (existing.deleted_at) {
+        const { data: member, error: restoreError } = await adminSupabase
+          .from('organization_members')
+          .update({
+            deleted_at: null,
+            role,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select(
+            `
+            id,
+            organization_id,
+            user_id,
+            role,
+            created_at,
+            updated_at,
+            user:users (
+              id,
+              email,
+              full_name,
+              username
+            )
+          `
+          )
+          .single();
+
+        if (restoreError) {
+          console.error('Error restoring member:', restoreError);
+          return NextResponse.json(
+            { error: 'Failed to restore member' },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({ member }, { status: 201 });
+      }
+
       return NextResponse.json(
         { error: 'User is already a member of this organization' },
         { status: 409 }
@@ -245,6 +285,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       .select('user_id, role')
       .eq('id', member_id)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError || !targetMember) {
@@ -347,6 +388,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       .select('user_id, role')
       .eq('id', memberId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError || !targetMember) {
@@ -369,13 +411,14 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Soft delete the member
     const { error: deleteError } = await supabase
       .from('organization_members')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', memberId);
 
     if (deleteError) {
-      console.error('Error removing member:', deleteError);
+      console.error('Error soft-deleting member:', deleteError);
       return NextResponse.json(
         { error: 'Failed to remove member' },
         { status: 500 }

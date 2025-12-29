@@ -48,6 +48,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       `
       )
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .order('full_name', { ascending: true });
 
     if (error) {
@@ -130,6 +131,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       .from('github_installations')
       .select('id')
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (installError || !installation) {
@@ -142,24 +144,67 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Check if repository is already added (to any org)
+    // Check if repository is already added (to any org) - check for soft-deleted too for restore
     const { data: existingRepo } = await supabase
       .from('repositories')
-      .select('id, organization_id')
+      .select('id, organization_id, deleted_at')
       .eq('github_repo_id', github_repo_id)
       .single();
 
     if (existingRepo) {
-      if (existingRepo.organization_id === id) {
+      // If soft-deleted and belongs to this org, restore it
+      if (existingRepo.deleted_at && existingRepo.organization_id === id) {
+        const { data: restoredRepo, error: restoreError } = await supabase
+          .from('repositories')
+          .update({
+            deleted_at: null,
+            full_name,
+            default_branch: default_branch || 'main',
+            default_reviewer_id: default_reviewer_id || null,
+            is_active: is_active ?? true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingRepo.id)
+          .select(
+            `
+            id,
+            organization_id,
+            github_installation_id,
+            github_repo_id,
+            full_name,
+            default_branch,
+            default_reviewer_id,
+            is_active,
+            created_at,
+            updated_at
+          `
+          )
+          .single();
+
+        if (restoreError) {
+          console.error('Error restoring repository:', restoreError);
+          return NextResponse.json(
+            { error: 'Failed to restore repository' },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({ repository: restoredRepo }, { status: 201 });
+      }
+
+      // Active record exists
+      if (!existingRepo.deleted_at) {
+        if (existingRepo.organization_id === id) {
+          return NextResponse.json(
+            { error: 'Repository is already added to this organization' },
+            { status: 409 }
+          );
+        }
         return NextResponse.json(
-          { error: 'Repository is already added to this organization' },
+          { error: 'Repository is already registered with another organization' },
           { status: 409 }
         );
       }
-      return NextResponse.json(
-        { error: 'Repository is already registered with another organization' },
-        { status: 409 }
-      );
     }
 
     // Add repository

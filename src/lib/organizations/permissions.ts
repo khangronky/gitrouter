@@ -78,6 +78,7 @@ export async function getOrgMembership(
     .select('role')
     .eq('organization_id', organizationId)
     .eq('user_id', userId)
+    .is('deleted_at', null)
     .single();
 
   if (error || !data) return null;

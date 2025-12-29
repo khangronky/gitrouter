@@ -33,6 +33,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
         'id, installation_id, account_login, account_type, created_at, updated_at'
       )
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !installation) {
@@ -76,22 +77,27 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     // Use admin client to bypass RLS
     const adminSupabase = await createAdminClient();
 
-    // Delete the installation
+    // Soft delete the installation
     const { error } = await adminSupabase
       .from('github_installations')
-      .delete()
-      .eq('organization_id', id);
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('organization_id', id)
+      .is('deleted_at', null);
 
     if (error) {
-      console.error('Error deleting GitHub installation:', error);
+      console.error('Error soft-deleting GitHub installation:', error);
       return NextResponse.json(
         { error: 'Failed to delete installation' },
         { status: 500 }
       );
     }
 
-    // Optionally: Also remove all repositories linked to this org
-    // await adminSupabase.from('repositories').delete().eq('organization_id', id);
+    // Soft delete all repositories linked to this org
+    await adminSupabase
+      .from('repositories')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('organization_id', id)
+      .is('deleted_at', null);
 
     return NextResponse.json({ message: 'GitHub installation removed' });
   } catch (error) {

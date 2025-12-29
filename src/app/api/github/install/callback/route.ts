@@ -60,6 +60,7 @@ export async function GET(request: Request) {
         .select('organization_id, role')
         .eq('user_id', auth.userId)
         .in('role', ['owner', 'admin'])
+        .is('deleted_at', null)
         .order('created_at', { ascending: true })
         .limit(1)
         .single();
@@ -85,6 +86,7 @@ export async function GET(request: Request) {
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', auth.userId)
+      .is('deleted_at', null)
       .single();
 
     if (!membership || !['owner', 'admin'].includes(membership.role)) {
@@ -118,59 +120,78 @@ export async function GET(request: Request) {
     // Use admin client to bypass RLS for insert
     const adminSupabase = await createAdminClient();
 
-    // Check if installation already exists
+    // Check if installation already exists (including soft-deleted)
     const { data: existingInstallation } = await adminSupabase
       .from('github_installations')
-      .select('id, organization_id')
+      .select('id, organization_id, deleted_at')
       .eq('installation_id', installationId)
       .single();
 
     if (existingInstallation) {
-      if (existingInstallation.organization_id !== orgId) {
+      // If soft-deleted, restore it
+      if (existingInstallation.deleted_at) {
+        await adminSupabase
+          .from('github_installations')
+          .update({
+            deleted_at: null,
+            account_login: accountLogin,
+            account_type: accountType,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingInstallation.id);
+        console.log('Restored soft-deleted GitHub installation');
+      } else if (existingInstallation.organization_id !== orgId) {
         return NextResponse.redirect(
           new URL('/dashboard?error=installation_exists_other_org', request.url)
         );
       }
-      // Already linked to this org
-      return NextResponse.redirect(
-        new URL(`/dashboard?success=installation_exists`, request.url)
-      );
-    }
-
-    // Check if org already has an installation
-    const { data: orgInstallation } = await adminSupabase
-      .from('github_installations')
-      .select('id')
-      .eq('organization_id', orgId)
-      .single();
-
-    if (orgInstallation) {
-      // Org already has a different installation - update it
-      await adminSupabase
-        .from('github_installations')
-        .update({
-          installation_id: installationId,
-          account_login: accountLogin,
-          account_type: accountType,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('organization_id', orgId);
-    } else {
-      // Create new installation record
-      const { error: insertError } = await adminSupabase
-        .from('github_installations')
-        .insert({
-          organization_id: orgId,
-          installation_id: installationId,
-          account_login: accountLogin,
-          account_type: accountType,
-        });
-
-      if (insertError) {
-        console.error('Failed to save installation:', insertError);
+      // Already linked to this org (or just restored)
+      if (!existingInstallation.deleted_at && existingInstallation.organization_id === orgId) {
         return NextResponse.redirect(
-          new URL('/dashboard?error=save_failed', request.url)
+          new URL(`/dashboard?success=installation_exists`, request.url)
         );
+      }
+    } else {
+      // Check if org already has an installation (including soft-deleted)
+      const { data: orgInstallation } = await adminSupabase
+        .from('github_installations')
+        .select('id, deleted_at')
+        .eq('organization_id', orgId)
+        .single();
+
+      if (orgInstallation) {
+        // Org already has an installation - update and restore if needed
+        await adminSupabase
+          .from('github_installations')
+          .update({
+            deleted_at: null,
+            installation_id: installationId,
+            account_login: accountLogin,
+            account_type: accountType,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('organization_id', orgId);
+
+        if (orgInstallation.deleted_at) {
+          console.log('Restored soft-deleted GitHub installation for org');
+        }
+      } else {
+        // Create new installation record
+        const { error: insertError } = await adminSupabase
+          .from('github_installations')
+          .insert({
+            organization_id: orgId,
+            installation_id: installationId,
+            account_login: accountLogin,
+            account_type: accountType,
+          });
+
+        if (insertError) {
+          console.error('Failed to save installation:', insertError);
+          return NextResponse.redirect(
+            new URL('/dashboard?error=save_failed', request.url)
+          );
+        }
       }
     }
 

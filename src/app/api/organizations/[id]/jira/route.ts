@@ -46,6 +46,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       `
       )
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !integration) {
@@ -104,6 +105,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       .from('jira_integrations')
       .select('id')
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (existingError || !existing) {
@@ -171,10 +173,12 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
     const adminSupabase = await createAdminClient();
 
+    // Soft delete the integration
     const { error } = await adminSupabase
       .from('jira_integrations')
-      .delete()
-      .eq('organization_id', id);
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('organization_id', id)
+      .is('deleted_at', null);
 
     if (error) {
       return NextResponse.json(
