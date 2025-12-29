@@ -33,7 +33,10 @@ export async function POST(_request: Request, { params }: RouteParams) {
     const results = await syncOrganizationPullRequests(adminSupabase, id);
 
     // Calculate totals
-    const totalPRsProcessed = results.reduce((sum, r) => sum + r.prsProcessed, 0);
+    const totalPRsProcessed = results.reduce(
+      (sum, r) => sum + r.prsProcessed,
+      0
+    );
     const totalPRsInserted = results.reduce((sum, r) => sum + r.prsInserted, 0);
     const totalPRsUpdated = results.reduce((sum, r) => sum + r.prsUpdated, 0);
     const successCount = results.filter((r) => r.success).length;
@@ -56,11 +59,13 @@ export async function POST(_request: Request, { params }: RouteParams) {
       results,
     });
   } catch (error) {
-    console.error('Error in POST /api/organizations/[id]/repositories/sync:', error);
+    console.error(
+      'Error in POST /api/organizations/[id]/repositories/sync:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-
