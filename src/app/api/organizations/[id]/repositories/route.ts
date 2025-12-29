@@ -201,7 +201,9 @@ export async function POST(request: Request, { params }: RouteParams) {
           );
         }
         return NextResponse.json(
-          { error: 'Repository is already registered with another organization' },
+          {
+            error: 'Repository is already registered with another organization',
+          },
           { status: 409 }
         );
       }

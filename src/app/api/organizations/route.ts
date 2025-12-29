@@ -48,7 +48,9 @@ export async function GET() {
 
     // Transform the data to include role with organization (filter out soft-deleted orgs)
     const organizations = memberships
-      .filter((m) => m.organization !== null && !(m.organization as any).deleted_at)
+      .filter(
+        (m) => m.organization !== null && !(m.organization as any).deleted_at
+      )
       .map((m) => {
         const { deleted_at, ...org } = m.organization as any;
         return {
