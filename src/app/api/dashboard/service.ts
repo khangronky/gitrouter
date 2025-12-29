@@ -1,14 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
 import type {
+  BottlenecksList,
   KpiRowData,
   LatencySeries,
-  ReviewerWorkloadSeries,
-  BottlenecksList,
-  StalePullRequestsList,
   RecentActivityList,
+  ReviewerWorkloadSeries,
+  StalePullRequestsList,
   TimeRange,
 } from '@/lib/schema/dashboard';
+import type { Database } from '@/types/supabase';
+import { getDateRange, getPreviousPeriodRange } from '@/utils/date';
 
 type TypedSupabaseClient = SupabaseClient<Database>;
 
@@ -23,48 +24,6 @@ export interface DashboardServiceParams {
   organizationId: string;
   repositoryId?: string;
   timeRange: TimeRange;
-}
-
-/**
- * Get the date range based on timeRange parameter
- */
-function getDateRange(timeRange: TimeRange): {
-  startDate: Date;
-  endDate: Date;
-} {
-  const endDate = new Date();
-  const startDate = new Date();
-
-  switch (timeRange) {
-    case '7d':
-      startDate.setDate(startDate.getDate() - 7);
-      break;
-    case '30d':
-      startDate.setDate(startDate.getDate() - 30);
-      break;
-    case '3m':
-      startDate.setMonth(startDate.getMonth() - 3);
-      break;
-  }
-
-  return { startDate, endDate };
-}
-
-/**
- * Get the previous period date range for delta calculations
- */
-function getPreviousPeriodRange(timeRange: TimeRange): {
-  startDate: Date;
-  endDate: Date;
-} {
-  const { startDate: currentStart, endDate: currentEnd } =
-    getDateRange(timeRange);
-  const periodLength = currentEnd.getTime() - currentStart.getTime();
-
-  const endDate = new Date(currentStart);
-  const startDate = new Date(currentStart.getTime() - periodLength);
-
-  return { startDate, endDate };
 }
 
 /**

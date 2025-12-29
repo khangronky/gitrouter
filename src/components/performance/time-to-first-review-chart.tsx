@@ -8,8 +8,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { PerformanceChartSkeleton } from './performance-skeleton';
 import type { TimeToFirstReviewData } from '@/lib/schema/performance';
+import { formatMinutes } from '@/utils/format';
+import { PerformanceChartSkeleton } from './performance-skeleton';
 
 interface TimeToFirstReviewChartProps {
   data?: TimeToFirstReviewData[];
@@ -21,15 +22,6 @@ const timeToFirstReviewConfig = {
     color: '#22c55e',
   },
 } satisfies ChartConfig;
-
-function formatTime(minutes: number): string {
-  if (minutes < 60) {
-    return `${Math.round(minutes)}m`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const mins = Math.round(minutes % 60);
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-}
 
 // Empty state placeholder data
 const EMPTY_STATE_DATA: TimeToFirstReviewData[] = [
@@ -61,7 +53,7 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
       <div className="relative">
         <ChartContainer
           config={timeToFirstReviewConfig}
-          className="h-[200px] w-full flex-1"
+          className="h-50 w-full flex-1"
         >
           <BarChart
             data={chartData}
@@ -79,7 +71,7 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => formatTime(value)}
+              tickFormatter={(value) => formatMinutes(value)}
               className="text-xs"
             />
             <YAxis
@@ -96,7 +88,7 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => formatTime(value as number)}
+                    formatter={(value) => formatMinutes(value as number)}
                   />
                 }
               />
@@ -112,10 +104,10 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 No review data yet
               </p>
-              <p className="text-xs text-muted-foreground/70">
+              <p className="text-muted-foreground/70 text-xs">
                 Data will appear when reviews are completed
               </p>
             </div>
@@ -128,13 +120,13 @@ export function TimeToFirstReviewChart({ data }: TimeToFirstReviewChartProps) {
           className={`font-medium ${isEmpty ? 'text-muted-foreground' : 'text-green-600'}`}
         >
           {fastest
-            ? `${fastest.reviewer} (${formatTime(fastest.minutes)})`
+            ? `${fastest.reviewer} (${formatMinutes(fastest.minutes)})`
             : 'N/A'}
         </span>
         {' | '}
         Team avg:{' '}
         <span className="font-medium text-foreground">
-          {isEmpty ? 'N/A' : formatTime(teamAvg)}
+          {isEmpty ? 'N/A' : formatMinutes(teamAvg)}
         </span>
       </p>
     </Card>
