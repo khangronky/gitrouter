@@ -64,7 +64,9 @@ export async function syncRepositoryPullRequests(
       .select('github_pr_id')
       .eq('repository_id', repo.id);
 
-    const existingPrIds = new Set(existingPrs?.map((p) => p.github_pr_id) || []);
+    const existingPrIds = new Set(
+      existingPrs?.map((p) => p.github_pr_id) || []
+    );
 
     // Process PRs in batches
     const prDataList = await Promise.all(
@@ -97,7 +99,10 @@ export async function syncRepositoryPullRequests(
               pr.number
             );
           } catch (error) {
-            console.warn(`  Failed to fetch files for PR #${pr.number}:`, error);
+            console.warn(
+              `  Failed to fetch files for PR #${pr.number}:`,
+              error
+            );
           }
         }
 
@@ -211,9 +216,9 @@ export async function syncOrganizationPullRequests(
   const results: SyncResult[] = [];
 
   for (const repo of repositories) {
-    const installationId =
-      (repo.github_installation as unknown as { installation_id: number } | null)
-        ?.installation_id;
+    const installationId = (
+      repo.github_installation as unknown as { installation_id: number } | null
+    )?.installation_id;
 
     if (!installationId) {
       results.push({
@@ -290,9 +295,9 @@ export async function syncAllPullRequests(
   let totalPRsProcessed = 0;
 
   for (const repo of repositories) {
-    const installationId =
-      (repo.github_installation as unknown as { installation_id: number } | null)
-        ?.installation_id;
+    const installationId = (
+      repo.github_installation as unknown as { installation_id: number } | null
+    )?.installation_id;
 
     if (!installationId) {
       results.push({
@@ -336,4 +341,3 @@ export async function syncAllPullRequests(
     results,
   };
 }
-
