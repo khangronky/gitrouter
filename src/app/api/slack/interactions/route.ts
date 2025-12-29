@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
-import { getSlackConfig, verifySlackSignature } from '@/lib/slack/client';
 import type { SlackInteractionPayload } from '@/lib/schema/slack';
+import { getSlackConfig, verifySlackSignature } from '@/lib/slack/client';
+import type { TypedSupabaseClient } from '@/lib/supabase/client';
+import { createAdminClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/slack/interactions
@@ -82,12 +83,12 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
     return NextResponse.json({ ok: true });
   }
 
-  const supabase = await createAdminClient();
+  const adminSupabase = await createAdminClient();
 
   switch (action.action_id) {
     case 'approve_pr':
       // Log approval intent (actual approval happens on GitHub)
-      await logInteraction(supabase, payload, 'approve_pr', action.value);
+      await logInteraction(adminSupabase, payload, 'approve_pr', action.value);
 
       // Send acknowledgment back to Slack
       if (payload.response_url) {
@@ -101,7 +102,7 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
 
     case 'request_changes_pr':
       await logInteraction(
-        supabase,
+        adminSupabase,
         payload,
         'request_changes_pr',
         action.value
@@ -117,7 +118,12 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
       break;
 
     case 'reassign_review':
-      await logInteraction(supabase, payload, 'reassign_review', action.value);
+      await logInteraction(
+        adminSupabase,
+        payload,
+        'reassign_review',
+        action.value
+      );
 
       if (payload.response_url) {
         await sendResponseMessage(payload.response_url, {
@@ -141,7 +147,7 @@ async function handleBlockActions(payload: SlackInteractionPayload) {
  * Log interaction for analytics
  */
 async function logInteraction(
-  supabase: any,
+  supabase: TypedSupabaseClient,
   payload: SlackInteractionPayload,
   actionType: string,
   value?: string
@@ -157,8 +163,6 @@ async function logInteraction(
 
     // If the action has PR info, try to update the review assignment
     if (value && ['approve_pr', 'request_changes_pr'].includes(actionType)) {
-      const prInfo = JSON.parse(value);
-
       // Find the reviewer by Slack user ID
       const { data: reviewer } = await supabase
         .from('reviewers')

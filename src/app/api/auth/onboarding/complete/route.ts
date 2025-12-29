@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/organizations/permissions';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/auth/onboarding/complete
@@ -15,8 +15,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const adminSupabase = await createAdminClient();
-    const { data: user, error } = await adminSupabase
+    const { data: user, error } = await supabase
       .from('users')
       .update({
         onboarding_completed: true,

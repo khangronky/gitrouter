@@ -5,7 +5,7 @@ import {
   addMemberSchema,
   updateMemberRoleSchema,
 } from '@/lib/schema/organization';
-import { createAdminClient, createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -103,9 +103,7 @@ export async function POST(request: Request, { params }: RouteParams) {
       const { email, role: memberRole } = emailValidation.data;
       role = memberRole;
 
-      // Use admin client to look up user by email
-      const adminSupabase = await createAdminClient();
-      const { data: user, error: userError } = await adminSupabase
+      const { data: user, error: userError } = await supabase
         .from('users')
         .select('id')
         .eq('email', email)
@@ -136,11 +134,8 @@ export async function POST(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Use admin client for the rest of operations
-    const adminSupabase = await createAdminClient();
-
     // Check if already a member (including soft-deleted for restore)
-    const { data: existing } = await adminSupabase
+    const { data: existing } = await supabase
       .from('organization_members')
       .select('id, deleted_at')
       .eq('organization_id', id)
@@ -150,7 +145,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     if (existing) {
       // If soft-deleted, restore the membership
       if (existing.deleted_at) {
-        const { data: member, error: restoreError } = await adminSupabase
+        const { data: member, error: restoreError } = await supabase
           .from('organization_members')
           .update({
             deleted_at: null,
@@ -194,7 +189,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Add member
-    const { data: member, error: memberError } = await adminSupabase
+    const { data: member, error: memberError } = await supabase
       .from('organization_members')
       .insert({
         organization_id: id,
