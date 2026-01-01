@@ -18,8 +18,6 @@ import {
   BarChart3,
   Zap,
   Shield,
-  Mail,
-  MessageCircle,
 } from 'lucide-react';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +28,9 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import Link from 'next/link';
+import { useGitHubInstallation } from '@/lib/api/github';
+import { useRoutingRules } from '@/lib/api/rules';
+import { useCurrentOrganization } from '@/hooks/use-current-organization';
 
 const pageGuides = [
   {
@@ -138,27 +139,52 @@ const faqs = [
   {
     question: 'How do I connect my GitHub organization?',
     answer:
-      'Go to Settings and click "Connect GitHub". You\'ll need admin permissions for your organization to complete the OAuth flow.',
+      'Navigate to Settings and click "Connect GitHub" in the Integrations section. You\'ll be redirected to GitHub to authorize the GitRouter app. You\'ll need admin permissions for your GitHub organization to complete the installation. Once connected, GitRouter will automatically sync your repositories and team members.',
   },
   {
     question: 'How do routing rules work?',
     answer:
-      'Routing rules automatically assign reviewers based on conditions you define. Rules are evaluated in priority order (lowest number first), and the first matching rule assigns the reviewers.',
+      'Routing rules automatically assign reviewers when a new PR is opened. Each rule has conditions (like file patterns, branch names, or PR authors) and a list of reviewers to assign when conditions match. Rules are evaluated by priority (lower number = higher priority), and the first matching rule assigns its reviewers. You can create multiple rules to handle different parts of your codebase.',
   },
   {
-    question: 'What counts as a "stale" PR?',
+    question: 'Can I integrate GitRouter with Slack?',
     answer:
-      'A PR is considered stale if it has been open for more than 48 hours without activity. You can customize this threshold in Settings.',
+      'Yes! Go to Settings > Integrations and click "Connect Slack". Once connected, you can receive notifications for PR assignments, reviews, and bottlenecks directly in your Slack channels. You can customize which events trigger notifications in your notification preferences.',
+  },
+  {
+    question: 'What file patterns can I use in routing rules?',
+    answer:
+      'GitRouter supports glob patterns for file matching. Examples: "*.tsx" matches all TSX files, "src/api/**" matches everything in the api folder, "**/*.test.ts" matches all test files. You can combine multiple patterns separated by commas, and use "any" or "all" match modes.',
   },
   {
     question: 'How is reviewer workload calculated?',
     answer:
-      'Workload is based on the number of PRs currently assigned to a reviewer. The capacity can be set per-reviewer in the organization settings.',
+      'Workload is calculated based on the number of open PRs currently assigned to a reviewer. The workload chart shows distribution across your team. You can set capacity limits per reviewer in Settings, and GitRouter will consider workload when suggesting reviewers to help balance the load.',
   },
   {
-    question: 'How do I set up SLA targets?',
+    question: 'What do the dashboard metrics mean?',
     answer:
-      'Navigate to Settings > SLA Configuration to set review time targets. You can define different SLAs for different repository types.',
+      'The dashboard shows key metrics: "Open PRs" is the count of unmerged PRs, "Avg Review Time" is the average time from PR open to first review, "Merge Rate" is the percentage of PRs merged vs closed, and "Bottlenecks" shows PRs waiting too long for review. Use the time range filter to compare different periods.',
+  },
+  {
+    question: 'How do I identify bottlenecks in my workflow?',
+    answer:
+      'Check the Bottlenecks table on the Dashboard for PRs that have been waiting longest for review. The Performance page shows detailed bottleneck frequency by repository and author. Common causes include unbalanced workload, missing routing rules, or reviewers being unavailable.',
+  },
+  {
+    question: 'Can I connect Jira to track issues?',
+    answer:
+      'Yes, GitRouter integrates with Jira. Go to Settings > Integrations and click "Connect Jira". Once connected, GitRouter can link PRs to Jira issues and display issue context alongside your PR data for better traceability.',
+  },
+  {
+    question: 'How do I add team members as reviewers?',
+    answer:
+      'Team members are automatically synced from your GitHub organization as collaborators. Go to Settings > Team Members to view and manage your team. You can then assign them as reviewers in your routing rules or manually on individual PRs.',
+  },
+  {
+    question: "What's the difference between Trend and Performance pages?",
+    answer:
+      'The Trend page shows how your metrics change over time (weekly/monthly trends for review speed, PR volume, etc.). The Performance page provides deeper analysis including repository comparisons, individual reviewer metrics, and identifies specific areas for improvement.',
   },
 ];
 
@@ -184,31 +210,35 @@ function StepIndicator({
   );
 }
 
-// LocalStorage key for step completion
-const STEPS_STORAGE_KEY = 'gitrouter-getting-started-steps';
+// LocalStorage key for visit-based step completion (dashboard, trends)
+const VISITS_STORAGE_KEY = 'gitrouter-getting-started-visits';
 
-// Step definitions
+// Step definitions with type: 'action' (API-detected) or 'visit' (localStorage)
 const steps = [
   {
     id: 'github',
+    type: 'action' as const,
     label: 'Connect your GitHub organization',
     description: 'in Settings to sync your repositories and team members.',
     url: '/settings',
   },
   {
     id: 'rules',
+    type: 'action' as const,
     label: 'Create routing rules',
     description: 'in the Rules Builder to automate reviewer assignments.',
     url: '/rules-builder',
   },
   {
     id: 'dashboard',
+    type: 'visit' as const,
     label: 'Monitor your Dashboard',
     description: 'to track PR metrics, bottlenecks, and team workload.',
     url: '/dashboard',
   },
   {
     id: 'trends',
+    type: 'visit' as const,
     label: 'Analyze trends',
     description: 'in the Analytics section to identify areas for improvement.',
     url: '/trend',
@@ -216,35 +246,71 @@ const steps = [
 ];
 
 export default function SupportPage() {
-  const [completedSteps, setCompletedSteps] = React.useState<string[]>([]);
+  const [visitedSteps, setVisitedSteps] = React.useState<string[]>([]);
   const [isHydrated, setIsHydrated] = React.useState(false);
 
-  // Load completed steps from localStorage on mount
+  // Get current organization for API queries
+  const { currentOrgId } = useCurrentOrganization();
+
+  // API hooks for action-based step completion detection
+  const { data: githubData, isLoading: githubLoading } = useGitHubInstallation(
+    currentOrgId || ''
+  );
+  const { data: rulesData, isLoading: rulesLoading } = useRoutingRules(
+    currentOrgId || ''
+  );
+
+  // Determine completion status from API data
+  const isGitHubConnected = !!githubData?.installation;
+  const hasRoutingRules = (rulesData?.rules?.length ?? 0) > 0;
+
+  // Load visited steps from localStorage on mount
   React.useEffect(() => {
-    const stored = localStorage.getItem(STEPS_STORAGE_KEY);
+    const stored = localStorage.getItem(VISITS_STORAGE_KEY);
     if (stored) {
       try {
-        setCompletedSteps(JSON.parse(stored));
+        setVisitedSteps(JSON.parse(stored));
       } catch {
-        setCompletedSteps([]);
+        setVisitedSteps([]);
       }
     }
     setIsHydrated(true);
   }, []);
 
-  // Save completed steps to localStorage
-  const markStepComplete = (stepId: string) => {
-    setCompletedSteps((prev) => {
+  // Mark a visit-based step as complete (only for visit type steps)
+  const markVisitComplete = (stepId: string) => {
+    const step = steps.find((s) => s.id === stepId);
+    if (step?.type !== 'visit') return; // Only track visits for visit-type steps
+
+    setVisitedSteps((prev) => {
       if (prev.includes(stepId)) return prev;
       const updated = [...prev, stepId];
-      localStorage.setItem(STEPS_STORAGE_KEY, JSON.stringify(updated));
+      localStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   };
 
-  const isStepCompleted = (stepId: string) => completedSteps.includes(stepId);
-  const completedCount = completedSteps.length;
+  // Check if a step is completed based on its type
+  const isStepCompleted = (stepId: string): boolean => {
+    const step = steps.find((s) => s.id === stepId);
+    if (!step) return false;
+
+    if (step.type === 'action') {
+      // Action steps use API data for completion
+      if (stepId === 'github') return isGitHubConnected;
+      if (stepId === 'rules') return hasRoutingRules;
+      return false;
+    }
+    // Visit steps use localStorage
+    return visitedSteps.includes(stepId);
+  };
+
+  // Calculate completed count
+  const completedCount = steps.filter((step) =>
+    isStepCompleted(step.id)
+  ).length;
   const totalSteps = steps.length;
+  const isDataLoading = githubLoading || rulesLoading;
 
   return (
     <section className="p-4 space-y-8 max-w-5xl mx-auto">
@@ -271,7 +337,8 @@ export default function SupportPage() {
             <div className="flex items-center justify-between mb-2">
               <CardTitle className="text-xl">Getting Started</CardTitle>
               <span className="text-sm text-muted-foreground">
-                {isHydrated ? completedCount : 0}/{totalSteps} completed
+                {isHydrated && !isDataLoading ? completedCount : 0}/{totalSteps}{' '}
+                completed
               </span>
             </div>
             <CardDescription className="text-base mb-4">
@@ -284,14 +351,15 @@ export default function SupportPage() {
               <div
                 className="h-full bg-primary transition-all duration-500"
                 style={{
-                  width: `${isHydrated ? (completedCount / totalSteps) * 100 : 0}%`,
+                  width: `${isHydrated && !isDataLoading ? (completedCount / totalSteps) * 100 : 0}%`,
                 }}
               />
             </div>
 
             <ol className="space-y-4">
               {steps.map((step, index) => {
-                const completed = isHydrated && isStepCompleted(step.id);
+                const completed =
+                  isHydrated && !isDataLoading && isStepCompleted(step.id);
                 return (
                   <li key={step.id} className="flex items-start gap-3">
                     <StepIndicator
@@ -308,7 +376,7 @@ export default function SupportPage() {
                       </span>
                       <Link
                         href={step.url}
-                        onClick={() => markStepComplete(step.id)}
+                        onClick={() => markVisitComplete(step.id)}
                       >
                         <Button
                           variant={completed ? 'ghost' : 'outline'}
