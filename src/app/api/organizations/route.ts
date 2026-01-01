@@ -16,7 +16,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all organizations where user is a member
+    // Get all organizations where user is a member (exclude soft-deleted)
     const { data: memberships, error: membershipError } = await supabase
       .from('organization_members')
       .select(
@@ -30,11 +30,13 @@ export async function GET() {
           default_reviewer_id,
           settings,
           created_at,
-          updated_at
+          updated_at,
+          deleted_at
         )
       `
       )
-      .eq('user_id', auth.userId);
+      .eq('user_id', auth.userId)
+      .is('deleted_at', null);
 
     if (membershipError) {
       console.error('Error fetching organizations:', membershipError);
@@ -44,13 +46,18 @@ export async function GET() {
       );
     }
 
-    // Transform the data to include role with organization
+    // Transform the data to include role with organization (filter out soft-deleted orgs)
     const organizations = memberships
-      .filter((m) => m.organization !== null)
-      .map((m) => ({
-        ...m.organization,
-        role: m.role,
-      }));
+      .filter(
+        (m) => m.organization !== null && !(m.organization as any).deleted_at
+      )
+      .map((m) => {
+        const { deleted_at, ...org } = m.organization as any;
+        return {
+          ...org,
+          role: m.role,
+        };
+      });
 
     return NextResponse.json({ organizations });
   } catch (error) {

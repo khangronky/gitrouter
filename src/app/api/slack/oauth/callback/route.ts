@@ -61,6 +61,7 @@ export async function GET(request: Request) {
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', auth.userId)
+      .is('deleted_at', null)
       .single();
 
     if (!membership || !['owner', 'admin'].includes(membership.role)) {
@@ -98,10 +99,10 @@ export async function GET(request: Request) {
     // Use admin client to save token
     const adminSupabase = await createAdminClient();
 
-    // Check if integration already exists
+    // Check if integration already exists (including soft-deleted)
     const { data: existing } = await adminSupabase
       .from('slack_integrations')
-      .select('id')
+      .select('id, deleted_at')
       .eq('organization_id', orgId)
       .single();
 
@@ -116,11 +117,18 @@ export async function GET(request: Request) {
     };
 
     if (existing) {
-      // Update existing integration
+      // Update existing integration and restore if soft-deleted
       await adminSupabase
         .from('slack_integrations')
-        .update(integrationData)
+        .update({
+          ...integrationData,
+          deleted_at: null, // Restore if was soft-deleted
+        })
         .eq('organization_id', orgId);
+
+      if (existing.deleted_at) {
+        console.log('Restored soft-deleted Slack integration');
+      }
     } else {
       // Create new integration
       await adminSupabase.from('slack_integrations').insert(integrationData);

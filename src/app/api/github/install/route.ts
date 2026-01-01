@@ -45,11 +45,12 @@ export async function GET(request: Request) {
       );
     }
 
-    // Check if already has an installation
+    // Check if already has an active installation (not soft-deleted)
     const { data: existingInstallation } = await supabase
       .from('github_installations')
       .select('id')
       .eq('organization_id', orgId)
+      .is('deleted_at', null)
       .single();
 
     if (existingInstallation) {

@@ -47,6 +47,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       )
       .eq('id', ruleId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !rule) {
@@ -125,6 +126,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       .select('id')
       .eq('id', ruleId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError || !existingRule) {
@@ -242,6 +244,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       .select('id, name')
       .eq('id', ruleId)
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (fetchError || !existingRule) {
@@ -251,13 +254,14 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
       );
     }
 
+    // Soft delete the rule
     const { error: deleteError } = await supabase
       .from('routing_rules')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', ruleId);
 
     if (deleteError) {
-      console.error('Error deleting rule:', deleteError);
+      console.error('Error soft-deleting rule:', deleteError);
       return NextResponse.json(
         { error: 'Failed to delete routing rule' },
         { status: 500 }

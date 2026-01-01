@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/escalations",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/sync-prs",
+      "schedule": "0 0 * * *"
     }
   ],
   "git": {

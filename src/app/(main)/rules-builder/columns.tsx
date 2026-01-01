@@ -1,6 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown, Copy, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,14 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Pencil, Copy, Trash2, ArrowUpDown } from 'lucide-react';
-import type {
-  RoutingRuleType,
-  RoutingCondition,
-} from '@/lib/schema/routing-rule';
 import type { ReviewerType } from '@/lib/schema/reviewer';
-
-type MatchType = 'file_pattern' | 'author' | 'time_window' | 'branch';
+import type { RoutingRuleType } from '@/lib/schema/routing-rule';
+import {
+  getMatchTypeLabel,
+  getReviewerNames,
+  parseConditions,
+} from '@/utils/routing-helpers';
 
 export interface RuleWithStatus extends RoutingRuleType {
   is_active: boolean;
@@ -30,67 +30,6 @@ interface ColumnOptions {
   onDuplicate: (rule: RuleWithStatus) => void;
   onDelete: (ruleId: string) => void;
 }
-
-const parseConditions = (
-  conditions: RoutingCondition[]
-): { matchType: MatchType; matchValue: string } => {
-  if (!conditions || conditions.length === 0) {
-    return { matchType: 'file_pattern', matchValue: '' };
-  }
-
-  const condition = conditions[0];
-  switch (condition.type) {
-    case 'file_pattern':
-      return {
-        matchType: 'file_pattern',
-        matchValue: condition.patterns?.[0] || '',
-      };
-    case 'author':
-      return {
-        matchType: 'author',
-        matchValue: condition.usernames?.[0] || '',
-      };
-    case 'branch':
-      return {
-        matchType: 'branch',
-        matchValue: condition.patterns?.[0] || '',
-      };
-    case 'time_window':
-      return { matchType: 'time_window', matchValue: 'Custom Schedule' };
-    default:
-      return { matchType: 'file_pattern', matchValue: '' };
-  }
-};
-
-const getMatchTypeLabel = (type: string) => {
-  switch (type) {
-    case 'file_pattern':
-      return 'Files';
-    case 'author':
-      return 'Author';
-    case 'time_window':
-      return 'Time';
-    case 'branch':
-      return 'Branch';
-    default:
-      return type;
-  }
-};
-
-const getReviewerNames = (
-  reviewerIds: string[],
-  allReviewers: ReviewerType[]
-) => {
-  return reviewerIds
-    .map((id) => {
-      const reviewer = allReviewers.find((r) => r.id === id);
-      return reviewer
-        ? `@${reviewer.user?.github_username || reviewer.user?.full_name || 'Unknown'}`
-        : null;
-    })
-    .filter(Boolean)
-    .join(', ');
-};
 
 export const createRulesColumns = ({
   reviewers,
@@ -126,7 +65,7 @@ export const createRulesColumns = ({
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="cursor-pointer -ml-4"
+        className="-ml-4 cursor-pointer"
       >
         Rule Name
         <ArrowUpDown className="ml-2 h-4 w-4" />

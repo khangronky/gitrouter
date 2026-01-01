@@ -54,6 +54,7 @@ export type Database = {
           account_login: string;
           account_type: string;
           created_at: string;
+          deleted_at: string | null;
           id: string;
           installation_id: number;
           organization_id: string;
@@ -63,6 +64,7 @@ export type Database = {
           account_login: string;
           account_type: string;
           created_at?: string;
+          deleted_at?: string | null;
           id?: string;
           installation_id: number;
           organization_id: string;
@@ -72,6 +74,7 @@ export type Database = {
           account_login?: string;
           account_type?: string;
           created_at?: string;
+          deleted_at?: string | null;
           id?: string;
           installation_id?: number;
           organization_id?: string;
@@ -93,6 +96,7 @@ export type Database = {
           cloud_id: string;
           created_at: string;
           default_project_key: string | null;
+          deleted_at: string | null;
           id: string;
           organization_id: string;
           refresh_token: string | null;
@@ -107,6 +111,7 @@ export type Database = {
           cloud_id: string;
           created_at?: string;
           default_project_key?: string | null;
+          deleted_at?: string | null;
           id?: string;
           organization_id: string;
           refresh_token?: string | null;
@@ -121,6 +126,7 @@ export type Database = {
           cloud_id?: string;
           created_at?: string;
           default_project_key?: string | null;
+          deleted_at?: string | null;
           id?: string;
           organization_id?: string;
           refresh_token?: string | null;
@@ -188,6 +194,7 @@ export type Database = {
       organization_members: {
         Row: {
           created_at: string;
+          deleted_at: string | null;
           id: string;
           organization_id: string;
           role: Database['public']['Enums']['organization_role'];
@@ -196,6 +203,7 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
+          deleted_at?: string | null;
           id?: string;
           organization_id: string;
           role?: Database['public']['Enums']['organization_role'];
@@ -204,6 +212,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          deleted_at?: string | null;
           id?: string;
           organization_id?: string;
           role?: Database['public']['Enums']['organization_role'];
@@ -232,6 +241,7 @@ export type Database = {
           created_at: string;
           created_by: string;
           default_reviewer_id: string | null;
+          deleted_at: string | null;
           id: string;
           name: string;
           notification_settings: Json;
@@ -243,6 +253,7 @@ export type Database = {
           created_at?: string;
           created_by: string;
           default_reviewer_id?: string | null;
+          deleted_at?: string | null;
           id?: string;
           name: string;
           notification_settings?: Json;
@@ -254,6 +265,7 @@ export type Database = {
           created_at?: string;
           created_by?: string;
           default_reviewer_id?: string | null;
+          deleted_at?: string | null;
           id?: string;
           name?: string;
           notification_settings?: Json;
@@ -360,36 +372,42 @@ export type Database = {
           created_at: string;
           default_branch: string | null;
           default_reviewer_id: string | null;
+          deleted_at: string | null;
           full_name: string;
           github_installation_id: string;
           github_repo_id: number;
           id: string;
           is_active: boolean;
           organization_id: string;
+          prs_synced_at: string | null;
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           default_branch?: string | null;
           default_reviewer_id?: string | null;
+          deleted_at?: string | null;
           full_name: string;
           github_installation_id: string;
           github_repo_id: number;
           id?: string;
           is_active?: boolean;
           organization_id: string;
+          prs_synced_at?: string | null;
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           default_branch?: string | null;
           default_reviewer_id?: string | null;
+          deleted_at?: string | null;
           full_name?: string;
           github_installation_id?: string;
           github_repo_id?: number;
           id?: string;
           is_active?: boolean;
           organization_id?: string;
+          prs_synced_at?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -532,6 +550,7 @@ export type Database = {
         Row: {
           conditions: Json;
           created_at: string;
+          deleted_at: string | null;
           description: string | null;
           id: string;
           is_active: boolean;
@@ -545,6 +564,7 @@ export type Database = {
         Insert: {
           conditions?: Json;
           created_at?: string;
+          deleted_at?: string | null;
           description?: string | null;
           id?: string;
           is_active?: boolean;
@@ -558,6 +578,7 @@ export type Database = {
         Update: {
           conditions?: Json;
           created_at?: string;
+          deleted_at?: string | null;
           description?: string | null;
           id?: string;
           is_active?: boolean;
@@ -591,6 +612,7 @@ export type Database = {
           bot_user_id: string | null;
           created_at: string;
           default_channel_id: string | null;
+          deleted_at: string | null;
           id: string;
           incoming_webhook_url: string | null;
           organization_id: string;
@@ -603,6 +625,7 @@ export type Database = {
           bot_user_id?: string | null;
           created_at?: string;
           default_channel_id?: string | null;
+          deleted_at?: string | null;
           id?: string;
           incoming_webhook_url?: string | null;
           organization_id: string;
@@ -615,6 +638,7 @@ export type Database = {
           bot_user_id?: string | null;
           created_at?: string;
           default_channel_id?: string | null;
+          deleted_at?: string | null;
           id?: string;
           incoming_webhook_url?: string | null;
           organization_id?: string;

@@ -49,6 +49,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       `
       )
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .order('priority', { ascending: true });
 
     // Filter by repository if specified
@@ -162,6 +163,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         .select('id')
         .eq('id', repository_id)
         .eq('organization_id', id)
+        .is('deleted_at', null)
         .single();
 
       if (repoError || !repo) {

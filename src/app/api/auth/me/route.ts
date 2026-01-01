@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { getAuthenticatedUser } from '@/lib/organizations/permissions';
 import { z } from 'zod';
+import { getAuthenticatedUser } from '@/lib/organizations/permissions';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/auth/me
@@ -16,8 +16,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const adminSupabase = await createAdminClient();
-    const { data: user, error } = await adminSupabase
+    const { data: user, error } = await supabase
       .from('users')
       .select(
         'id, email, username, full_name, github_user_id, github_username, slack_user_id, slack_username, onboarding_completed, created_at'
@@ -70,8 +69,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const adminSupabase = await createAdminClient();
-    const { data: user, error } = await adminSupabase
+    const { data: user, error } = await supabase
       .from('users')
       .update(validation.data)
       .eq('id', auth.userId)

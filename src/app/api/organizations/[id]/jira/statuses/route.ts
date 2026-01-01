@@ -44,6 +44,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         'cloud_id, access_token, refresh_token, token_expires_at, default_project_key'
       )
       .eq('organization_id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error || !integration) {

@@ -150,3 +150,39 @@ export function useToggleRepositoryActive(orgId: string, repoId: string) {
     },
   });
 }
+
+// =============================================
+// PR Sync
+// =============================================
+
+interface SyncPRsResponse {
+  success: boolean;
+  summary: {
+    repositoriesTotal: number;
+    repositoriesSucceeded: number;
+    repositoriesFailed: number;
+    prsProcessed: number;
+    prsInserted: number;
+    prsUpdated: number;
+  };
+}
+
+/**
+ * Sync PRs for all repositories in an organization
+ */
+export function useSyncPRs(orgId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      fetcher<SyncPRsResponse>(`/organizations/${orgId}/repositories/sync`, {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      // Invalidate repository list to refresh PR counts
+      queryClient.invalidateQueries({
+        queryKey: repositoryKeys.list(orgId),
+      });
+    },
+  });
+}
