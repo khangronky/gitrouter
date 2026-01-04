@@ -137,7 +137,7 @@ export type UpdateUserSchema = z.infer<typeof updateUserSchema>;
  */
 export interface RegisterResponseType {
   status: number;
-  message?: string;
+  data: any;
 }
 
 export interface ResendOtpResponseType {

@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
 
     // Sign up user with Supabase auth
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -35,12 +35,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json(
-      {
-        message: 'OTP sent successfully!',
-      },
-      { status: 200 }
-    );
+    // Return both user and session data
+    // If autoconfirm is enabled, session will be non-null
+    return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(

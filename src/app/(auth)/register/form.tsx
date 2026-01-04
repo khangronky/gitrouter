@@ -71,12 +71,20 @@ export default function RegisterForm() {
         confirmPassword: values.confirmPassword,
       },
       {
-        onSuccess: () => {
-          toast.success('OTP sent successfully! Check your email.');
-          setUserEmail(values.email);
-          setOtpSent(true);
-          setCooldown(60);
-          otpForm.setValue('email', values.email);
+        onSuccess: (data) => {
+          // Check if session exists (autoconfirm is enabled)
+          if (data?.data?.session) {
+            // Skip OTP verification, user is already confirmed
+            toast.success('Registration successful! You can now login.');
+            router.push('/login');
+          } else {
+            // Autoconfirm is disabled, require OTP verification
+            toast.success('OTP sent successfully! Check your email.');
+            setUserEmail(values.email);
+            setOtpSent(true);
+            setCooldown(60);
+            otpForm.setValue('email', values.email);
+          }
         },
         onError: (error: any) => {
           console.error('Registration error:', error);
@@ -171,7 +179,7 @@ export default function RegisterForm() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700"
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
                         {showPassword ? (
                           <EyeOff size={18} />
@@ -203,7 +211,7 @@ export default function RegisterForm() {
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="-translate-y-1/2 absolute top-1/2 right-3 text-gray-500 hover:text-gray-700"
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                       >
                         {showConfirmPassword ? (
                           <EyeOff size={18} />
