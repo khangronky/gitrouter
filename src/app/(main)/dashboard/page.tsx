@@ -7,7 +7,7 @@ import { LatencyChart } from '@/components/dashboard/latency-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { StalePullRequests } from '@/components/dashboard/stale-pull-requests';
 import { WorkloadChart } from '@/components/dashboard/workload-chart';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { useDashboardData } from '@/lib/api/dashboard';
@@ -86,17 +86,13 @@ export default function Page() {
               {timeRange === '3m' && 'Showing data for the last 3 months'}
             </p>
           </div>
-          <ToggleGroup
-            type="single"
-            value={timeRange}
-            onValueChange={handleTimeRangeChange}
-            variant="outline"
-            size="sm"
-          >
-            <ToggleGroupItem value="3m">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
-          </ToggleGroup>
+          <Tabs value={timeRange} onValueChange={handleTimeRangeChange}>
+            <TabsList>
+              <TabsTrigger value="3m">Last 3 months</TabsTrigger>
+              <TabsTrigger value="30d">Last 30 days</TabsTrigger>
+              <TabsTrigger value="7d">Last 7 days</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
         {errorMessage && (

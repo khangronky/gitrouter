@@ -18,7 +18,7 @@ import {
 } from '@/components/trend';
 import { TrendSkeleton } from '@/components/trend/trend-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { useTrendData } from '@/lib/api/trend';
 import type { TrendTimeRange } from '@/lib/schema/trend';
@@ -57,17 +57,13 @@ export default function TrendPage() {
             {timeRange === '6m' && 'Historical trends over the last 6 months'}
           </p>
         </div>
-        <ToggleGroup
-          type="single"
-          value={timeRange}
-          onValueChange={handleTimeRangeChange}
-          variant="outline"
-          size="sm"
-        >
-          <ToggleGroupItem value="6w">6 weeks</ToggleGroupItem>
-          <ToggleGroupItem value="12w">12 weeks</ToggleGroupItem>
-          <ToggleGroupItem value="6m">6 months</ToggleGroupItem>
-        </ToggleGroup>
+        <Tabs value={timeRange} onValueChange={handleTimeRangeChange}>
+          <TabsList>
+            <TabsTrigger value="6w">6 weeks</TabsTrigger>
+            <TabsTrigger value="12w">12 weeks</TabsTrigger>
+            <TabsTrigger value="6m">6 months</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {error && (

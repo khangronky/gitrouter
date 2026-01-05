@@ -15,7 +15,7 @@ import {
 } from '@/components/performance';
 import { PerformanceSkeleton } from '@/components/performance/performance-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { usePerformanceData } from '@/lib/api/performance';
 import type { PerformanceTimeRange } from '@/lib/schema/performance';
@@ -57,17 +57,13 @@ export default function PerformancePage() {
               'Team and repository metrics for the last 3 months'}
           </p>
         </div>
-        <ToggleGroup
-          type="single"
-          value={timeRange}
-          onValueChange={handleTimeRangeChange}
-          variant="outline"
-          size="sm"
-        >
-          <ToggleGroupItem value="7d">7 days</ToggleGroupItem>
-          <ToggleGroupItem value="30d">30 days</ToggleGroupItem>
-          <ToggleGroupItem value="3m">3 months</ToggleGroupItem>
-        </ToggleGroup>
+        <Tabs value={timeRange} onValueChange={handleTimeRangeChange}>
+          <TabsList>
+            <TabsTrigger value="7d">7 days</TabsTrigger>
+            <TabsTrigger value="30d">30 days</TabsTrigger>
+            <TabsTrigger value="3m">3 months</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {error && (

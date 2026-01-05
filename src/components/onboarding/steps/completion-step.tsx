@@ -85,7 +85,7 @@ export function CompletionStep({ onComplete, onBack }: CompletionStepProps) {
       <div className="space-y-3">
         <h3 className="font-medium text-sm">What&apos;s Next?</h3>
         <div className="grid gap-2">
-          <div className="flex items-center gap-3 p-3 rounded-lg border bg-background">
+          <div className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
             <LayoutDashboard className="size-5 text-primary" />
             <div>
               <p className="text-sm font-medium">View Dashboard</p>
@@ -94,7 +94,7 @@ export function CompletionStep({ onComplete, onBack }: CompletionStepProps) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg border bg-background">
+          <div className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
             <Settings className="size-5 text-primary" />
             <div>
               <p className="text-sm font-medium">Configure Settings</p>
@@ -103,7 +103,7 @@ export function CompletionStep({ onComplete, onBack }: CompletionStepProps) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg border bg-background">
+          <div className="flex items-center gap-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
             <BookOpen className="size-5 text-primary" />
             <div>
               <p className="text-sm font-medium">Read Documentation</p>

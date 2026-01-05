@@ -54,7 +54,7 @@ export function WelcomeStep({ onNext, onSkipAll }: WelcomeStepProps) {
         {features.map((feature) => (
           <div
             key={feature.title}
-            className="flex gap-3 p-3 rounded-lg bg-muted/50"
+            className="flex gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
           >
             <div className="shrink-0">
               <feature.icon className="size-5 text-primary" />
