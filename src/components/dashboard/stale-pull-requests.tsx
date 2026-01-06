@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Clock, ExternalLink, GitPullRequest } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -127,11 +128,14 @@ export function StalePullRequests({
       </ScrollArea>
 
       <div className="mt-4 border-t pt-4">
-        <Button variant="outline" size="sm" className="w-full">
-          <GitPullRequest className="mr-2 h-4 w-4" />
-          View All Stale PRs
-        </Button>
+        <Link href="/pull-requests">
+          <Button variant="outline" size="sm" className="w-full cursor-pointer">
+            <GitPullRequest className="mr-2 h-4 w-4" />
+            View All Stale PRs
+          </Button>
+        </Link>
       </div>
     </Card>
   );
 }
+
