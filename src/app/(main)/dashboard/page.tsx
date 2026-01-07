@@ -2,19 +2,19 @@
 
 import { useState } from 'react';
 import { BottlenecksTable } from '@/components/dashboard/bottlenecks-table';
+import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
 import { KpiRow } from '@/components/dashboard/kpi-row';
 import { LatencyChart } from '@/components/dashboard/latency-chart';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { StalePullRequests } from '@/components/dashboard/stale-pull-requests';
 import { WorkloadChart } from '@/components/dashboard/workload-chart';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { DashboardSkeleton } from '@/components/dashboard/dashboard-skeleton';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { useDashboardData } from '@/lib/api/dashboard';
 import type {
-  TimeRange,
   KpiRowData,
   LatencySeries,
+  TimeRange,
 } from '@/lib/schema/dashboard';
 
 // Fallback data for when API returns empty or during initial load
@@ -75,66 +75,67 @@ export default function Page() {
     : null;
 
   return (
-    <>
-      <section className="p-4">
-        <div className="flex flex-row justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              {timeRange === '7d' && 'Showing data for the last 7 days'}
-              {timeRange === '30d' && 'Showing data for the last 30 days'}
-              {timeRange === '3m' && 'Showing data for the last 3 months'}
-            </p>
-          </div>
-          <ToggleGroup
-            type="single"
-            value={timeRange}
-            onValueChange={handleTimeRangeChange}
-            variant="outline"
-            size="sm"
+    <section className="p-4">
+      <div className="mb-4 flex flex-row items-center justify-between">
+        <div>
+          <h1 className="font-bold text-2xl text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">
+            {timeRange === '7d' && 'Showing data for the last 7 days'}
+            {timeRange === '30d' && 'Showing data for the last 30 days'}
+            {timeRange === '3m' && 'Showing data for the last 3 months'}
+          </p>
+        </div>
+        <Tabs value={timeRange} onValueChange={handleTimeRangeChange}>
+          <TabsList className="h-10 gap-1 bg-foreground/10 p-1">
+            <TabsTrigger value="3m" className="cursor-pointer px-3">
+              Last 3 months
+            </TabsTrigger>
+            <TabsTrigger value="30d" className="cursor-pointer px-3">
+              Last 30 days
+            </TabsTrigger>
+            <TabsTrigger value="7d" className="cursor-pointer px-3">
+              Last 7 days
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {errorMessage && (
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-destructive text-sm">{errorMessage}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-2 text-primary text-sm hover:underline"
           >
-            <ToggleGroupItem value="3m">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
-          </ToggleGroup>
+            Try again
+          </button>
+        </div>
+      )}
+
+      <div className={isLoading ? 'pointer-events-none opacity-60' : ''}>
+        <KpiRow kpis={kpis} />
+
+        <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <LatencyChart
+            latencySeries={latencySeries}
+            className="lg:col-span-2"
+          />
+          <WorkloadChart reviewerWorkload={reviewerWorkload} />
         </div>
 
-        {errorMessage && (
-          <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-            <p className="text-sm text-destructive">{errorMessage}</p>
-            <button
-              onClick={() => refetch()}
-              className="mt-2 text-sm text-primary hover:underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        <div className={isLoading ? 'opacity-60 pointer-events-none' : ''}>
-          <KpiRow kpis={kpis} />
-
-          <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <LatencyChart
-              latencySeries={latencySeries}
-              className="lg:col-span-2"
-            />
-            <WorkloadChart reviewerWorkload={reviewerWorkload} />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-            <BottlenecksTable
-              bottlenecks={bottlenecks}
-              className="lg:col-span-2"
-            />
-            <StalePullRequests stalePRs={stalePRs} className="lg:col-span-1" />
-            <RecentActivity
-              recentActivity={recentActivity}
-              className="lg:col-span-1"
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+          <BottlenecksTable
+            bottlenecks={bottlenecks}
+            className="lg:col-span-2"
+          />
+          <StalePullRequests stalePRs={stalePRs} className="lg:col-span-1" />
+          <RecentActivity
+            recentActivity={recentActivity}
+            className="lg:col-span-1"
+          />
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

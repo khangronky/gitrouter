@@ -15,7 +15,7 @@ import {
 } from '@/components/performance';
 import { PerformanceSkeleton } from '@/components/performance/performance-skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
 import { useCurrentOrganization } from '@/hooks/use-current-organization';
 import { usePerformanceData } from '@/lib/api/performance';
 import type { PerformanceTimeRange } from '@/lib/schema/performance';
@@ -57,22 +57,24 @@ export default function PerformancePage() {
               'Team and repository metrics for the last 3 months'}
           </p>
         </div>
-        <ToggleGroup
-          type="single"
-          value={timeRange}
-          onValueChange={handleTimeRangeChange}
-          variant="outline"
-          size="sm"
-        >
-          <ToggleGroupItem value="7d">7 days</ToggleGroupItem>
-          <ToggleGroupItem value="30d">30 days</ToggleGroupItem>
-          <ToggleGroupItem value="3m">3 months</ToggleGroupItem>
-        </ToggleGroup>
+        <Tabs value={timeRange} onValueChange={handleTimeRangeChange}>
+          <TabsList className="h-10 gap-1 bg-foreground/10 p-1">
+            <TabsTrigger value="7d" className="cursor-pointer px-3">
+              7 days
+            </TabsTrigger>
+            <TabsTrigger value="30d" className="cursor-pointer px-3">
+              30 days
+            </TabsTrigger>
+            <TabsTrigger value="3m" className="cursor-pointer px-3">
+              3 months
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-          <p className="text-sm text-destructive">
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-destructive text-sm">
             {error instanceof Error
               ? error.message
               : 'Failed to fetch performance data'}
@@ -80,22 +82,28 @@ export default function PerformancePage() {
         </div>
       )}
 
-      <div className={isLoading ? 'opacity-60 pointer-events-none' : ''}>
+      <div className={isLoading ? 'pointer-events-none opacity-60' : ''}>
         {/* Summary KPIs */}
         <PerformanceKpiRow data={performanceData?.kpis} />
 
         {/* Tabbed Charts */}
         <Tabs defaultValue="reviewers" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="reviewers" className="gap-2">
+            <TabsTrigger
+              value="reviewers"
+              className="cursor-pointer gap-2 px-3"
+            >
               <Users className="h-4 w-4" />
               Reviewers
             </TabsTrigger>
-            <TabsTrigger value="repositories" className="gap-2">
+            <TabsTrigger
+              value="repositories"
+              className="cursor-pointer gap-2 px-3"
+            >
               <GitBranch className="h-4 w-4" />
               Repositories
             </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2">
+            <TabsTrigger value="activity" className="cursor-pointer gap-2 px-3">
               <Activity className="h-4 w-4" />
               Activity
             </TabsTrigger>

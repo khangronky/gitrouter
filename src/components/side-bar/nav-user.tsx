@@ -1,8 +1,7 @@
 'use client';
 
-import { ChevronsUpDown, LogOut, Moon, Sun } from 'lucide-react';
+import { ChevronsUpDown, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -24,14 +23,9 @@ import { useUserStore } from '@/stores/user-store';
 
 export function NavUser() {
   const { isMobile } = useSidebar();
-  const { theme, setTheme } = useTheme();
 
   const router = useRouter();
   const supabase = createClient();
-
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
 
   const { user, clearUser, isLoading } = useUserStore((state) => state);
 
@@ -98,14 +92,6 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={toggleTheme}>
-              <Sun className="dark:-rotate-90 h-4 w-4 rotate-0 scale-100 transition-all dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="ml-2">
-                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-              </span>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
