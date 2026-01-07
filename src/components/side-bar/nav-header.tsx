@@ -1,8 +1,8 @@
 'use client';
 
+import { Moon, Sun } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
 import { navLinks } from '@/components/side-bar/nav-links';
 import {
   Breadcrumb,
@@ -11,9 +11,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 
 export default function NavHeader() {
   const pathname = usePathname();
@@ -49,9 +49,9 @@ export default function NavHeader() {
   const breadcrumb = getBreadcrumbData();
 
   return (
-    <header className="flex shrink-0 bg-sidebar/50 items-center justify-between gap-2 border-b px-4 py-2.5">
+    <header className="flex shrink-0 items-center justify-between gap-2 border-b bg-sidebar/50 px-4 py-2.5">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1" />
+        <SidebarTrigger variant="outline" className="-ml-1 cursor-pointer" />
         <Separator
           orientation="vertical"
           className="mr-2 data-[orientation=vertical]:h-4"

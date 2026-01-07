@@ -58,17 +58,23 @@ export default function TrendPage() {
           </p>
         </div>
         <Tabs value={timeRange} onValueChange={handleTimeRangeChange}>
-          <TabsList>
-            <TabsTrigger value="6w">6 weeks</TabsTrigger>
-            <TabsTrigger value="12w">12 weeks</TabsTrigger>
-            <TabsTrigger value="6m">6 months</TabsTrigger>
+          <TabsList className="h-10 gap-1 bg-foreground/10 p-1">
+            <TabsTrigger value="6w" className="cursor-pointer px-3">
+              6 weeks
+            </TabsTrigger>
+            <TabsTrigger value="12w" className="cursor-pointer px-3">
+              12 weeks
+            </TabsTrigger>
+            <TabsTrigger value="6m" className="cursor-pointer px-3">
+              6 months
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-          <p className="text-sm text-destructive">
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <p className="text-destructive text-sm">
             {error instanceof Error
               ? error.message
               : 'Failed to fetch trend data'}
@@ -81,16 +87,16 @@ export default function TrendPage() {
 
       {/* Tabbed Charts */}
       <Tabs defaultValue="speed" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="speed" className="gap-2">
+        <TabsList className="mb-4 h-10 gap-1 bg-foreground/10 p-1">
+          <TabsTrigger value="speed" className="cursor-pointer gap-2 px-3">
             <Zap className="h-4 w-4" />
             Speed
           </TabsTrigger>
-          <TabsTrigger value="volume" className="gap-2">
+          <TabsTrigger value="volume" className="cursor-pointer gap-2 px-3">
             <BarChart3 className="h-4 w-4" />
             Volume
           </TabsTrigger>
-          <TabsTrigger value="quality" className="gap-2">
+          <TabsTrigger value="quality" className="cursor-pointer gap-2 px-3">
             <ShieldCheck className="h-4 w-4" />
             Quality
           </TabsTrigger>

@@ -1,7 +1,10 @@
 'use client';
 
+import { Link, List, Loader2, Search } from 'lucide-react';
 import { useState } from 'react';
-import { Loader2, Link, List, Search } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -10,18 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  useAvailableRepositories,
   useAddRepositoriesFromGitHub,
+  useAvailableRepositories,
 } from '@/lib/api/github';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
 
 interface AddRepositoryDialogProps {
   orgId: string;
@@ -210,12 +210,12 @@ export function AddRepositoryDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="select" className="gap-2">
+          <TabsList className="grid h-10 w-full grid-cols-2 gap-1 bg-foreground/10 p-1">
+            <TabsTrigger value="select" className="cursor-pointer gap-2 px-3">
               <List className="h-4 w-4" />
               Select
             </TabsTrigger>
-            <TabsTrigger value="url" className="gap-2">
+            <TabsTrigger value="url" className="cursor-pointer gap-2 px-3">
               <Link className="h-4 w-4" />
               By URL
             </TabsTrigger>
@@ -241,7 +241,7 @@ export function AddRepositoryDialog({
               <div className="space-y-3">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       placeholder="Search repositories..."
                       value={searchQuery}
@@ -275,18 +275,18 @@ export function AddRepositoryDialog({
                             checked={selectedRepos.has(repo.id)}
                             onCheckedChange={() => toggleRepo(repo.id)}
                           />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">
                               {repo.full_name}
                             </p>
                             {repo.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-1">
+                              <p className="line-clamp-1 text-muted-foreground text-sm">
                                 {repo.description}
                               </p>
                             )}
                           </div>
                           {repo.private && (
-                            <span className="text-xs text-muted-foreground shrink-0">
+                            <span className="shrink-0 text-muted-foreground text-xs">
                               Private
                             </span>
                           )}
@@ -334,16 +334,16 @@ export function AddRepositoryDialog({
                   }}
                 />
                 {urlError && (
-                  <p className="text-sm text-destructive">{urlError}</p>
+                  <p className="text-destructive text-sm">{urlError}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Supported formats: owner/repo, https://github.com/owner/repo,
                   git@github.com:owner/repo.git
                 </p>
               </div>
 
               {!error && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   Note: The repository must be accessible to your GitHub App
                   installation.
                 </p>
