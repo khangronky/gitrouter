@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import LoginForm from './form';
 
 export default async function LoginPage({
@@ -9,7 +8,7 @@ export default async function LoginPage({
   const { returnUrl = '/dashboard' } = await searchParams;
 
   return (
-    <section className="flex h-screen flex-col justify-center px-32">
+    <div className="flex h-full flex-col items-center justify-center px-16">
       <div className="flex flex-col gap-4">
         <div className="space-y-1">
           <h1 className="font-bold text-5xl">Welcome to GitRouter</h1>
@@ -18,12 +17,10 @@ export default async function LoginPage({
           </p>
         </div>
 
-        <div className="w-full max-w-md space-y-4">
-          <Suspense>
-            <LoginForm returnUrl={returnUrl} />
-          </Suspense>
+        <div className="max-w-md space-y-4">
+          <LoginForm returnUrl={returnUrl} />
         </div>
       </div>
-    </section>
+    </div>
   );
 }

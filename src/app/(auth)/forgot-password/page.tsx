@@ -2,7 +2,7 @@ import ForgotPasswordForm from './form';
 
 export default function ForgotPasswordPage() {
   return (
-    <section className="flex h-screen flex-col justify-center px-32">
+    <div className="flex h-full flex-col items-center justify-center px-16">
       <div className="flex flex-col gap-4">
         <div className="space-y-1">
           <h1 className="font-bold text-5xl">Reset Your Password</h1>
@@ -14,6 +14,6 @@ export default function ForgotPasswordPage() {
           <ForgotPasswordForm />
         </div>
       </div>
-    </section>
+    </div>
   );
 }
