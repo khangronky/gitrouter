@@ -40,7 +40,8 @@ export function CTASection() {
             </Link>
 
             <Link
-              href="#demo"
+              href="https://youtu.be/ieilmtnIA2k"
+              target="_blank"
               className="group inline-flex items-center gap-2 px-8 py-4 border border-landing-border bg-landing-card text-landing-text font-semibold rounded-xl transition-all duration-200 hover:border-landing-accent/50 hover:bg-landing-card-hover"
             >
               <IconPlayerPlay className="h-5 w-5" />

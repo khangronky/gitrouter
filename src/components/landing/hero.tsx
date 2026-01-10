@@ -378,7 +378,7 @@ export function Hero() {
               size="lg"
               className="group border-landing-border bg-transparent text-landing-text hover:border-landing-text/40 hover:bg-landing-card"
             >
-              <Link href="#demo" className="flex items-center gap-2">
+              <Link href="https://youtu.be/ieilmtnIA2k" target="_blank" className="flex items-center gap-2">
                 <IconPlayerPlay className="h-4 w-4 transition-transform group-hover:scale-110" />
                 Watch Demo
               </Link>
